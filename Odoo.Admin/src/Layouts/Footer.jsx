@@ -7,7 +7,7 @@ const Footer = () => {
             <Container fluid>
                 <Row className="gy-1">
                     <Col xs={12} sm={6} className="text-center text-sm-start">
-                        {new Date().getFullYear()} © Barodaweb
+                        {new Date().getFullYear()} © Arambh Sports Arena
                     </Col>
                     <Col xs={12} sm={6}>
                         <a

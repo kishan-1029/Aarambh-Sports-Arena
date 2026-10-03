@@ -1,13 +1,13 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 3
+Current phase: 4
 
 ## Phases
 
 - [x] Phase 0 — Codebase and reference audit
 - [x] Phase 1 — Foundation
 - [x] Phase 2 — Authentication and RBAC
-- [ ] Phase 3 — Design system and admin shell
+- [x] Phase 3 — Design system and admin shell
 - [ ] Phase 4 — Club setup, customers, finance core
 - [ ] Phase 5 — Members and membership
 - [ ] Phase 6 — Courts and booking engine
@@ -27,10 +27,10 @@ Current phase: 3
 
 ## Current phase tasks
 
-### Phase 3 — Design system and admin shell
-- [ ] Tokens / CSS variables; standard building blocks
-- [ ] Nav config with `perm` per item + Coming soon placeholders
-- [ ] AppLayout / router groups (extend existing shell)
+### Phase 4 — Club setup, customers, finance core
+- [ ] Locations / settings / taxes
+- [ ] Customers CRUD
+- [ ] Invoice + payment services (paise, mock provider)
 
 ## Decisions & deviations
 
@@ -43,6 +43,7 @@ Current phase: 3
 - ADR-0005 hybrid server layout — accepted.
 - ADR-0006 Bootstrap admin UI kit — accepted.
 - Phase 2: menu CRUD stays on `session.user.permissions`; Arambh strings on `stringPermissions` to avoid breaking MenuContext.
+- Phase 3: Arambh nav merged after API menus (static `arambhNav.js`); command palette is custom modal (no `cmdk`); building blocks on Bootstrap/Reactstrap.
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -57,4 +58,4 @@ Current phase: 3
 
 - Odoo.Server: `npm test` → 36/36 pass (MongoMemoryReplSet), including Phase 2 RBAC table-driven tests.
 - Odoo.Server: may be running on http://localhost:7002; restart after pull to load auth session changes.
-- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002); `usePermission` / `<Can>` available.
+- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002); Phase 3 shell: brand tokens, Arambh nav placeholders, ⌘K, dark mode, `/staff/directory` sample list, `/pos` fullscreen stub.

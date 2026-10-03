@@ -124,3 +124,12 @@ Full-screen layouts (`/front-desk`, `/pos/*`, `/kds`) use a separate `Fullscreen
 
 ## 5. Admin AI panel [RE]
 A slide-over "Ask the club" assistant inside the admin (same orchestrator as members but with **staff tools** filtered by the user's permissions — read reports, find member, check availability). Optional; the primary management AI channel is ChatGPT via MCP.
+
+## Implementation notes (Phase 3)
+
+- **UI kit:** Bootstrap 5 + Reactstrap kept (ADR-0006). No Tailwind/shadcn migration.
+- **Brand tokens:** `Odoo.Admin/src/assets/scss/_arambh-tokens.scss` — `--arambh-*` CSS variables + light `--vz-primary` override; dark via `[data-layout-mode="dark"]`.
+- **Building blocks** (under `Components/Common/`): `EmptyState`, `ErrorState`, `Skeleton`, `StatusChip`, `Money` (paise→₹), `ConfirmDialog`, `KpiTile`, `CommandPalette` (lightweight Ctrl/⌘K, no `cmdk` dep). Reuses existing `DeleteModal`, `LoadingScreen`, `react-data-table-component`, `react-toastify`, axios client.
+- **Nav:** Static Arambh group from `config/arambhNav.js` merged **after** API MenuMaster groups in `VerticalLayouts` — does not replace menu fetch. Items gated with `usePermission` / `Can` when `perm` is set. Placeholders show a "Soon" badge.
+- **Routes:** Coming-soon pages for Front Desk, Bookings, Members, Plans, Courts, KDS, Shop, CRM, Finance, HR, Reports, Settings. Sample live list: `/staff/directory` (employees API). Fullscreen stub: `/pos` via `FullscreenLayout`.
+- **Shell branding:** "Arambh Sports Arena" in sidebar logo area, header, login, footer. Dark mode toggle (`LightDark`) wired in header; preference in `localStorage` key `arambh-layout-mode`.

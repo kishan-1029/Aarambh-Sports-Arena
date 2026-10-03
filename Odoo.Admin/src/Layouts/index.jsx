@@ -10,6 +10,7 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import ThemeCustomizer from "../Components/Common/ThemeCustomizer";
+import CommandPalette from "../Components/Common/CommandPalette";
 
 const Layout = (props) => {
     const { adminData } = useContext(AuthContext);
@@ -17,6 +18,7 @@ const Layout = (props) => {
     const [layoutModeType, setLayoutModeType] = useState("light");
     const [showSettings, setShowSettings] = useState(false);
     const [previewSearchMenu, setPreviewSearchMenu] = useState(true);
+    const [cmdOpen, setCmdOpen] = useState(false);
 
     // Helper to adjust color brightness dynamically for gradients and hover states
     const adjustColorBrightness = useCallback((hex, percent) => {
@@ -443,11 +445,18 @@ const Layout = (props) => {
     const onChangeLayoutMode = (value) => {
         setLayoutModeType(value);
 
-        // Apply theme directly to document
+        // Apply theme directly to document (Velzon: data-layout-mode)
         if (value === "dark") {
+            document.documentElement.setAttribute("data-layout-mode", "dark");
             document.documentElement.dataset.layoutMode = "dark";
         } else {
+            document.documentElement.setAttribute("data-layout-mode", "light");
             document.documentElement.dataset.layoutMode = "light";
+        }
+        try {
+            localStorage.setItem("arambh-layout-mode", value);
+        } catch {
+            /* ignore */
         }
     };
 
@@ -457,7 +466,28 @@ const Layout = (props) => {
 
         // Set layout type
         document.documentElement.dataset.layout = "vertical";
-        console.log("Layout set to vertical");
+
+        let saved = "light";
+        try {
+            saved = localStorage.getItem("arambh-layout-mode") || "light";
+        } catch {
+            saved = "light";
+        }
+        setLayoutModeType(saved);
+        document.documentElement.setAttribute("data-layout-mode", saved);
+        document.documentElement.dataset.layoutMode = saved;
+    }, []);
+
+    // ⌘K / Ctrl+K command palette
+    useEffect(() => {
+        const onKey = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                setCmdOpen((v) => !v);
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
     }, []);
 
     // Update favicon dynamically
@@ -600,12 +630,15 @@ const Layout = (props) => {
                 onChangeLayoutMode={onChangeLayoutMode}
                 onToggleSettings={() => setShowSettings(!showSettings)}
                 showSearchMenu={adminData?.enableSearchMenu !== false}
+                onOpenCommandPalette={() => setCmdOpen(true)}
             />
             <Sidebar layoutType="vertical" />
             <div className="main-content">
                 {props.children ? props.children : <Outlet />}
                 <Footer />
             </div>
+
+            <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
 
             {adminData?.isSuperAdmin && (
                 <ThemeCustomizer 

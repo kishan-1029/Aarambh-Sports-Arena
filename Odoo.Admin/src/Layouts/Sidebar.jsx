@@ -626,22 +626,28 @@ const Sidebar = ({ layoutType }) => {
                 `}
             </style>
             <div className="app-menu navbar-menu minimal-sidebar">
-                <div className="navbar-brand-box minimal-logo-box">
-                    <Link to="/dashboard" className="logo logo-dark">
+                <div className="navbar-brand-box minimal-logo-box flex-column">
+                    <Link to="/dashboard" className="logo logo-dark text-center w-100">
                         <span className="logo-sm">
-                            <img src={logoSrc} alt={adminData?.companyName || "Company Logo"} height="34" style={{ objectFit: "contain" }} />
+                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="34" style={{ objectFit: "contain" }} />
                         </span>
-                        <span className="logo-lg">
-                            <img src={logoSrc} alt={adminData?.companyName || "Company Logo"} height="60" style={{ objectFit: "contain" }} />
+                        <span className="logo-lg d-flex flex-column align-items-center">
+                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="48" style={{ objectFit: "contain" }} />
+                            <span className="arambh-brand-text mt-1" style={{ fontSize: "0.7rem", color: "var(--arambh-brand)" }}>
+                                Arambh Sports Arena
+                            </span>
                         </span>
                     </Link>
 
-                    <Link to="/dashboard" className="logo logo-light">
+                    <Link to="/dashboard" className="logo logo-light text-center w-100">
                         <span className="logo-sm">
-                            <img src={logoSrc} alt={adminData?.companyName || "Company Logo"} height="34" style={{ objectFit: "contain" }} />
+                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="34" style={{ objectFit: "contain" }} />
                         </span>
-                        <span className="logo-lg">
-                            <img src={logoSrc} alt={adminData?.companyName || "Company Logo"} height="60" style={{ objectFit: "contain" }} />
+                        <span className="logo-lg d-flex flex-column align-items-center">
+                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="48" style={{ objectFit: "contain" }} />
+                            <span className="arambh-brand-text mt-1" style={{ fontSize: "0.7rem", color: "var(--arambh-brand)" }}>
+                                Arambh Sports Arena
+                            </span>
                         </span>
                     </Link>
                     <button

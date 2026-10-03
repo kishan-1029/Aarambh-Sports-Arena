@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { MenuContext } from "../../context/MenuContext";
 import { AuthContext } from "../../context/AuthContext";
+import { buildArambhNavGroup } from "../../config/arambhNav";
+import { usePermission } from "../../hooks/usePermission";
 
 const activateParentDropdown = (item) => {
     item.classList.add("active");
@@ -56,9 +58,18 @@ const VerticalLayout = (props) => {
     const { menuData, loading, updateCurrentPagePermissions } =
         useContext(MenuContext);
     const { adminData } = useContext(AuthContext);
+    const { can } = usePermission();
     const [expandedItems, setExpandedItems] = useState({});
 
     const path = props.router.location.pathname;
+
+    const arambhGroup = useMemo(() => {
+        const group = buildArambhNavGroup();
+        return {
+            ...group,
+            menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+        };
+    }, [can]);
 
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {
@@ -238,6 +249,11 @@ const VerticalLayout = (props) => {
                     >
                         {item.icon ? <i className={item.icon}></i> : null}
                         <span data-key="t-apps">{item.name}</span>
+                        {item.badge ? (
+                            <span className="badge bg-warning-subtle text-warning ms-auto" style={{ fontSize: "0.65rem" }}>
+                                {item.badge}
+                            </span>
+                        ) : null}
                     </Link>
                 </li>
             );
@@ -324,19 +340,10 @@ const VerticalLayout = (props) => {
             );
         }
 
-        if (!Array.isArray(menuData) || menuData.length === 0) {
-            return (
-                <li className="nav-item">
-                    <span className="nav-link">
-                        No menu items available.
-                    </span>
-                </li>
-            );
-        }
-
         // Helper to clone and insert Add Admin option dynamically if Super Admin
         const getFilteredMenuData = () => {
-            let clonedData = JSON.parse(JSON.stringify(menuData));
+            const source = Array.isArray(menuData) ? menuData : [];
+            let clonedData = JSON.parse(JSON.stringify(source));
             if (adminData?.isSuperAdmin === true) {
                 clonedData.forEach(group => {
                     if (group.menus) {
@@ -376,8 +383,24 @@ const VerticalLayout = (props) => {
 
         const processedMenuData = getFilteredMenuData();
 
+        // Merge static Arambh module nav after API menus (does not break MenuMaster fetch)
+        const mergedMenuData =
+            arambhGroup.menus.length > 0
+                ? [...processedMenuData, arambhGroup]
+                : processedMenuData;
+
+        if (mergedMenuData.length === 0) {
+            return (
+                <li className="nav-item">
+                    <span className="nav-link">
+                        No menu items available.
+                    </span>
+                </li>
+            );
+        }
+
         // Get all sibling group IDs for top-level accordion behavior
-        const siblingGroupIds = processedMenuData
+        const siblingGroupIds = mergedMenuData
             .filter(
                 (g) =>
                     !g.isLink &&
@@ -388,7 +411,7 @@ const VerticalLayout = (props) => {
 
         return (
             <React.Fragment>
-                {processedMenuData.map((group) =>
+                {mergedMenuData.map((group) =>
                     renderMenuGroup(group, siblingGroupIds)
                 )}
             </React.Fragment>

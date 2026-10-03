@@ -1,0 +1,180 @@
+// Arambh Sports Arena — brand tokens (Phase 3)
+// Light tokens on :root; dark overrides under [data-layout-mode="dark"]
+
+:root {
+  --arambh-bg: #f7f8f6;
+  --arambh-surface: #ffffff;
+  --arambh-surface-2: #f0f2ee;
+  --arambh-border: #e2e6e0;
+  --arambh-text: #111714;
+  --arambh-text-muted: #5b665f;
+  --arambh-brand: #0f7a4a;
+  --arambh-brand-fg: #ffffff;
+  --arambh-accent: #d9622b;
+  --arambh-success: #1a8f5a;
+  --arambh-warning: #b7791f;
+  --arambh-danger: #c2362f;
+  --arambh-info: #2563c9;
+  --arambh-tier-gold: #b8892b;
+  --arambh-tier-silver: #7c8794;
+  --arambh-tier-junior: #2f8fb8;
+  --arambh-radius: 10px;
+  --arambh-radius-sm: 6px;
+
+  // Map primary Bootstrap accent lightly toward court green (Velzon prefix: vz-)
+  --vz-primary: #0f7a4a;
+  --vz-primary-rgb: 15, 122, 74;
+}
+
+[data-layout-mode="dark"] {
+  --arambh-bg: #0e1210;
+  --arambh-surface: #151a17;
+  --arambh-surface-2: #1c2320;
+  --arambh-border: #2a322e;
+  --arambh-text: #ecefec;
+  --arambh-text-muted: #98a39c;
+  --arambh-brand: #3bc489;
+  --arambh-brand-fg: #06140d;
+  --arambh-accent: #f08a55;
+  --arambh-success: #46c98c;
+  --arambh-warning: #e3a84a;
+  --arambh-danger: #ef6a62;
+  --arambh-info: #6b9cf0;
+  --vz-primary: #3bc489;
+  --vz-primary-rgb: 59, 196, 137;
+}
+
+.arambh-brand-text {
+  color: var(--arambh-brand);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.arambh-kpi-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--arambh-text);
+  line-height: 1.2;
+}
+
+.arambh-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  background: var(--arambh-surface-2);
+  color: var(--arambh-text);
+  border: 1px solid var(--arambh-border);
+
+  .arambh-status-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.tone-success {
+    color: var(--arambh-success);
+    background: rgba(26, 143, 90, 0.1);
+    border-color: rgba(26, 143, 90, 0.25);
+  }
+  &.tone-warning {
+    color: var(--arambh-warning);
+    background: rgba(183, 121, 31, 0.12);
+    border-color: rgba(183, 121, 31, 0.28);
+  }
+  &.tone-danger {
+    color: var(--arambh-danger);
+    background: rgba(194, 54, 47, 0.1);
+    border-color: rgba(194, 54, 47, 0.25);
+  }
+  &.tone-info {
+    color: var(--arambh-info);
+    background: rgba(37, 99, 201, 0.1);
+    border-color: rgba(37, 99, 201, 0.25);
+  }
+  &.tone-neutral {
+    color: var(--arambh-text-muted);
+  }
+}
+
+.arambh-cmdk-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 23, 20, 0.45);
+  z-index: 1055;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.arambh-cmdk-panel {
+  width: min(560px, 92vw);
+  background: var(--arambh-surface);
+  border: 1px solid var(--arambh-border);
+  border-radius: var(--arambh-radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.arambh-cmdk-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--arambh-border);
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  outline: none;
+  background: transparent;
+  color: var(--arambh-text);
+}
+
+.arambh-cmdk-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.35rem 0;
+}
+
+.arambh-cmdk-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  color: var(--arambh-text);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+
+  &:hover,
+  &.active {
+    background: var(--arambh-surface-2);
+  }
+
+  .meta {
+    font-size: 0.75rem;
+    color: var(--arambh-text-muted);
+  }
+}
+
+.arambh-fullscreen {
+  min-height: 100vh;
+  background: var(--arambh-bg);
+  color: var(--arambh-text);
+}
+
+.arambh-fullscreen-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--arambh-border);
+  background: var(--arambh-surface);
+}

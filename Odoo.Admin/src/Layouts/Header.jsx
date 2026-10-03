@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
 import UniversalSearch from "../Components/Common/UniversalSearch";
+import LightDark from "../Components/Common/LightDark";
 import PropTypes from "prop-types";
 import { AuthContext } from "../context/AuthContext";
 
-const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSettings, showSearchMenu }) => {
+const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSettings, showSearchMenu, onOpenCommandPalette }) => {
     const { adminData } = useContext(AuthContext);
     const handleHorizontalLayout = () => {
         console.log("Layout: horizontal");
@@ -95,8 +96,29 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSetti
                         </button>
                     </div>
 
+                    <div className="d-none d-md-flex align-items-center me-3">
+                        <span className="arambh-brand-text text-truncate" style={{ maxWidth: 220 }}>
+                            Arambh Sports Arena
+                        </span>
+                    </div>
                     {showSearchMenu && <UniversalSearch />}
                     <div className="d-flex align-items-center">
+                        <button
+                            type="button"
+                            className="btn btn-topbar btn-ghost-secondary btn-sm me-1 d-none d-sm-inline-flex align-items-center"
+                            onClick={onOpenCommandPalette}
+                            title="Command palette (Ctrl+K)"
+                        >
+                            <i className="ri-search-line me-1" />
+                            <span className="d-none d-lg-inline">Search</span>
+                            <kbd className="ms-2 small border rounded px-1 text-muted">⌘K</kbd>
+                        </button>
+                        {typeof onChangeLayoutMode === "function" && (
+                            <LightDark
+                                layoutMode={layoutModeType}
+                                onChangeLayoutMode={onChangeLayoutMode}
+                            />
+                        )}
                         {adminData?.isSuperAdmin && (
                             <button
                                 type="button"
@@ -118,6 +140,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSetti
 
 Header.propTypes = {
     onChangeLayoutMode: PropTypes.func,
+    onOpenCommandPalette: PropTypes.func,
     layoutModeType: PropTypes.string,
     headerClass: PropTypes.string,
     onToggleSettings: PropTypes.func,

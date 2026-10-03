@@ -15,7 +15,26 @@ import { MenuContext } from "../context/MenuContext";
  * do not flash a full-screen spinner (which looked like a page refresh).
  */
 
-const WHITELISTED_ROUTES = ["/dashboard", "/profile", "/"];
+const WHITELISTED_ROUTES = [
+    "/dashboard",
+    "/profile",
+    "/",
+    // Arambh Phase 3 placeholders + sample list (string perms gated in-page via Can)
+    "/front-desk",
+    "/courts",
+    "/courts/bookings",
+    "/members",
+    "/membership-plans",
+    "/pos",
+    "/kds",
+    "/shop/inventory",
+    "/crm/pipeline",
+    "/finance/invoices",
+    "/staff",
+    "/staff/directory",
+    "/reports",
+    "/settings",
+];
 
 const normalizeUrl = (url) => url.split("?")[0].replace(/\/+$/, "") || "/";
 

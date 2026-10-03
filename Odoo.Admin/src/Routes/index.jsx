@@ -4,9 +4,10 @@ import { Routes, Route } from "react-router-dom";
 //Layouts
 import NonAuthLayout from "../Layouts/NonAuthLayout";
 import VerticalLayout from "../Layouts/index";
+import FullscreenLayout from "../Layouts/FullscreenLayout";
 
 //routes
-import { authProtectedRoutes, publicRoutes } from "./allRoutes";
+import { authProtectedRoutes, publicRoutes, fullscreenRoutes } from "./allRoutes";
 import { AuthProtected } from './AuthProtected';
 import { PermissionProtected } from './PermissionProtected';
 import { AuthContext } from '../context/AuthContext';
@@ -32,6 +33,29 @@ const Index = () => {
                     />
                 ))}
             </Route>
+
+            {adminData && (
+                <Route
+                    element={
+                        <AuthProtected>
+                            <FullscreenLayout />
+                        </AuthProtected>
+                    }
+                >
+                    {fullscreenRoutes.map((route) => (
+                        <Route
+                            path={route.path}
+                            element={
+                                <PermissionProtected>
+                                    {route.component}
+                                </PermissionProtected>
+                            }
+                            key={route.path}
+                            exact={true}
+                        />
+                    ))}
+                </Route>
+            )}
 
             {adminData && (
                 <Route

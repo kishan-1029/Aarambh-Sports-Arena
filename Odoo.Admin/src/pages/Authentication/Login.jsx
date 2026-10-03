@@ -1003,7 +1003,7 @@ const Login = () => {
         );
     };
 
-    document.title = `Sign in | Barodaweb`;
+    document.title = `Sign in | Arambh Sports Arena`;
 
 
 
@@ -1117,15 +1117,16 @@ const Login = () => {
                                                         />
                                                     </div>
                                                     <h2
-                                                        className="mobile-heading"
+                                                        className="mobile-heading arambh-brand-text"
                                                         style={{
-                                                            color: "#0d6efd",
+                                                            color: "var(--arambh-brand, #0f7a4a)",
                                                             fontWeight: "700",
                                                             letterSpacing:
-                                                                "1px",
+                                                                "0.02em",
+                                                            fontSize: "1.35rem",
                                                         }}
                                                     >
-                                                        LOGIN
+                                                        Arambh Sports Arena
                                                     </h2>
                                                     <p
                                                         className="text-muted"
@@ -1133,8 +1134,7 @@ const Login = () => {
                                                             fontSize: "0.9rem",
                                                         }}
                                                     >
-                                                        Welcome back! Please
-                                                        login to your account.
+                                                        Sign in to the club admin panel.
                                                     </p>
                                                 </div>
                                                 <Form>

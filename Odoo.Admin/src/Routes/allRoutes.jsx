@@ -25,6 +25,9 @@ import FaqCategory from "../pages/Setup/FaqCategory";
 import Faq from "../pages/Setup/Faq";
 import GuidesGallery from "../pages/HelpGuides/GuidesGallery";
 import ManageGuides from "../pages/HelpGuides/ManageGuides";
+import ComingSoon from "../pages/Arambh/ComingSoon";
+import StaffDirectory from "../pages/Arambh/StaffDirectory";
+import PosPlaceholder from "../pages/Arambh/PosPlaceholder";
 
 
 const authProtectedRoutes = [
@@ -54,6 +57,21 @@ const authProtectedRoutes = [
     { path: "/currency-master", component: <CurrencyMaster /> },
     { path: "/login-attempt-logs", component: <LoginAttemptLogs /> },
 
+    // Arambh module placeholders + sample list (Phase 3)
+    { path: "/front-desk", component: <ComingSoon /> },
+    { path: "/courts", component: <ComingSoon /> },
+    { path: "/courts/bookings", component: <ComingSoon /> },
+    { path: "/members", component: <ComingSoon /> },
+    { path: "/membership-plans", component: <ComingSoon /> },
+    { path: "/kds", component: <ComingSoon /> },
+    { path: "/shop/inventory", component: <ComingSoon /> },
+    { path: "/crm/pipeline", component: <ComingSoon /> },
+    { path: "/finance/invoices", component: <ComingSoon /> },
+    { path: "/staff", component: <ComingSoon /> },
+    { path: "/staff/directory", component: <StaffDirectory /> },
+    { path: "/reports", component: <ComingSoon /> },
+    { path: "/settings", component: <ComingSoon /> },
+
     {
         path: "/",
         exact: true,
@@ -62,9 +80,14 @@ const authProtectedRoutes = [
     { path: "*", component: <Navigate to="/dashboard" /> },
 ];
 
+/** Fullscreen routes (no sidebar) — POS stub */
+const fullscreenRoutes = [
+    { path: "/pos", component: <PosPlaceholder /> },
+];
+
 const publicRoutes = [
     { path: "/", component: <Login /> },
     // { path: "*", component: <Navigate to="/" /> },
 ];
 
-export { authProtectedRoutes, publicRoutes };
+export { authProtectedRoutes, publicRoutes, fullscreenRoutes };
