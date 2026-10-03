@@ -17,13 +17,13 @@ const FormsHeader = ({
   showAddButton = true,
 }) => {
   return (
-    <Row className="g-4 mb-1">
-        <Col className="col-sm" sm={6} lg={4} md={6}>
-          <h2 className="card-title mb-0 fs-4 mt-2">{formName}</h2>
+    <Row className="g-2 g-md-3 mb-2 align-items-center list-page-toolbar">
+        <Col xs={12} md={4}>
+          <h2 className="card-title mb-0 list-page-title">{formName}</h2>
         </Col>
 
-        <Col sm={6} lg={4} md={6}>
-          <div className="text-end mt-2">
+        <Col xs={12} md={3}>
+          <div className="list-page-filter">
             <Input
               type="checkbox"
               className="form-check-input"
@@ -32,24 +32,24 @@ const FormsHeader = ({
               defaultChecked={true}
               onChange={handleFilter}
             />
-            <Label className="form-check-label ms-2">Active</Label>
+            <Label className="form-check-label ms-2 mb-0">Active</Label>
           </div>
         </Col>
-        <Col className="col-sm-auto" sm={12} lg={4} md={12}>
-          <div className="d-flex justify-content-sm-end">
+        <Col xs={12} md={5}>
+          <div className="d-flex flex-wrap gap-2 align-items-center justify-content-md-end page-toolbar">
             {showAddButton && (
-              <div className="ms-2">
-                <Button
-                  color="success"
-                  className="add-btn me-1"
-                  onClick={() => tog_list()}
-                  id="create-btn"
-                >
-                  <i className="ri-add-line align-bottom me-1"></i>{" "}Add
-                </Button>
-              </div>
+              <Button
+                color="success"
+                size="sm"
+                className="add-btn"
+                onClick={() => tog_list()}
+                id="create-btn"
+              >
+                <i className="ri-add-line align-bottom me-1"></i>
+                Add
+              </Button>
             )}
-            <div className="search-box ms-2">
+            <div className="search-box toolbar-field">
               <input
                 type="text"
                 className="form-control search"

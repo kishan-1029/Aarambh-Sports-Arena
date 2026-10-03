@@ -436,7 +436,7 @@ const ManageGuides = () => {
       {
         name: "Action",
         cell: (row) => (
-          <div className="d-flex align-items-center gap-1" style={{ height: "28px" }}>
+          <div className="d-flex align-items-center gap-1">
             {permissions.read && (
               row.type === "YouTube" ? (
                 <a
@@ -444,9 +444,11 @@ const ManageGuides = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-sm btn-info edit-item-btn d-inline-flex align-items-center gap-1"
-                  style={{ height: "28px", lineHeight: "1.2" }}
+                  title="Preview"
+                  aria-label="Preview"
                 >
-                  <i className="ri-eye-line"></i> Preview
+                  <i className="ri-eye-line" aria-hidden="true"></i>
+                  <span className="action-label">Preview</span>
                 </a>
               ) : row.type === "Document" ? (
                 <a
@@ -454,41 +456,52 @@ const ManageGuides = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-sm btn-info edit-item-btn d-inline-flex align-items-center gap-1"
-                  style={{ height: "28px", lineHeight: "1.2" }}
+                  title="Preview"
+                  aria-label="Preview"
                 >
-                  <i className="ri-eye-line"></i> Preview
+                  <i className="ri-eye-line" aria-hidden="true"></i>
+                  <span className="action-label">Preview</span>
                 </a>
               ) : (
                 <button
-                  className="btn btn-sm btn-info edit-item-btn d-flex align-items-center gap-1"
-                  style={{ height: "28px" }}
+                  type="button"
+                  className="btn btn-sm btn-info edit-item-btn d-inline-flex align-items-center gap-1"
+                  title="Preview"
+                  aria-label="Preview"
                   onClick={() => handleOpenPreview(row)}
                 >
-                  <i className="ri-eye-line"></i> Preview
+                  <i className="ri-eye-line" aria-hidden="true"></i>
+                  <span className="action-label">Preview</span>
                 </button>
               )
             )}
             {permissions.edit && (
               <button
-                className="btn btn-sm btn-success edit-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
+                type="button"
+                className="btn btn-sm btn-success edit-item-btn d-inline-flex align-items-center gap-1"
+                title="Edit"
+                aria-label="Edit"
                 onClick={() => handleTog_edit(row)}
               >
-                <i className="ri-pencil-line"></i> Edit
+                <i className="ri-pencil-line" aria-hidden="true"></i>
+                <span className="action-label">Edit</span>
               </button>
             )}
             {permissions.delete && (
               <button
-                className="btn btn-sm btn-danger remove-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
+                type="button"
+                className="btn btn-sm btn-danger remove-item-btn d-inline-flex align-items-center gap-1"
+                title="Delete"
+                aria-label="Delete"
                 onClick={() => tog_delete(row._id)}
               >
-                <i className="ri-delete-bin-line"></i> Delete
+                <i className="ri-delete-bin-line" aria-hidden="true"></i>
+                <span className="action-label">Delete</span>
               </button>
             )}
           </div>
         ),
-        minWidth: "260px",
+        minWidth: "132px",
       },
     ],
     [permissions, pageNo, perPage]

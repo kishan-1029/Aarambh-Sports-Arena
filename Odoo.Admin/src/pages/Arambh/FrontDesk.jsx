@@ -413,7 +413,7 @@ const FrontDesk = () => {
                       {m.firstName} {m.lastName || ""}
                     </span>
                     <span className="text-muted small ms-2">{m.memberCode}</span>
-                    <Badge color={TIER_COLOUR[m.tierKey] || "light"} className="ms-2" pill>
+                    <Badge color={TIER_COLOUR[m.tierKey] || "light"} className={`ms-2${!m.tierKey || m.tierKey === "none" ? " tier-none" : ""}`} pill>
                       {(m.tierKey || "none").toUpperCase()}
                     </Badge>
                   </button>
@@ -537,7 +537,7 @@ const FrontDesk = () => {
                             })}{" "}
                             · {b.courtId?.name || b.courtId?.code || "Court"}
                           </div>
-                          <div className="d-flex align-items-center justify-content-between gap-2">
+                          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <span>
                               {b.bookedByMemberId
                                 ? `${b.bookedByMemberId.firstName} ${b.bookedByMemberId.lastName || ""}`
@@ -574,7 +574,7 @@ const FrontDesk = () => {
                     </Button>
                   </div>
                   <div className="my-2">
-                    <Badge color={TIER_COLOUR[member.tierKey] || "light"} pill>
+                    <Badge color={TIER_COLOUR[member.tierKey] || "light"} className={!member.tierKey || member.tierKey === "none" ? "tier-none" : undefined} pill>
                       {(member.tierKey || "none").toUpperCase()}
                     </Badge>
                     {expired && (
@@ -679,7 +679,7 @@ const FrontDesk = () => {
                   <strong>
                     {member.firstName} {member.lastName || ""}
                   </strong>{" "}
-                  <Badge color={TIER_COLOUR[member.tierKey] || "light"}>
+                  <Badge color={TIER_COLOUR[member.tierKey] || "light"} className={!member.tierKey || member.tierKey === "none" ? "tier-none" : undefined}>
                     {(member.tierKey || "").toUpperCase()}
                   </Badge>
                 </p>

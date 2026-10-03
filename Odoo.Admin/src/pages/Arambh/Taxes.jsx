@@ -210,7 +210,7 @@ const Taxes = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex justify-content-between align-items-center">
+                <CardHeader className="d-flex flex-wrap justify-content-between align-items-center gap-2 page-toolbar">
                   <div>
                     <h5 className="mb-0">GST rates</h5>
                     <p className="text-muted mb-0 small">

@@ -258,9 +258,9 @@ const Courts = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex justify-content-between align-items-center flex-nowrap gap-3">
+                <CardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2 page-toolbar">
                   <h5 className="mb-0">Facilities</h5>
-                  <div className="d-flex flex-nowrap align-items-center gap-2">
+                  <div className="d-flex flex-wrap align-items-center gap-2">
                     {[
                       ["courts", "Courts"],
                       ["sports", "Sports"],
@@ -291,16 +291,16 @@ const Courts = () => {
 
                   {!loading && !error && tab === "courts" && (
                     <>
-                      <div className="d-flex flex-nowrap gap-2 align-items-center justify-content-end mb-3">
+                      <div className="d-flex flex-wrap gap-2 align-items-center justify-content-end mb-3 page-toolbar">
                         <Input
-                          style={{ width: 220, flex: "0 0 auto" }}
+                          className="toolbar-field"
                           placeholder="Search courts…"
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                         />
                         <Input
                           type="select"
-                          style={{ width: 160, flex: "0 0 auto" }}
+                          className="toolbar-field"
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
                         >
@@ -312,8 +312,8 @@ const Courts = () => {
                         <Can anyOf={["court.manage"]}>
                           <Button
                             color="success"
-                            className="text-nowrap flex-shrink-0"
-                            style={{ height: 38 }}
+                            size="sm"
+                            className="text-nowrap"
                             onClick={openCourtModal}
                           >
                             <i className="ri-add-line me-1" />
@@ -394,8 +394,8 @@ const Courts = () => {
                         <Can anyOf={["court.manage"]}>
                           <Button
                             color="success"
-                            className="text-nowrap flex-shrink-0"
-                            style={{ height: 38 }}
+                            size="sm"
+                            className="text-nowrap"
                             onClick={openSportModal}
                           >
                             <i className="ri-add-line me-1" />

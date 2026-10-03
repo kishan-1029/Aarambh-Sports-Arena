@@ -369,7 +369,7 @@ const MembershipPlans = () => {
         <Container fluid>
           <BreadCrumb title="Membership Plans" pageTitle="Arambh" />
           <Row className="mb-3">
-            <Col className="d-flex flex-wrap gap-2 justify-content-end">
+            <Col className="d-flex flex-wrap gap-2 justify-content-end page-toolbar">
               <Input
                 style={{ maxWidth: 260 }}
                 placeholder="Search name, key, description…"
@@ -377,7 +377,7 @@ const MembershipPlans = () => {
                 onChange={(e) => setQuery(e.target.value)}
               />
               <Can anyOf={["membership_plan.edit"]}>
-                <Button color="success" onClick={openCreate}>
+                <Button color="success" size="sm" onClick={openCreate}>
                   <i className="ri-add-line me-1" />
                   Add plan
                 </Button>

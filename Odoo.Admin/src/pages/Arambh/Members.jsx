@@ -154,7 +154,11 @@ const Members = () => {
     {
       name: "Tier",
       cell: (r) => (
-        <Badge color={TIER_COLOUR[r.tierKey] || "light"} pill>
+        <Badge
+          color={TIER_COLOUR[r.tierKey] || "light"}
+          className={!r.tierKey || r.tierKey === "none" ? "tier-none" : undefined}
+          pill
+        >
           {(r.tierKey || "none").toUpperCase()}
         </Badge>
       ),
@@ -226,12 +230,12 @@ const Members = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex flex-nowrap gap-3 justify-content-between align-items-center">
-                  <h5 className="mb-0 text-nowrap">Members ({rows.length})</h5>
-                  <div className="d-flex flex-nowrap gap-2 align-items-center">
+                <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center page-toolbar">
+                  <h5 className="mb-0">Members ({rows.length})</h5>
+                  <div className="d-flex flex-wrap gap-2 align-items-center page-toolbar">
                     <Input
                       type="select"
-                      style={{ width: 140, flex: "0 0 auto" }}
+                      className="toolbar-field"
                       value={tier}
                       onChange={(e) => setTier(e.target.value)}
                     >
@@ -243,7 +247,7 @@ const Members = () => {
                     </Input>
                     <Input
                       type="select"
-                      style={{ width: 140, flex: "0 0 auto" }}
+                      className="toolbar-field"
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
                     >
@@ -254,13 +258,13 @@ const Members = () => {
                       <option value="suspended">Suspended</option>
                     </Input>
                     <Input
-                      style={{ width: 220, flex: "0 0 auto" }}
+                      className="toolbar-field"
                       placeholder="Search…"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                     <Can anyOf={["member.create"]}>
-                      <Button color="success" className="text-nowrap flex-shrink-0" onClick={() => setModal(true)}>
+                      <Button color="success" size="sm" className="text-nowrap" onClick={() => setModal(true)}>
                         <i className="ri-user-add-line me-1" />
                         Add member
                       </Button>
