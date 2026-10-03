@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 5
+Current phase: 6
 
 ## Phases
 
@@ -9,7 +9,7 @@ Current phase: 5
 - [x] Phase 2 — Authentication and RBAC
 - [x] Phase 3 — Design system and admin shell
 - [x] Phase 4 — Club setup, customers, finance core
-- [ ] Phase 5 — Members and membership
+- [x] Phase 5 — Members and membership
 - [ ] Phase 6 — Courts and booking engine
 - [ ] Phase 7 — Front desk
 - [ ] Phase 8 — Catalogue, inventory, purchasing
@@ -27,10 +27,11 @@ Current phase: 5
 
 ## Current phase tasks
 
-### Phase 5 — Members and membership
-- [ ] Member + plan + membership models/services
-- [ ] Entitlements helper
-- [ ] Admin Members / Plans / Memberships
+### Phase 6 — Courts and booking engine
+- [ ] Sports / courts / court blocks
+- [ ] Slot locks + BookingService
+- [ ] Admin calendar + bookings list
+- [ ] Concurrency tests
 
 ## Decisions & deviations
 
@@ -45,6 +46,7 @@ Current phase: 5
 - Phase 2: menu CRUD stays on `session.user.permissions`; Arambh strings on `stringPermissions` to avoid breaking MenuContext.
 - Phase 3: Arambh nav merged after API menus (static `arambhNav.js`); command palette is custom modal (no `cmdk`); building blocks on Bootstrap/Reactstrap.
 - Phase 4: finance under `/api/admin/*`; `customer.*` permissions added; webhook event idempotency is process-local Set (durable store later); receivables/payables UI deferred to Phase 13.
+- Phase 5: membership under `/api/admin/*`; plan versioning on price/entitlement edits; renewals use status `scheduled` until start; Member 360 MVP tabs only (overview / membership / timeline).
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -57,6 +59,6 @@ Current phase: 5
 
 ## Test status
 
-- Odoo.Server: `npm test` → **44/44 pass** (MongoMemoryReplSet), including Phase 4 finance (totals, credit note, mock pay, numbering concurrency).
-- Odoo.Server: restart after pull to load `/api/admin` finance mounts (port 7002).
-- Odoo.Admin: Vite on http://localhost:3000/ — Club/Taxes/Customers/Invoices/Payments pages live.
+- Odoo.Server: `npm test` → **49/49 pass** (MongoMemoryReplSet), including Phase 5 membership (junior age, concurrent purchase, renew, plan version, expire + reminder idempotency).
+- Odoo.Server: restart after pull to load `/api/admin` member/membership mounts (port 7002).
+- Odoo.Admin: Members / Member 360 / Plans / Memberships live (Soon badges removed).

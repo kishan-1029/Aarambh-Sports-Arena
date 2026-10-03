@@ -25,6 +25,7 @@ const WHITELISTED_ROUTES = [
     "/courts/bookings",
     "/members",
     "/membership-plans",
+    "/memberships",
     "/pos",
     "/kds",
     "/shop/inventory",
@@ -65,7 +66,10 @@ const PermissionProtected = ({ children }) => {
                     normalizedPath === "/" ||
                     // Invoice detail: /finance/invoices/:id
                     (normalizedRoute === "/finance/invoices" &&
-                        normalizedPath.startsWith("/finance/invoices/"))
+                        normalizedPath.startsWith("/finance/invoices/")) ||
+                    // Member 360: /members/:id
+                    (normalizedRoute === "/members" &&
+                        normalizedPath.startsWith("/members/"))
                 );
             });
 

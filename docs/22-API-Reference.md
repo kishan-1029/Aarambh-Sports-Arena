@@ -69,9 +69,9 @@ Each module doc lists its own request/response details; this is the full invento
 | Area | Endpoints |
 |---|---|
 | Dashboard | GET `/dashboard?period=&from=&to=` [dashboard.view] |
-| Members | GET `/members` · `/members/search?q=` · `/members/:id` · `/members/:id/timeline` · `/members/by-qr/:token` · POST `/members` · PATCH `/members/:id` · POST `/members/:id/archive` · GET `/members/export` [member.*] |
-| Memberships | GET `/memberships` · POST `/memberships` (purchase) · `/:id/renew` · `/:id/upgrade` · `/:id/cancel` · POST `/memberships/reminders` [membership.*] |
-| Plans | CRUD `/membership-plans` [membership_plan.*] |
+| Members | GET `/members` · `/members/search?q=` · `/members/:id` · `/members/:id/timeline` · `/members/:id/qr` · `/members/by-qr/:token` · POST `/members` · PATCH `/members/:id` · POST `/members/:id/archive` [member.*] — **Phase 5** |
+| Memberships | GET `/memberships` · POST `/memberships` (purchase) · `/:id/renew` · `/:id/upgrade` · `/:id/cancel` · POST `/memberships/reminders` · `/memberships/expire-due` [membership.*] — **Phase 5** |
+| Plans | GET/POST `/membership-plans` · GET/PATCH `/membership-plans/:id` (edit with active memberships versions the plan) [membership_plan.*] — **Phase 5** |
 | Facilities | CRUD `/sports`, `/courts`, `/court-blocks` [court.*] |
 | Bookings | GET `/bookings` · `/bookings/calendar` · POST `/bookings` · PATCH `/bookings/:id` · POST `/bookings/:id/{cancel,reschedule,check-in,no-show,refund}` · POST `/bookings/bulk-cancel` [booking.*] |
 | Social | CRUD `/social-sessions` · POST `/social-sessions/:id/participants` [social_session.*] |

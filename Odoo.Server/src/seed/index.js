@@ -21,6 +21,13 @@ import { Customer } from '../modules/customers/customer.model.js';
 import { Invoice } from '../modules/finance/invoice.model.js';
 import { Payment } from '../modules/finance/payment.model.js';
 import { createAndPost } from '../modules/finance/invoice.service.js';
+import { Member } from '../modules/members/member.model.js';
+import { MembershipPlan } from '../modules/membership/plan.model.js';
+import { Membership } from '../modules/membership/membership.model.js';
+import { ActivityEvent } from '../modules/membership/activity.model.js';
+import { register as registerMember } from '../modules/members/member.service.js';
+import { purchase as purchaseMembership } from '../modules/membership/membership.service.js';
+import { toLocalDate, localDateTimeToUtc } from '../lib/time.js';
 
 const clubSettingsSchema = new mongoose.Schema(
   {
@@ -50,6 +57,10 @@ async function resetDemo() {
     Customer,
     Invoice,
     Payment,
+    Member,
+    MembershipPlan,
+    Membership,
+    ActivityEvent,
   ];
 
   for (const Model of collections) {
@@ -227,6 +238,228 @@ async function seedSampleInvoice(customers, taxes, location) {
   return invoice;
 }
 
+async function seedMembershipPlans(taxes) {
+  const tax18 = taxes.find((t) => t.ratePct === 18) || taxes[0];
+  const specs = [
+    {
+      key: 'gold',
+      name: 'Gold',
+      description: 'Premium full-access membership',
+      colour: '#d4a017',
+      sortOrder: 1,
+      durations: [
+        { months: 1, pricePaise: 500000 },
+        { months: 3, pricePaise: 1350000 },
+        { months: 12, pricePaise: 4800000 },
+      ],
+      eligibility: { minAge: 18, maxAge: null },
+      entitlements: {
+        court: {
+          access: 'all',
+          pricing: { mode: 'free', value: 0 },
+          maxBookingsPerDay: 2,
+          advanceBookingDays: 14,
+          sportKeys: [],
+        },
+        shopDiscountPct: 15,
+        barDiscountPct: 15,
+        guestPasses: 2,
+        perks: ['Locker', 'Free towel'],
+      },
+    },
+    {
+      key: 'silver',
+      name: 'Silver',
+      description: 'Standard membership',
+      colour: '#8a8a8a',
+      sortOrder: 2,
+      durations: [
+        { months: 1, pricePaise: 300000 },
+        { months: 3, pricePaise: 810000 },
+        { months: 12, pricePaise: 2880000 },
+      ],
+      eligibility: { minAge: 18, maxAge: null },
+      entitlements: {
+        court: {
+          access: 'all',
+          pricing: { mode: 'discount_pct', value: 50 },
+          maxBookingsPerDay: 2,
+          advanceBookingDays: 14,
+          sportKeys: [],
+        },
+        shopDiscountPct: 10,
+        barDiscountPct: 10,
+        guestPasses: 0,
+        perks: [],
+      },
+    },
+    {
+      key: 'junior',
+      name: 'Junior',
+      description: 'Under-18 discounted plan (off-peak courts)',
+      colour: '#2e7d32',
+      sortOrder: 3,
+      durations: [
+        { months: 1, pricePaise: 150000 },
+        { months: 3, pricePaise: 400000 },
+        { months: 12, pricePaise: 1400000 },
+      ],
+      eligibility: { minAge: null, maxAge: 17 },
+      entitlements: {
+        court: {
+          access: 'off_peak_only',
+          pricing: { mode: 'discount_pct', value: 50 },
+          maxBookingsPerDay: 2,
+          advanceBookingDays: 7,
+          sportKeys: [],
+        },
+        shopDiscountPct: 10,
+        barDiscountPct: 0,
+        guestPasses: 0,
+        perks: ['Junior coaching discount'],
+      },
+    },
+  ];
+
+  const plans = [];
+  for (const s of specs) {
+    const doc = await MembershipPlan.findOneAndUpdate(
+      { key: s.key, version: 1, isDemo: true },
+      {
+        ...s,
+        taxId: tax18?._id || null,
+        version: 1,
+        active: true,
+        archivedAt: null,
+        isDemo: true,
+      },
+      { upsert: true, new: true },
+    );
+    plans.push(doc);
+  }
+  logger.info({ count: plans.length }, 'seeded membership plans');
+  return plans;
+}
+
+async function seedMembersAndMemberships(plans) {
+  const gold = plans.find((p) => p.key === 'gold');
+  const silver = plans.find((p) => p.key === 'silver');
+  const junior = plans.find((p) => p.key === 'junior');
+  const ctx = { source: 'system', user: { name: 'seed' } };
+
+  const specs = [
+    {
+      firstName: 'Riya',
+      lastName: 'Sharma',
+      phone: '9876500001',
+      email: 'riya.demo@example.com',
+      dob: '1995-04-12',
+      plan: gold,
+      months: 12,
+    },
+    {
+      firstName: 'Kabir',
+      lastName: 'Mehta',
+      phone: '9876500011',
+      email: 'kabir.demo@example.com',
+      dob: '1990-08-20',
+      plan: silver,
+      months: 3,
+      endInDays: 5,
+    },
+    {
+      firstName: 'Ananya',
+      lastName: 'Shah',
+      phone: '9876500012',
+      email: 'ananya.demo@example.com',
+      dob: '2012-01-15',
+      plan: junior,
+      months: 1,
+      guardian: { name: 'Priya Shah', phone: '9876500099', relation: 'mother' },
+    },
+  ];
+
+  const members = [];
+  for (const s of specs) {
+    let member = await Member.findOne({ email: s.email, isDemo: true });
+    if (!member) {
+      member = await registerMember(
+        {
+          firstName: s.firstName,
+          lastName: s.lastName,
+          phone: s.phone,
+          email: s.email,
+          dob: s.dob,
+          guardian: s.guardian,
+          source: 'front_desk',
+          isDemo: true,
+        },
+        ctx,
+      );
+    } else {
+      member = member.toObject ? member.toObject() : member;
+    }
+
+    const existingMs = await Membership.findOne({
+      memberId: member._id,
+      status: { $in: ['active', 'scheduled'] },
+      isDemo: true,
+    });
+    if (!existingMs && s.plan) {
+      if (s.endInDays != null) {
+        // Create short membership ending soon for expiring list
+        const today = toLocalDate();
+        const endLocal = (() => {
+          const noon = localDateTimeToUtc(today, '12:00');
+          return toLocalDate(new Date(noon.getTime() + s.endInDays * 86400000));
+        })();
+        const startLocal = (() => {
+          const noon = localDateTimeToUtc(endLocal, '12:00');
+          return toLocalDate(new Date(noon.getTime() - 25 * 86400000));
+        })();
+        await Membership.create({
+          memberId: member._id,
+          planId: s.plan._id,
+          planKey: s.plan.key,
+          planVersion: s.plan.version,
+          entitlementsSnapshot: s.plan.entitlements,
+          startDate: localDateTimeToUtc(startLocal, '00:00'),
+          endDate: localDateTimeToUtc(endLocal, '23:59'),
+          startLocalDate: startLocal,
+          endLocalDate: endLocal,
+          status: 'active',
+          pricePaise: s.plan.durations[0].pricePaise,
+          durationMonths: 1,
+          isDemo: true,
+        }).then(async (created) => {
+          await Member.findByIdAndUpdate(member._id, {
+            $set: {
+              currentMembershipId: created._id,
+              status: 'active',
+              tierKey: s.plan.key,
+              membershipEndDate: localDateTimeToUtc(endLocal, '23:59'),
+            },
+          });
+        });
+      } else {
+        await purchaseMembership(
+          {
+            memberId: String(member._id),
+            planId: String(s.plan._id),
+            months: s.months,
+            paymentMethod: 'cash',
+            isDemo: true,
+          },
+          ctx,
+        );
+      }
+    }
+    members.push(member);
+  }
+  logger.info({ count: members.length }, 'seeded members + memberships');
+  return members;
+}
+
 async function seedTemplates() {
   for (const t of DEFAULT_TEMPLATES) {
     await NotificationTemplate.findOneAndUpdate(
@@ -251,6 +484,8 @@ async function main() {
   const taxes = await seedTaxes();
   const customers = await seedCustomers();
   await seedSampleInvoice(customers, taxes, location);
+  const plans = await seedMembershipPlans(taxes);
+  await seedMembersAndMemberships(plans);
   await seedTemplates();
   await seedArambhRoles();
 
@@ -263,6 +498,7 @@ async function main() {
       clubName: 'Arambh Sports Arena',
       roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
       phase4: ['location', 'taxes', 'customers', 'sampleInvoice'],
+      phase5: ['plans', 'members', 'memberships'],
     },
   });
 

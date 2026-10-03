@@ -4,6 +4,7 @@ import { logger } from './lib/logger.js';
 import { config } from './config/index.js';
 import { acquireJobLock, releaseJobLock } from './modules/jobs/jobLock.model.js';
 import { notificationService } from './modules/notifications/notification.service.js';
+import { expireDue, sendReminders } from './modules/membership/membership.service.js';
 
 const workerId = `worker-${process.pid}`;
 
@@ -61,13 +62,13 @@ const jobs = [
     name: 'membership.reminders',
     schedule: '0 9 * * *',
     ttlMs: 3_600_000,
-    run: async () => ({ tick: true, note: 'placeholder' }),
+    run: async () => sendReminders(),
   },
   {
     name: 'membership.expire',
     schedule: '5 0 * * *',
     ttlMs: 3_600_000,
-    run: async () => ({ tick: true, note: 'placeholder' }),
+    run: async () => expireDue(),
   },
   {
     name: 'stock.lowDigest',

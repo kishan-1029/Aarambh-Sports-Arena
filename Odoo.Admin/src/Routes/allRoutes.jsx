@@ -34,6 +34,10 @@ import Invoices from "../pages/Arambh/Invoices";
 import InvoiceDetail from "../pages/Arambh/InvoiceDetail";
 import PaymentsSettings from "../pages/Arambh/PaymentsSettings";
 import PosPlaceholder from "../pages/Arambh/PosPlaceholder";
+import Members from "../pages/Arambh/Members";
+import MemberDetail from "../pages/Arambh/MemberDetail";
+import MembershipPlans from "../pages/Arambh/MembershipPlans";
+import Memberships from "../pages/Arambh/Memberships";
 
 
 const authProtectedRoutes = [
@@ -67,8 +71,10 @@ const authProtectedRoutes = [
     { path: "/front-desk", component: <ComingSoon /> },
     { path: "/courts", component: <ComingSoon /> },
     { path: "/courts/bookings", component: <ComingSoon /> },
-    { path: "/members", component: <ComingSoon /> },
-    { path: "/membership-plans", component: <ComingSoon /> },
+    { path: "/members", component: <Members /> },
+    { path: "/members/:id", component: <MemberDetail /> },
+    { path: "/membership-plans", component: <MembershipPlans /> },
+    { path: "/memberships", component: <Memberships /> },
     { path: "/kds", component: <ComingSoon /> },
     { path: "/shop/inventory", component: <ComingSoon /> },
     { path: "/crm/pipeline", component: <ComingSoon /> },

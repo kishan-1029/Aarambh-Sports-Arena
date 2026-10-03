@@ -73,3 +73,14 @@ canBookCourt(entitlements, court, slotStart)    -> { ok, code }
 - Renewal starts the day after the current end date.
 - Plan edit with active memberships creates a new version; old membership keeps old discount.
 - Expiry job sets statuses; reminder job is idempotent (run twice → one notification).
+
+## Implementation notes (Phase 5)
+
+- Modules: `Odoo.Server/src/modules/members/*`, `Odoo.Server/src/modules/membership/*` (ADR-0005).
+- Money in paise; dates via `lib/time` (UTC + IST `localDate`); multi-doc writes use `withTransaction`.
+- Partial unique index on `memberships.memberId` where `status: active` enforces one active membership.
+- Plan edits that touch price/entitlements while memberships are active archive the old version and create `version+1`; existing memberships keep `entitlementsSnapshot`.
+- Worker jobs `membership.expire` / `membership.reminders` call `expireDue` / `sendReminders` (idempotent via `reminderSentAt.*`).
+- Admin: Members list, Member 360 (overview / membership / timeline), Plans card grid, Memberships list — Bootstrap (ADR-0006); nav Soon badges removed for these routes.
+- Seed: Gold / Silver / Junior plans + demo members (incl. one expiring within 7 days) tagged `isDemo`.
+- Envelope `{ isOk }` (ADR-0004); session auth (ADR-0002).
