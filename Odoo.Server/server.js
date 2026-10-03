@@ -31,6 +31,8 @@ import mcpRoutes from "./src/modules/mcp/mcp.routes.js";
 import mcpKeysRoutes from "./src/modules/mcp/mcpKeys.routes.js";
 import { publicAuthRouter, portalRouter } from "./src/modules/portal/portal.routes.js";
 import { logger } from "./src/lib/logger.js";
+import { seedMasterLocations } from "./src/seed/seedMasterLocations.js";
+import { ensureTransactionalTemplates } from "./src/modules/mail/transactionalMail.js";
 
 // ============ SECURITY IMPORTS ============
 // OWASP-compliant security middleware
@@ -329,6 +331,12 @@ try {
   databasestatus = "Connected";
   await seedFaqMenus();
   await seedHelpAndGuideMenus();
+  try {
+    await seedMasterLocations();
+    await ensureTransactionalTemplates();
+  } catch (seedErr) {
+    console.error("❌ City seed failed =>", seedErr?.message || seedErr);
+  }
 } catch (err) {
   console.error("❌ DB Connection Error =>", err?.message || err);
   if (err instanceof mongoose.Error.MongooseServerSelectionError) {

@@ -15,6 +15,7 @@ import { NotFound, Validation, Conflict, AppError } from '../../lib/errors.js';
 import { audit } from '../audit/audit.service.js';
 import { parseListQuery, runListQuery } from '../../lib/listQuery.js';
 import { enqueue as enqueueNotification } from '../notifications/notification.service.js';
+import { emailForMembership } from '../mail/transactionalMail.js';
 
 export { entitlementsFor, NON_MEMBER_ENTITLEMENTS };
 
@@ -327,6 +328,14 @@ export async function purchase(input, ctx = {}) {
     amountPaise: pricePaise,
     source: ctx.source || 'admin',
     isDemo: Boolean(input.isDemo),
+  });
+
+  await emailForMembership({
+    membership: result.membership,
+    member,
+    plan,
+    amountPaise: pricePaise,
+    ctx,
   });
 
   return {
