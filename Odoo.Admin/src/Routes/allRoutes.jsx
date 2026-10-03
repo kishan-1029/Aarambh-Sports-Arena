@@ -28,6 +28,7 @@ import ManageGuides from "../pages/HelpGuides/ManageGuides";
 import ComingSoon from "../pages/Arambh/ComingSoon";
 import StaffDirectory from "../pages/Arambh/StaffDirectory";
 import SettingsClub from "../pages/Arambh/SettingsClub";
+import McpAccess from "../pages/Arambh/McpAccess";
 import Taxes from "../pages/Arambh/Taxes";
 import Customers from "../pages/Arambh/Customers";
 import Invoices from "../pages/Arambh/Invoices";
@@ -86,6 +87,7 @@ const authProtectedRoutes = [
     { path: "/finance/invoices/:id", component: <InvoiceDetail /> },
     { path: "/settings/payments", component: <PaymentsSettings /> },
     { path: "/settings/club", component: <SettingsClub /> },
+    { path: "/settings/mcp", component: <McpAccess /> },
     { path: "/settings/taxes", component: <Taxes /> },
     { path: "/staff", component: <ComingSoon /> },
     { path: "/staff/directory", component: <StaffDirectory /> },

@@ -12,17 +12,30 @@ const KpiTile = ({ title, value, delta, deltaTone = "neutral", icon, onClick }) 
       : deltaTone === "down"
         ? "text-danger"
         : "text-muted";
+  const clickable = typeof onClick === "function";
 
   return (
     <Card
-      className="h-100 border-0 shadow-sm"
+      className={`h-100 border-0 shadow-sm arambh-kpi-tile${clickable ? " arambh-kpi-tile--clickable" : ""}`}
       style={{
         borderRadius: "var(--arambh-radius)",
-        cursor: onClick ? "pointer" : "default",
+        cursor: clickable ? "pointer" : "default",
         background: "var(--arambh-surface)",
+        transition: "transform 0.15s ease, box-shadow 0.15s ease",
       }}
       onClick={onClick}
-      role={onClick ? "button" : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick(e);
+              }
+            }
+          : undefined
+      }
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
     >
       <CardBody>
         <div className="d-flex justify-content-between align-items-start mb-2">
@@ -34,6 +47,11 @@ const KpiTile = ({ title, value, delta, deltaTone = "neutral", icon, onClick }) 
         <div className="arambh-kpi-value">{value}</div>
         {delta != null && delta !== "" ? (
           <div className={`small mt-2 ${deltaClass}`}>{delta}</div>
+        ) : null}
+        {clickable ? (
+          <div className="small mt-2" style={{ color: "var(--arambh-brand)" }}>
+            View details <i className="ri-arrow-right-s-line" />
+          </div>
         ) : null}
       </CardBody>
     </Card>

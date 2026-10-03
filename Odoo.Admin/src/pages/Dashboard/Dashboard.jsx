@@ -1,11 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Container, Row, Col, Card, CardBody, Badge, Spinner, Progress } from "reactstrap";
+import { Container, Row, Col, Card, CardBody, Badge } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import KpiTile from "../../Components/Common/KpiTile";
 import Money from "../../Components/Common/Money";
+import Skeleton from "../../Components/Common/Skeleton";
+import PieChart from "../../Components/Common/PieChart";
 import { AuthContext } from "../../context/AuthContext";
 import { getDashboard } from "../../api/arambhDashboard.api";
+
+function formatPaiseShort(paise) {
+  const rupees = Math.round((Number(paise) || 0) / 100);
+  if (rupees >= 100000) return `₹${(rupees / 100000).toFixed(1)}L`;
+  if (rupees >= 1000) return `₹${(rupees / 1000).toFixed(1)}k`;
+  return `₹${rupees}`;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -44,9 +53,11 @@ const Dashboard = () => {
   const charts = data?.charts || {};
   const lists = data?.lists || {};
   const trend = charts.bookingsTrend || [];
+  const revenueTrend = charts.revenueTrend || [];
   const maxTrend = Math.max(1, ...trend.map((t) => t.bookings || 0));
+  const maxRevenue = Math.max(1, ...revenueTrend.map((t) => t.revenuePaise || 0));
   const bySport = charts.bookingsBySport || [];
-  const sportTotal = Math.max(1, bySport.reduce((s, x) => s + (x.count || 0), 0));
+  const byStatus = charts.bookingsByStatus || [];
 
   return (
     <div className="page-content">
@@ -71,6 +82,7 @@ const Dashboard = () => {
                 <p className="mb-0" style={{ opacity: 0.9 }}>
                   Live club pulse for <strong>Arambh Sports Arena</strong>
                   {data?.period?.today ? ` · ${data.period.today}` : ""}.
+                  {" "}Tap any KPI to open the related screen.
                 </p>
               </CardBody>
             </Card>
@@ -78,10 +90,24 @@ const Dashboard = () => {
         </Row>
 
         {loading && (
-          <div className="text-center py-5">
-            <Spinner color="success" />
-            <div className="text-muted mt-2">Loading club KPIs…</div>
-          </div>
+          <Row className="g-3 mb-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Col md={6} xl={3} key={i}>
+                <Card className="border-0 shadow-sm" style={{ borderRadius: "var(--arambh-radius)" }}>
+                  <CardBody>
+                    <Skeleton rows={3} height={16} />
+                  </CardBody>
+                </Card>
+              </Col>
+            ))}
+            <Col lg={12}>
+              <Card className="border-0 shadow-sm" style={{ borderRadius: "var(--arambh-radius)" }}>
+                <CardBody>
+                  <Skeleton rows={6} height={18} />
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
         )}
 
         {error && !loading && (
@@ -93,6 +119,16 @@ const Dashboard = () => {
         {!loading && (
           <>
             <Row className="g-3 mb-3">
+              <Col md={6} xl={3}>
+                <KpiTile
+                  title="Daily revenue"
+                  value={<Money paise={kpis.revenueTodayPaise || 0} />}
+                  delta={`Collected today ${formatPaiseShort(kpis.collectionsTodayPaise || 0)}`}
+                  deltaTone="up"
+                  icon="ri-calendar-todo-line"
+                  onClick={() => navigate("/finance/invoices")}
+                />
+              </Col>
               <Col md={6} xl={3}>
                 <KpiTile
                   title="Month revenue"
@@ -113,15 +149,6 @@ const Dashboard = () => {
               </Col>
               <Col md={6} xl={3}>
                 <KpiTile
-                  title="Active members"
-                  value={String(kpis.membersActive ?? 0)}
-                  delta={`${kpis.membersTotal ?? 0} total · ${kpis.membershipsExpiringSoon ?? 0} expiring ≤7d`}
-                  icon="ri-group-line"
-                  onClick={() => navigate("/members")}
-                />
-              </Col>
-              <Col md={6} xl={3}>
-                <KpiTile
                   title="Bookings today"
                   value={String(kpis.bookingsToday ?? 0)}
                   delta={`${kpis.bookingsWeek ?? 0} this week · ~${kpis.occupancyHintPct ?? 0}% util.`}
@@ -132,6 +159,15 @@ const Dashboard = () => {
             </Row>
 
             <Row className="g-3 mb-3">
+              <Col md={6} xl={3}>
+                <KpiTile
+                  title="Active members"
+                  value={String(kpis.membersActive ?? 0)}
+                  delta={`${kpis.membersTotal ?? 0} total · ${kpis.membershipsExpiringSoon ?? 0} expiring ≤7d`}
+                  icon="ri-group-line"
+                  onClick={() => navigate("/members")}
+                />
+              </Col>
               <Col md={6} xl={3}>
                 <KpiTile
                   title="Active memberships"
@@ -159,27 +195,124 @@ const Dashboard = () => {
                   onClick={() => navigate("/customers")}
                 />
               </Col>
+            </Row>
+
+            <Row className="g-3 mb-3">
               <Col md={6} xl={3}>
                 <KpiTile
                   title="Open leads"
                   value={String(kpis.leadsOpen ?? 0)}
                   delta="Website / trial / walk-in"
                   icon="ri-customer-service-2-line"
+                  onClick={() => navigate("/crm/pipeline")}
+                />
+              </Col>
+              <Col md={6} xl={3}>
+                <KpiTile
+                  title="Front desk"
+                  value="Open"
+                  delta="Check-in · quick book"
+                  icon="ri-flashlight-line"
+                  onClick={() => navigate("/front-desk")}
+                />
+              </Col>
+              <Col md={6} xl={3}>
+                <KpiTile
+                  title="Membership plans"
+                  value="Plans"
+                  delta="Gold · Silver · Junior"
+                  icon="ri-price-tag-3-line"
+                  onClick={() => navigate("/membership-plans")}
+                />
+              </Col>
+              <Col md={6} xl={3}>
+                <KpiTile
+                  title="Club settings"
+                  value="Setup"
+                  delta="Locations · hours · taxes"
+                  icon="ri-settings-3-line"
+                  onClick={() => navigate("/settings/club")}
                 />
               </Col>
             </Row>
 
             <Row className="g-3 mb-3">
               <Col lg={7}>
-                <Card className="border-0 shadow-sm h-100" style={{ borderRadius: "var(--arambh-radius)" }}>
+                <Card
+                  className="border-0 shadow-sm h-100"
+                  style={{ borderRadius: "var(--arambh-radius)", cursor: "pointer" }}
+                  onClick={() => navigate("/finance/invoices")}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate("/finance/invoices");
+                    }
+                  }}
+                >
                   <CardBody>
-                    <h5 className="mb-3">Bookings · last 7 days</h5>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h5 className="mb-0">Daily revenue · last 7 days</h5>
+                      <span className="small" style={{ color: "var(--arambh-brand)" }}>
+                        Invoices <i className="ri-arrow-right-s-line" />
+                      </span>
+                    </div>
+                    {revenueTrend.length === 0 ? (
+                      <p className="text-muted mb-0">No revenue trend data yet.</p>
+                    ) : (
+                      <div className="d-flex align-items-end gap-2" style={{ height: 200 }}>
+                        {revenueTrend.map((t) => (
+                          <div
+                            key={t.date}
+                            className="flex-fill text-center h-100 d-flex flex-column justify-content-end"
+                          >
+                            <div className="small text-muted mb-1">{formatPaiseShort(t.revenuePaise)}</div>
+                            <div
+                              style={{
+                                height: `${Math.max(8, ((t.revenuePaise || 0) / maxRevenue) * 150)}px`,
+                                background: "linear-gradient(180deg,#5fd196,#0f7a4a)",
+                                borderRadius: "8px 8px 4px 4px",
+                              }}
+                            />
+                            <div className="small mt-1 fw-semibold">{t.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col lg={5}>
+                <Card
+                  className="border-0 shadow-sm h-100"
+                  style={{ borderRadius: "var(--arambh-radius)", cursor: "pointer" }}
+                  onClick={() => navigate("/courts/bookings")}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate("/courts/bookings");
+                    }
+                  }}
+                >
+                  <CardBody>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h5 className="mb-0">Bookings · last 7 days</h5>
+                      <span className="small" style={{ color: "var(--arambh-brand)" }}>
+                        Bookings <i className="ri-arrow-right-s-line" />
+                      </span>
+                    </div>
                     {trend.length === 0 ? (
                       <p className="text-muted mb-0">No booking trend data yet.</p>
                     ) : (
                       <div className="d-flex align-items-end gap-2" style={{ height: 200 }}>
                         {trend.map((t) => (
-                          <div key={t.date} className="flex-fill text-center h-100 d-flex flex-column justify-content-end">
+                          <div
+                            key={t.date}
+                            className="flex-fill text-center h-100 d-flex flex-column justify-content-end"
+                          >
                             <div className="small text-muted mb-1">{t.bookings}</div>
                             <div
                               style={{
@@ -196,27 +329,40 @@ const Dashboard = () => {
                   </CardBody>
                 </Card>
               </Col>
-              <Col lg={5}>
-                <Card className="border-0 shadow-sm h-100" style={{ borderRadius: "var(--arambh-radius)" }}>
+            </Row>
+
+            <Row className="g-3 mb-3">
+              <Col lg={6}>
+                <Card
+                  className="border-0 shadow-sm h-100"
+                  style={{ borderRadius: "var(--arambh-radius)", cursor: "pointer" }}
+                  onClick={() => navigate("/courts/bookings")}
+                  role="button"
+                  tabIndex={0}
+                >
                   <CardBody>
                     <h5 className="mb-3">Bookings by sport (30d)</h5>
-                    {bySport.length === 0 ? (
-                      <p className="text-muted mb-0">No sport split yet.</p>
-                    ) : (
-                      bySport.map((s) => (
-                        <div key={s.sport} className="mb-3">
-                          <div className="d-flex justify-content-between small mb-1">
-                            <span className="fw-semibold">{s.sport}</span>
-                            <span>{s.count}</span>
-                          </div>
-                          <Progress
-                            value={Math.round(((s.count || 0) / sportTotal) * 100)}
-                            color="success"
-                            style={{ height: 8 }}
-                          />
-                        </div>
-                      ))
-                    )}
+                    <PieChart
+                      items={bySport.map((s) => ({ label: s.sport, value: s.count }))}
+                      emptyLabel="No sport split yet."
+                    />
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col lg={6}>
+                <Card
+                  className="border-0 shadow-sm h-100"
+                  style={{ borderRadius: "var(--arambh-radius)", cursor: "pointer" }}
+                  onClick={() => navigate("/courts/bookings")}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <CardBody>
+                    <h5 className="mb-3">Bookings by status (14d)</h5>
+                    <PieChart
+                      items={byStatus.map((s) => ({ label: s.status, value: s.count }))}
+                      emptyLabel="No status split yet."
+                    />
                   </CardBody>
                 </Card>
               </Col>
@@ -312,27 +458,6 @@ const Dashboard = () => {
                         </tbody>
                       </table>
                     </div>
-                  </CardBody>
-                </Card>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col>
-                <Card className="border-0 shadow-sm" style={{ borderRadius: "var(--arambh-radius)" }}>
-                  <CardBody className="d-flex flex-wrap gap-2">
-                    <Link className="btn btn-success btn-sm" to="/front-desk">
-                      Front Desk
-                    </Link>
-                    <Link className="btn btn-outline-success btn-sm" to="/members">
-                      Members
-                    </Link>
-                    <Link className="btn btn-outline-success btn-sm" to="/courts/bookings">
-                      Bookings
-                    </Link>
-                    <Link className="btn btn-outline-success btn-sm" to="/finance/invoices">
-                      Invoices
-                    </Link>
                   </CardBody>
                 </Card>
               </Col>

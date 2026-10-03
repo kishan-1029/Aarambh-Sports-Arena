@@ -1,4 +1,11 @@
-const API = import.meta.env.VITE_API_URL || 'http://localhost:7003';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:7002';
+
+export function mediaUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const clean = String(path).replace(/^\/+/, '');
+  return `${API}/${clean}`;
+}
 
 async function get(path) {
   const res = await fetch(`${API}${path}`);
@@ -44,6 +51,7 @@ export const api = {
   club: () => get('/api/public/club'),
   sports: () => get('/api/public/sports'),
   plans: () => get('/api/public/membership-plans'),
+  blogs: (limit = 12) => get(`/api/public/blogs?limit=${limit}`),
   availability: (q) => {
     const params = new URLSearchParams(
       Object.fromEntries(Object.entries(q).filter(([, v]) => v != null && v !== '')),

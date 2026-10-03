@@ -723,11 +723,60 @@ button { cursor: pointer; }
 }
 
 .skeleton {
-  border-radius: 16px;
+  border-radius: 12px;
   background: linear-gradient(90deg, #e6efe9, #f7fbf8, #e6efe9);
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
-  min-height: 120px;
+  min-height: 14px;
+}
+
+.skeleton-stack { width: 100%; }
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.blog-card {
+  background: var(--white);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px rgba(6, 40, 22, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-cover {
+  min-height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-color: #0c3d28;
+}
+
+.blog-body { padding: 1.1rem 1.2rem 1.25rem; }
+.blog-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.45rem;
+}
+.blog-body h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.blog-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .blog-grid { grid-template-columns: 1fr; }
 }
 
 @keyframes riseIn {

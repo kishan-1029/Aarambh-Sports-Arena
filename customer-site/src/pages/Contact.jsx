@@ -43,8 +43,8 @@ export default function Contact() {
       setStatus({
         type: 'ok',
         text: data?.leadNo
-          ? `Enquiry ${data.leadNo} sent — the Arambh team will reply shortly.`
-          : 'Thanks — your enquiry is with the Arambh team.',
+          ? `Enquiry ${data.leadNo} sent — the Aarambh team will reply shortly.`
+          : 'Thanks — your enquiry is with the Aarambh team.',
       });
       setForm({ name: '', phone: '', email: '', interest: 'membership', message: '', consent: false });
     } catch (err) {
@@ -103,7 +103,7 @@ export default function Contact() {
             </button>
           </form>
           <aside className="info-card">
-            <h3>{club?.name || 'Arambh Sports Arena'}</h3>
+            <h3>{club?.name || 'Aarambh Sports Arena'}</h3>
             <p>{loc?.name || 'Main club'}</p>
             <p>{loc?.address || 'Vadodara, Gujarat'}</p>
             <p>{loc?.phone || '+91-9999999999'}</p>

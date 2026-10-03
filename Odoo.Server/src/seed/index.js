@@ -39,6 +39,7 @@ import { toLocalDate, localDateTimeToUtc, addMinutesUtc } from '../lib/time.js';
 import { create as createBooking } from '../modules/booking/booking.service.js';
 import { Lead } from '../modules/public/lead.model.js';
 import { seedMenus } from './seedMenus.js';
+import { seedBlogs } from './seedBlogs.js';
 import {
   seedExtraMembers,
   seedExtraCustomers,
@@ -101,7 +102,7 @@ async function seedClub() {
     { key: 'default' },
     {
       key: 'default',
-      clubName: 'Arambh Sports Arena',
+      clubName: 'Aarambh Sports Arena',
       timezone: config.clubTimezone,
       currency: 'INR',
       priceIncludesTax: false,
@@ -113,7 +114,7 @@ async function seedClub() {
   const location = await Location.findOneAndUpdate(
     { code: 'MAIN', isDemo: true },
     {
-      name: 'Arambh Sports Arena — Main',
+      name: 'Aarambh Sports Arena — Main',
       code: 'MAIN',
       address: 'Vadodara, Gujarat',
       timezone: 'Asia/Kolkata',
@@ -137,7 +138,7 @@ async function seedClub() {
     { locationId: null },
     {
       locationId: null,
-      clubName: 'Arambh Sports Arena',
+      clubName: 'Aarambh Sports Arena',
       currency: 'INR',
       priceIncludesTax: false,
       bookingCancelFreeHours: 4,
@@ -673,6 +674,7 @@ async function main() {
   await seedExtraBookings(courts, allMembers);
   await seedExtraLeads();
   await seedMenus();
+  await seedBlogs();
   await seedTemplates();
   await seedArambhRoles();
 
@@ -682,7 +684,7 @@ async function main() {
     action: 'seed.demo',
     entity: { type: 'clubSettings', id: 'default', label: 'Arambh Sports Arena' },
     after: {
-      clubName: 'Arambh Sports Arena',
+      clubName: 'Aarambh Sports Arena',
       roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
       phase4: ['location', 'taxes', 'customers', 'sampleInvoice'],
       phase5: ['plans', 'members', 'memberships'],

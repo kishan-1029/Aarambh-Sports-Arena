@@ -50,6 +50,7 @@ export const ARAMBH_ROUTES = [
   { label: "Invoices", path: "/finance/invoices", perm: "invoice.view", icon: "ri-money-rupee-circle-line" },
   { label: "Payments", path: "/settings/payments", perm: "payment.manage", icon: "ri-bank-card-line" },
   { label: "Club & locations", path: "/settings/club", perm: "settings.manage", icon: "ri-building-line" },
+  { label: "MCP access", path: "/settings/mcp", perm: "mcp.manage", icon: "ri-robot-2-line" },
   { label: "Taxes", path: "/settings/taxes", perm: "settings.manage", icon: "ri-percent-line" },
   { label: "Staff directory", path: "/staff/directory", perm: "employee.view", icon: "ri-user-settings-line" },
   { label: "Reports", path: "/reports", perm: "report.view", icon: "ri-bar-chart-box-line", comingSoon: true },
@@ -135,6 +136,7 @@ export function buildArambhNavGroups() {
     ]),
     group("arambh-club", "Club & Reports", "ri-building-line", [
       { name: "Club & locations", url: "/settings/club", icon: "ri-building-line", perm: "settings.manage" },
+      { name: "MCP access", url: "/settings/mcp", icon: "ri-robot-2-line", perm: "mcp.manage" },
       { name: "Taxes", url: "/settings/taxes", icon: "ri-percent-line", perm: "settings.manage" },
       { name: "Staff directory", url: "/staff/directory", icon: "ri-user-settings-line", perm: "employee.view" },
       { name: "Reports", url: "/reports", icon: "ri-bar-chart-box-line", perm: "report.view", comingSoon: true },
