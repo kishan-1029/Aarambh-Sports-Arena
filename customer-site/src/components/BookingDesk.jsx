@@ -326,7 +326,7 @@ export default function BookingDesk({ mode = 'public' }) {
             </div>
             {!loading && slots.length === 0 && <div className="empty">No times are published for this court on the selected date.</div>}
             {mode === 'public' && selected && (
-              <div className="hero-actions" style={{ marginTop: 24 }}>
+              <div className="slot-cta">
                 <button className="btn btn-primary" type="button" onClick={continuePublic}>Book this slot</button>
               </div>
             )}

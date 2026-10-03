@@ -13,8 +13,6 @@ const INTERESTS = [
   { id: 'other', label: 'Other' },
 ];
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
 function planPerks(plan) {
   return [
     ...(plan.entitlements?.perks || []),
@@ -75,7 +73,6 @@ export default function Home() {
 
   const loc = club?.location;
   const address = addressLine(loc);
-  const hours = Array.isArray(loc?.openingHours) ? loc.openingHours : [];
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -130,7 +127,7 @@ export default function Home() {
           </h1>
           <div className="hero-side">
             <p className="lead">
-              Live courts in Vadodara. Check a slot, pick a membership, and book the next game without calling the front desk.
+              Live courts in Vadodara. Check availability, choose a membership, and book your next game in a few clicks.
             </p>
             <div className="hero-actions">
               <Link className="btn btn-primary" to="/availability">Check availability</Link>
@@ -156,9 +153,9 @@ export default function Home() {
 
       <section className="container block">
         <p className="eyebrow">The club</p>
-        <h2 className="section-title">A court for the way you actually play.</h2>
+        <h2 className="section-title">Courts built for the way you play.</h2>
         <p className="lead section-copy">
-          Badminton, padel, tennis and cricket nets, with live availability and memberships that cover the hours you use.
+          Badminton, padel, tennis and cricket nets with live availability and flexible memberships for the hours you use.
         </p>
       </section>
 
@@ -166,7 +163,7 @@ export default function Home() {
         <div className="section-head-row">
           <div>
             <p className="eyebrow">Sports</p>
-            <h2 className="section-title">Pick a game. See the open times.</h2>
+            <h2 className="section-title">Pick a game. Find an open time.</h2>
           </div>
           <Link className="text-link" to="/sports">See all sports →</Link>
         </div>
@@ -190,7 +187,7 @@ export default function Home() {
               {sport.courtCount > 0 ? (
                 <Link className="btn btn-primary" to={`/availability?sportId=${encodeURIComponent(sport.id)}`}>View Availability</Link>
               ) : (
-                <span className="btn btn-secondary">Currently unavailable</span>
+                <span className="btn btn-secondary" aria-disabled="true">Currently unavailable</span>
               )}
             </article>
           ))}
@@ -203,7 +200,7 @@ export default function Home() {
         <div className="section-head-row">
           <div>
             <p className="eyebrow">Membership</p>
-            <h2 className="section-title">Plans that match how often you play.</h2>
+            <h2 className="section-title">Plans for the way you play.</h2>
           </div>
           <Link className="text-link" to="/membership">See all plans →</Link>
         </div>
@@ -249,8 +246,9 @@ export default function Home() {
 
       <section className="container block">
         <p className="eyebrow">Contact</p>
-        <h2 className="section-title">Ask about a court, a plan, or a private event.</h2>
-        <div className="contact-layout" style={{ marginTop: 24 }}>
+        <h2 className="section-title">Questions about courts, memberships or events?</h2>
+        <p className="lead section-copy">Our team is here to help with bookings, memberships and private events.</p>
+        <div className="contact-layout contact-layout-home">
           <form className="card form-card" onSubmit={onSubmit} noValidate>
             <div className="form-grid">
               <Field label="Full Name" error={errors.name}>
@@ -305,12 +303,10 @@ export default function Home() {
                 <a href={`tel:${loc.phone}`}>{loc.phone}</a>
               </p>
             )}
-            {hours.length > 0 && (
-              <p>
-                <strong>Club hours</strong>
-                {hours.map((h) => `${DAYS[h.dow] || ''} ${h.open}–${h.close}`).join(', ')}
-              </p>
-            )}
+            <div className="info-actions">
+              <Link className="btn btn-secondary" to="/availability">Check availability</Link>
+              <Link className="btn btn-secondary" to="/trial">Book a trial</Link>
+            </div>
           </aside>
         </div>
       </section>
