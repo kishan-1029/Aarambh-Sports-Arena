@@ -235,13 +235,20 @@ html, body {
   max-width: 100vw;
 }
 
-/* Ensure data tables and card layouts are scrollable on narrow viewports */
+/* Scroll the table, not the card. overflow on the card turns the page-size
+   <select> into a tall in-page list. */
 .table-responsive,
-.card-body,
-.table-card {
+.table-card,
+.rdt_Table {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.card-body:has(.rdt_Pagination),
+div:has(> .rdt_Table),
+.rdt_Pagination {
+  overflow: visible;
 }
 
 /* Prevent image sizing overflow inside grid units */

@@ -620,6 +620,26 @@ const Layout = (props) => {
                         transform: var(--btn-hover-transform, translateY(-1px)) !important;
                     }
 
+                    .btn-sm,
+                    .edit-item-btn,
+                    .remove-item-btn,
+                    .badge,
+                    .rdt_Pagination button {
+                        box-shadow: none !important;
+                        transform: none !important;
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                    }
+
+                    .btn-sm:hover,
+                    .btn-sm:active,
+                    .btn-sm:focus,
+                    .edit-item-btn:hover,
+                    .remove-item-btn:hover {
+                        transform: none !important;
+                        box-shadow: none !important;
+                    }
+
                     /* Dynamic Form Section Headers Accent borders & Icons */
                     .form-section-header, 
                     .form-section-card .form-section-header,
