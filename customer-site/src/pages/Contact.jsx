@@ -1,116 +1,204 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { useToast } from '../toast';
+import { isEmail, isName, mobileError, normalizeEmail, normalizeMobile, trimName } from '../validate';
+
+const INTERESTS = [
+  { id: 'membership', label: 'Membership' },
+  { id: 'trial', label: 'Trial' },
+  { id: 'coaching', label: 'Coaching' },
+  { id: 'corporate', label: 'Corporate / Events' },
+  { id: 'other', label: 'Other' },
+];
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function addressLine(location) {
+  const address = location?.address;
+  if (!address) return 'Vadodara, Gujarat';
+  if (typeof address === 'string') return address;
+  return [address.line1, address.city, address.state].filter(Boolean).join(', ') || 'Vadodara, Gujarat';
+}
+
+function Field({ label, error, className = '', children }) {
+  return (
+    <label className={`field${className ? ` ${className}` : ''}${error ? ' invalid' : ''}`}>
+      <span>{label}</span>
+      {children}
+      {error && <small className="field-error">{error}</small>}
+    </label>
+  );
+}
 
 export default function Contact() {
+  const toast = useToast();
   const [club, setClub] = useState(null);
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
-    interest: 'membership',
+    interest: '',
     message: '',
     consent: false,
   });
-  const [status, setStatus] = useState({ type: '', text: '' });
+  const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     api.club().then(setClub).catch(() => {});
   }, []);
 
+  const loc = club?.location;
+  const address = addressLine(loc);
+  const hours = Array.isArray(loc?.openingHours) ? loc.openingHours : [];
+
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  function validate() {
+    const next = {};
+    if (!isName(form.name)) next.name = 'Enter your full name.';
+    const phoneErr = mobileError(form.phone);
+    if (phoneErr) next.phone = phoneErr;
+    if (!isEmail(form.email)) next.email = 'Please enter a valid email address.';
+    if (!form.interest) next.interest = 'Select an interest.';
+    if (trimName(form.message).length < 10) next.message = 'Please tell us a little more (min 10 characters).';
+    if (!form.consent) next.consent = 'Consent is required before we can contact you.';
+    return next;
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
-    if (!form.consent) {
-      setStatus({ type: 'err', text: 'Please accept contact consent.' });
-      return;
-    }
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
     setBusy(true);
-    setStatus({ type: '', text: '' });
     try {
       const data = await api.enquiry({
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        email: form.email.trim(),
+        name: trimName(form.name),
+        phone: normalizeMobile(form.phone),
+        email: normalizeEmail(form.email),
         interest: [form.interest],
-        message: form.message.trim(),
+        message: trimName(form.message),
         website: '',
       });
-      setStatus({
-        type: 'ok',
-        text: data?.leadNo
-          ? `Enquiry ${data.leadNo} sent — the Aarambh team will reply shortly.`
-          : 'Thanks — your enquiry is with the Aarambh team.',
-      });
-      setForm({ name: '', phone: '', email: '', interest: 'membership', message: '', consent: false });
+      setForm({ name: '', phone: '', email: '', interest: '', message: '', consent: false });
+      setErrors({});
+      toast.success(
+        data?.leadNo
+          ? `Enquiry ${data.leadNo} sent — our team will reply shortly!`
+          : 'Thank you — your enquiry has been sent successfully!'
+      );
     } catch (err) {
-      setStatus({ type: 'err', text: err.message });
+      toast.error(err.message || "Couldn't send enquiry. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
-  const loc = club?.location;
-
   return (
-    <>
+    <section className="page container">
       <header className="page-hero">
-        <h1>Contact</h1>
-        <p>Membership, coaching, corporate play or a quick question — send a note to the club.</p>
+        <h1>Contact Us</h1>
+        <p>Have a question about membership, coaching or club events? Send us a message.</p>
       </header>
-      <section className="section">
-        <div className="split">
-          <form className="form" onSubmit={onSubmit}>
-            <label>
-              Name
-              <input name="name" required value={form.name} onChange={onChange} />
-            </label>
-            <label>
-              Phone
-              <input name="phone" required value={form.phone} onChange={onChange} />
-            </label>
-            <label>
-              Email
-              <input type="email" name="email" value={form.email} onChange={onChange} />
-            </label>
-            <label>
-              Interest
+
+      <div className="contact-layout">
+        <form className="card form-card" onSubmit={onSubmit} noValidate>
+          <div className="form-grid">
+            <Field label="Full Name" error={errors.name}>
+              <input
+                name="name"
+                placeholder="Your full name"
+                autoComplete="name"
+                value={form.name}
+                onChange={onChange}
+              />
+            </Field>
+
+            <Field label="Phone" error={errors.phone}>
+              <span className="phone-field">
+                <span>+91</span>
+                <input
+                  name="phone"
+                  inputMode="numeric"
+                  placeholder="9876543210"
+                  autoComplete="tel"
+                  value={form.phone}
+                  onChange={(e) => {
+                    const digits = normalizeMobile(e.target.value);
+                    setForm({ ...form, phone: digits.slice(0, 10) });
+                  }}
+                />
+              </span>
+            </Field>
+
+            <Field label="Email" error={errors.email}>
+              <input
+                name="email"
+                type="email"
+                placeholder="you@email.com"
+                autoComplete="email"
+                value={form.email}
+                onChange={onChange}
+              />
+            </Field>
+
+            <Field label="Interest" error={errors.interest}>
               <select name="interest" value={form.interest} onChange={onChange}>
-                <option value="membership">Membership</option>
-                <option value="trial">Trial</option>
-                <option value="coaching">Coaching</option>
-                <option value="corporate">Corporate / events</option>
-                <option value="other">Other</option>
+                <option value="">Select an interest</option>
+                {INTERESTS.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
               </select>
-            </label>
-            <label>
-              Message
-              <textarea name="message" required value={form.message} onChange={onChange} />
-            </label>
-            <label className="check">
-              <input type="checkbox" name="consent" checked={form.consent} onChange={onChange} />
-              I consent to be contacted about this enquiry.
-            </label>
-            {status.text && (
-              <div className={`msg ${status.type === 'ok' ? 'msg-ok' : 'msg-err'}`}>{status.text}</div>
-            )}
-            <button className="btn btn-primary" type="submit" disabled={busy}>
-              {busy ? 'Sending…' : 'Send enquiry'}
-            </button>
-          </form>
-          <aside className="info-card">
-            <h3>{club?.name || 'Aarambh Sports Arena'}</h3>
-            <p>{loc?.name || 'Main club'}</p>
-            <p>{loc?.address || 'Vadodara, Gujarat'}</p>
-            <p>{loc?.phone || '+91-9999999999'}</p>
-            <p>{loc?.timezone || 'Asia/Kolkata'}</p>
-          </aside>
-        </div>
-      </section>
-    </>
+            </Field>
+
+            <Field className="span-2" label="Message" error={errors.message}>
+              <textarea
+                name="message"
+                placeholder="Tell us how we can help..."
+                value={form.message}
+                onChange={onChange}
+              />
+            </Field>
+          </div>
+
+          <label className="check">
+            <input type="checkbox" name="consent" checked={form.consent} onChange={onChange} />
+            <span>I consent to be contacted about this enquiry.</span>
+          </label>
+          {errors.consent && <small className="field-error">{errors.consent}</small>}
+
+          <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
+            {busy ? 'Sending…' : 'Send Enquiry'}
+          </button>
+        </form>
+
+        <aside className="card info-card">
+          <h3>{club?.name || 'Aarambh Sports Arena'}</h3>
+          <p>
+            <strong>Location</strong>
+            {address || 'Vadodara, Gujarat'}
+          </p>
+          {loc?.phone && (
+            <p>
+              <strong>Phone</strong>
+              <a href={`tel:${loc.phone}`}>{loc.phone}</a>
+            </p>
+          )}
+          {hours.length > 0 && (
+            <p>
+              <strong>Club hours</strong>
+              {hours.map((h) => `${DAYS[h.dow] || ''} ${h.open}–${h.close}`).join(', ')}
+            </p>
+          )}
+        </aside>
+      </div>
+    </section>
   );
 }

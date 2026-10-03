@@ -8,7 +8,7 @@ export const NON_MEMBER_ENTITLEMENTS = Object.freeze({
   court: {
     access: 'all',
     pricing: { mode: 'fixed_paise', value: null },
-    maxBookingsPerDay: 0,
+    maxBookingsPerDay: 2, // same twice-a-day cap; price stays walk-in
     advanceBookingDays: 7,
     sportKeys: [],
   },
