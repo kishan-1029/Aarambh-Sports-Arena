@@ -473,11 +473,11 @@ const Layout = (props) => {
         // Set layout type
         document.documentElement.dataset.layout = "vertical";
 
-        let saved = "light";
+        const saved = "light";
         try {
-            saved = localStorage.getItem("arambh-layout-mode") || "light";
+            localStorage.setItem("arambh-layout-mode", "light");
         } catch {
-            saved = "light";
+            /* ignore */
         }
         setLayoutModeType(saved);
         document.documentElement.setAttribute("data-layout-mode", saved);

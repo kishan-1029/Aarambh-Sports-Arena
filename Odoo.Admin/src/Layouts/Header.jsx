@@ -1,11 +1,10 @@
 import React, { useContext } from "react";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
 import UniversalSearch from "../Components/Common/UniversalSearch";
-import LightDark from "../Components/Common/LightDark";
 import PropTypes from "prop-types";
 import { AuthContext } from "../context/AuthContext";
 
-const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSettings, showSearchMenu, onOpenCommandPalette }) => {
+const Header = ({ headerClass, onToggleSettings, showSearchMenu, onOpenCommandPalette }) => {
     const { adminData } = useContext(AuthContext);
     const handleHorizontalLayout = () => {
         console.log("Layout: horizontal");
@@ -113,12 +112,6 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSetti
                             <span className="d-none d-lg-inline">Search</span>
                             <kbd className="ms-2 small border rounded px-1 text-muted">⌘K</kbd>
                         </button>
-                        {typeof onChangeLayoutMode === "function" && (
-                            <LightDark
-                                layoutMode={layoutModeType}
-                                onChangeLayoutMode={onChangeLayoutMode}
-                            />
-                        )}
                         {adminData?.isSuperAdmin && (
                             <button
                                 type="button"
@@ -139,9 +132,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, onToggleSetti
 };
 
 Header.propTypes = {
-    onChangeLayoutMode: PropTypes.func,
     onOpenCommandPalette: PropTypes.func,
-    layoutModeType: PropTypes.string,
     headerClass: PropTypes.string,
     onToggleSettings: PropTypes.func,
     showSearchMenu: PropTypes.bool,
