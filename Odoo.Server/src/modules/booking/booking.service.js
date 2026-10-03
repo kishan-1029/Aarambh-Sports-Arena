@@ -767,7 +767,7 @@ export async function list(req) {
     defaultSort: '-start',
     defaultPageSize: 50,
     maxPageSize: 200,
-    searchFields: ['bookingNo', 'customer.name', 'customer.phone'],
+    searchFields: ['bookingNo'],
     buildFilter: (q) => {
       const filter = {};
       if (q.status) filter.status = q.status;

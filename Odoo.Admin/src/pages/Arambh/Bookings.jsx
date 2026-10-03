@@ -138,7 +138,7 @@ const Bookings = () => {
           <Col md={3}>
             <label className="form-label">Search</label>
             <Input
-              placeholder="Booking no, name, phone…"
+              placeholder="Booking no"
               value={q}
               onChange={(e) => {
                 setQ(e.target.value);

@@ -9,6 +9,12 @@ import PieChart from "../../Components/Common/PieChart";
 import { AuthContext } from "../../context/AuthContext";
 import { getDashboard } from "../../api/arambhDashboard.api";
 
+const PLAN_COLOUR = {
+  gold: "warning",
+  silver: "secondary",
+  junior: "success",
+};
+
 function formatPaiseShort(paise) {
   const rupees = Math.round((Number(paise) || 0) / 100);
   if (rupees >= 100000) return `₹${(rupees / 100000).toFixed(1)}L`;
@@ -448,8 +454,8 @@ const Dashboard = () => {
                                 )}
                               </td>
                               <td>
-                                <Badge color="warning" pill>
-                                  {(m.planKey || "").toUpperCase()}
+                                <Badge color={PLAN_COLOUR[m.planKey] || "light"} pill>
+                                  {(m.planKey || "—").toUpperCase()}
                                 </Badge>
                               </td>
                               <td className="text-danger fw-semibold">{m.endLocalDate || "—"}</td>

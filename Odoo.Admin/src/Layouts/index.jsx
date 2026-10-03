@@ -85,7 +85,7 @@ const Layout = (props) => {
             root.style.setProperty('--sidebar-link-icon-color', 'rgba(255, 255, 255, 0.65)');
             root.style.setProperty('--sidebar-link-hover-bg', 'rgba(255, 255, 255, 0.08)');
             root.style.setProperty('--sidebar-link-hover-color', '#ffffff');
-            root.style.setProperty('--sidebar-link-active-bg', 'rgba(15, 122, 74, 0.35)');
+            root.style.setProperty('--sidebar-link-active-bg', 'rgba(255, 255, 255, 0.12)');
             root.style.setProperty('--sidebar-link-active-color', '#ffffff');
             root.style.setProperty('--sidebar-collapse-icon-color', 'rgba(255, 255, 255, 0.8)');
         }
@@ -547,9 +547,8 @@ const Layout = (props) => {
                     }
                     
                     .minimal-sidebar .navbar-nav .nav-link.active {
-                        background: var(--sidebar-link-active-bg, rgba(15, 122, 74, 0.35)) !important;
+                        background: var(--sidebar-link-active-bg, rgba(255, 255, 255, 0.12)) !important;
                         color: var(--sidebar-link-active-color, #ffffff) !important;
-                        font-weight: 600;
                     }
                     
                     .minimal-sidebar .navbar-nav .menu-link[data-bs-toggle="collapse"]:after {
