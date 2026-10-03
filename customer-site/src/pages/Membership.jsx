@@ -132,8 +132,8 @@ export default function Membership({ embedded = false }) {
       {user?.premium ? (
         <article className="card" style={{ marginBottom: 32, borderColor: 'var(--green)', background: 'var(--soft)', padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-            <span className="chip" style={{ background: '#fff', borderColor: 'var(--green)' }}>YOUR MEMBERSHIP</span>
-            <span className="badge" style={{ background: 'var(--green)', color: '#fff' }}>ACTIVE</span>
+            <span className="chip" style={{ background: 'var(--glass-strong)' }}>YOUR MEMBERSHIP</span>
+            <span className="badge" style={{ background: 'var(--sel-bg)', color: 'var(--sel-ink)' }}>ACTIVE</span>
           </div>
           <h2 style={{ margin: '0 0 6px 0', fontSize: 24, fontWeight: 700 }}>{((current?.name || user.tierKey || 'Membership') + ' MEMBER').toUpperCase()}</h2>
           <p className="muted" style={{ marginBottom: 16 }}>Valid until <strong>{formatUntil(user.membershipEndDate)}</strong></p>
@@ -153,7 +153,7 @@ export default function Membership({ embedded = false }) {
         </article>
       ) : null}
 
-      <h2 className="section-title" style={{ fontSize: 22 }}>{user?.premium ? 'Explore Other Plans' : 'Membership Plans'}</h2>
+      <h2 className="section-title section-title-sm">{user?.premium ? 'Explore Other Plans' : 'Membership Plans'}</h2>
       <div className="plan-grid">
         {plans.map((plan) => {
           const isCurrent = Boolean(user?.premium && user.tierKey === plan.key);

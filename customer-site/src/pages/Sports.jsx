@@ -41,7 +41,7 @@ export default function Sports() {
             {sport.courtCount > 0 ? (
               <Link className="btn btn-primary" to={`/availability?sportId=${encodeURIComponent(sport.id)}`}>View Availability</Link>
             ) : (
-              <span className="btn btn-secondary">Currently unavailable</span>
+              <span className="btn btn-secondary" aria-disabled="true">Currently unavailable</span>
             )}
           </article>
         ))}

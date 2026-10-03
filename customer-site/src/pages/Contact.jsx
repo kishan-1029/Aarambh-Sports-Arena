@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useToast } from '../toast';
 import { isEmail, isName, mobileError, normalizeEmail, normalizeMobile, trimName } from '../validate';
@@ -10,8 +11,6 @@ const INTERESTS = [
   { id: 'corporate', label: 'Corporate / Events' },
   { id: 'other', label: 'Other' },
 ];
-
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function addressLine(location) {
   const address = location?.address;
@@ -50,7 +49,6 @@ export default function Contact() {
 
   const loc = club?.location;
   const address = addressLine(loc);
-  const hours = Array.isArray(loc?.openingHours) ? loc.openingHours : [];
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -103,7 +101,7 @@ export default function Contact() {
     <section className="page container">
       <header className="page-hero">
         <h1>Contact Us</h1>
-        <p>Have a question about membership, coaching or club events? Send us a message.</p>
+        <p>Have a question about memberships, courts or club events? Send us a message.</p>
       </header>
 
       <div className="contact-layout">
@@ -191,12 +189,10 @@ export default function Contact() {
               <a href={`tel:${loc.phone}`}>{loc.phone}</a>
             </p>
           )}
-          {hours.length > 0 && (
-            <p>
-              <strong>Club hours</strong>
-              {hours.map((h) => `${DAYS[h.dow] || ''} ${h.open}–${h.close}`).join(', ')}
-            </p>
-          )}
+          <div className="info-actions">
+            <Link className="btn btn-secondary" to="/availability">Check availability</Link>
+            <Link className="btn btn-secondary" to="/trial">Book a trial</Link>
+          </div>
         </aside>
       </div>
     </section>
