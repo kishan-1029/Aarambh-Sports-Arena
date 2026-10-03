@@ -7,19 +7,31 @@ import {
 } from "reactstrap";
 
 
-import logo from "../../assets/images/brand/logo-stacked.png";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { logout } from "../../api/auth.api";
 import config from "../../config";
 
+const profilePhotoSrc = (adminData) => {
+    const photo = adminData?.profilePhoto || adminData?.avatar || adminData?.photo || "";
+    if (!photo) return "";
+    return photo.startsWith("http")
+        ? photo
+        : `${config.api.API_URL}/${String(photo).replace(/^\/+/, "")}`;
+};
+
 const ProfileDropdown = () => {
     const navigate = useNavigate();
     const { adminData, setAdminData, role } = useContext(AuthContext);
 
-    const logoSrc = adminData?.logo
-        ? (adminData.logo.startsWith("http") ? adminData.logo : `${config.api.API_URL}/${adminData.logo.replace(/^\/+/, "")}`)
-        : logo;
+    const photoSrc = profilePhotoSrc(adminData);
+    const personName = adminData?.employeeName?.trim() || "";
+    const initials = personName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word) => word[0].toUpperCase())
+        .join("");
 
     const handleLogout = async () => {
         setAdminData(null);
@@ -41,12 +53,28 @@ const ProfileDropdown = () => {
         >
             <DropdownToggle tag="button" type="button" className="btn">
                 <span className="d-flex align-items-center">
-                    <img
-                        className="rounded-circle header-profile-user"
-                        src={logoSrc}
-                        alt="Header Avatar"
-                        style={{ objectFit: "contain" }}
-                    />
+                    {photoSrc ? (
+                        <img
+                            className="rounded-circle header-profile-user"
+                            src={photoSrc}
+                            alt="Profile"
+                            style={{ objectFit: "cover" }}
+                        />
+                    ) : (
+                        <span
+                            className="rounded-circle header-profile-user d-inline-flex align-items-center justify-content-center"
+                            aria-hidden="true"
+                            style={{
+                                background: "#224c99",
+                                color: "#ffffff",
+                                fontSize: initials ? 12 : 16,
+                                fontWeight: 600,
+                                lineHeight: 1,
+                            }}
+                        >
+                            {initials || <i className="ri-user-3-line" />}
+                        </span>
+                    )}
                     <span className="text-start ms-xl-2">
                         <span className="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
                             

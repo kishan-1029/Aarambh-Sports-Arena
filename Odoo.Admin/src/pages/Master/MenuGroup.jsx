@@ -16,6 +16,7 @@ import {
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -129,6 +130,8 @@ const MenuGroup = () => {
   };
 
   const [modal_delete, setmodal_delete] = useState(false);
+  const [referenceModal, setReferenceModal] = useState(false);
+  const [referenceData, setReferenceData] = useState(null);
   const tog_delete = (id) => {
     setmodal_delete(!modal_delete);
     setRemove_id(id);
@@ -217,7 +220,13 @@ const MenuGroup = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to remove menu group. Please try again.");
+        setmodal_delete(false);
+        if (err.response?.status === 409) {
+          setReferenceData(err.response.data);
+          setReferenceModal(true);
+        } else {
+          toast.error(err.response?.data?.message || "Failed to remove menu group. Please try again.");
+        }
       }).finally(() => {
         setIsDeleteLoading(false);
       });
@@ -610,6 +619,12 @@ const MenuGroup = () => {
         toggle={handleDeleteClose}
         setmodal_delete={setmodal_delete}
         disabled={isDeleteLoading}
+      />
+      <ReferenceErrorModal
+        isOpen={referenceModal}
+        toggle={() => setReferenceModal(false)}
+        title="Cannot Delete Menu Group"
+        referenceData={referenceData}
       />
     </React.Fragment>
   );

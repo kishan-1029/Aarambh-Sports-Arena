@@ -35,6 +35,7 @@
 }
 
 [data-layout-mode="dark"] {
+  color-scheme: dark;
   --arambh-bg: #0e1210;
   --arambh-surface: #151a17;
   --arambh-surface-2: #1c2320;
@@ -195,4 +196,207 @@
   padding: 0.75rem 1.25rem;
   border-bottom: 1px solid var(--arambh-border);
   background: var(--arambh-surface);
+}
+
+[data-layout-mode="dark"] {
+  .select__control,
+  .select__menu,
+  .select__menu-list {
+    background-color: var(--vz-input-bg) !important;
+    border-color: var(--vz-border-color) !important;
+    color: var(--vz-body-color) !important;
+  }
+
+  .select__single-value,
+  .select__input-container,
+  .select__placeholder,
+  .select__multi-value__label,
+  .select__option {
+    color: var(--vz-body-color) !important;
+    background-color: transparent;
+  }
+
+  .select__option--is-focused,
+  .select__option:hover {
+    background-color: var(--vz-light) !important;
+  }
+
+  .select__multi-value {
+    background-color: var(--vz-light) !important;
+  }
+
+  .select__indicator {
+    color: var(--vz-body-color) !important;
+  }
+
+  .page-content .bg-white,
+  .form-section-card,
+  .premium-upload-card,
+  .premium-upload-dropzone,
+  .premium-preview-wrapper {
+    background-color: var(--vz-card-bg) !important;
+    color: var(--vz-body-color);
+    border-color: var(--vz-border-color) !important;
+  }
+
+  .form-section-header {
+    color: var(--vz-heading-color) !important;
+  }
+
+  .jodit-container,
+  .jodit-toolbar__box,
+  .jodit-workplace,
+  .jodit-wysiwyg,
+  .jodit-status-bar {
+    background-color: var(--vz-input-bg) !important;
+    color: var(--vz-body-color) !important;
+    border-color: var(--vz-border-color) !important;
+  }
+}
+
+/* Row actions stay compact. Page buttons keep the theme size. */
+.edit-item-btn,
+.remove-item-btn,
+.rdt_TableCell .btn,
+.table td .btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.18rem 0.55rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  font-weight: 600;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  white-space: nowrap;
+  min-height: 0;
+}
+
+.edit-item-btn:hover,
+.remove-item-btn:hover,
+.rdt_TableCell .btn:hover,
+.table td .btn-sm:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.rdt_TableCell .d-flex,
+.table td .d-flex {
+  flex-wrap: nowrap;
+  align-items: center;
+  height: auto !important;
+  overflow: visible;
+  gap: 0.35rem !important;
+}
+
+.badge.bg-light,
+.badge-light,
+.badge.text-bg-light,
+.badge.tier-none {
+  background-color: #e4e7eb !important;
+  color: #343a40 !important;
+  border: 1px solid #ced4da;
+}
+
+.badge {
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  line-height: 1.15;
+  padding: 0.28em 0.55em !important;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.list-page-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.list-page-filter {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-field {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 140px;
+  max-width: 240px;
+}
+
+.list-page-toolbar .search-box.toolbar-field {
+  flex: 1 1 160px;
+}
+
+.page-toolbar .btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 767.98px) {
+  .page-content {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .card-header.page-toolbar,
+  .page-toolbar,
+  .list-page-toolbar .page-toolbar {
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+    row-gap: 0.5rem;
+  }
+
+  .card-header h5,
+  .list-page-title {
+    font-size: 1rem;
+    white-space: normal !important;
+  }
+
+  .toolbar-field,
+  .list-page-toolbar .search-box,
+  .page-toolbar > .form-control,
+  .page-toolbar > .btn {
+    flex: 1 1 100% !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .page-toolbar .d-flex {
+    width: 100%;
+    flex-wrap: wrap !important;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .btn {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+
+  .rdt_Pagination {
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem !important;
+    overflow: visible !important;
+  }
+
+  .rdt_Pagination select {
+    width: 3.5rem !important;
+    min-width: 3.5rem !important;
+    max-width: 3.5rem !important;
+    flex: 0 0 auto !important;
+  }
+
+  .rdt_TableCell .action-label {
+    display: none;
+  }
+
+  .rdt_TableCell,
+  .table td {
+    white-space: normal;
+  }
 }

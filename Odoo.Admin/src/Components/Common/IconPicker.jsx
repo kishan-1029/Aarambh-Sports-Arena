@@ -160,9 +160,9 @@ const IconPicker = ({ value, onChange, label, error, required }) => {
                     caret
                     className="w-100 d-flex align-items-center justify-content-between icon-picker-toggle"
                     style={{
-                        backgroundColor: "white",
-                        border: "1px solid #ced4da",
-                        color: "#495057",
+                        backgroundColor: "var(--vz-input-bg, #fff)",
+                        border: "1px solid var(--vz-border-color, #ced4da)",
+                        color: "var(--vz-body-color, #495057)",
                         padding: "0.65rem 1rem",
                         borderRadius: "0.375rem",
                         height: "48px",
@@ -194,7 +194,7 @@ const IconPicker = ({ value, onChange, label, error, required }) => {
                         style={{
                             position: "sticky",
                             top: 0,
-                            backgroundColor: "white",
+                            backgroundColor: "var(--vz-input-bg, #fff)",
                             borderBottom: "1px solid #dee2e6",
                             zIndex: 3,
                         }}

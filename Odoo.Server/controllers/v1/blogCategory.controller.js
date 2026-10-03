@@ -1,4 +1,9 @@
 import BlogCategory from "../../models/BlogCategory.js";
+import BlogMaster from "../../models/BlogMaster.js";
+import {
+  getReferencingCounts,
+  formatReferenceMessage,
+} from "../../utils/referenceHelper.js";
 
 const escapeRegex = (str = "") =>
   str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
@@ -150,6 +155,29 @@ export const deleteBlogCategory = async (req, res) => {
         isOk: false,
         status: 404,
         message: "Blog Category not found",
+      });
+    }
+
+    const referenceInfo = await getReferencingCounts("BlogCategory", id);
+    const blogCount = await BlogMaster.countDocuments({
+      $or: [
+        { category: { $regex: `^${escapeRegex(category.categoryName)}$`, $options: "i" } },
+        { category: { $regex: `^${escapeRegex(category.slug)}$`, $options: "i" } },
+      ],
+    });
+    const details = [...referenceInfo.details];
+    if (blogCount > 0) {
+      details.push({ model: "BlogMaster", path: "category", count: blogCount });
+    }
+    const totalReferences = details.reduce((sum, d) => sum + d.count, 0);
+    if (totalReferences > 0) {
+      return res.status(409).json({
+        isOk: false,
+        status: 409,
+        message: "Cannot delete blog category. It is being used by other records.",
+        totalReferences,
+        references: details,
+        formattedMessage: formatReferenceMessage(details),
       });
     }
 

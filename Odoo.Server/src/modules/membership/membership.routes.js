@@ -67,6 +67,21 @@ router.post(
   },
 );
 
+router.post(
+  '/membership-plans/:id/archive',
+  requireAuth,
+  requirePermission('membership_plan.edit'),
+  validate({ params: idParamsSchema }),
+  async (req, res, next) => {
+    try {
+      const data = await membershipService.archivePlan(req.params.id, req.ctx);
+      return ok(res, data, 'Plan removed');
+    } catch (err) {
+      return next(err);
+    }
+  },
+);
+
 router.patch(
   '/membership-plans/:id',
   requireAuth,

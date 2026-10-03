@@ -41,7 +41,7 @@ export const ARAMBH_ROUTES = [
   { label: "Courts", path: "/courts", perm: "court.view", icon: "ri-layout-grid-line" },
   { label: "Members", path: "/members", perm: "member.view", icon: "ri-group-line" },
   { label: "Membership Plans", path: "/membership-plans", perm: "membership_plan.view", icon: "ri-vip-crown-line" },
-  { label: "Memberships", path: "/memberships", perm: "membership.view", icon: "ri-id-card-line" },
+  { label: "Memberships", path: "/memberships", perm: "membership.view", icon: "ri-profile-line" },
   { label: "POS", path: "/pos", perm: "pos.create", icon: "ri-store-2-line", comingSoon: true, fullscreen: true },
   { label: "Kitchen Display (KDS)", path: "/kds", perm: "kds.view", icon: "ri-restaurant-line", comingSoon: true },
   { label: "Shop / Inventory", path: "/shop/inventory", perm: "inventory.view", icon: "ri-shopping-bag-3-line", comingSoon: true },
@@ -121,7 +121,7 @@ export function buildArambhNavGroups() {
     group("arambh-members", "Members", "ri-group-line", [
       { name: "Members", url: "/members", icon: "ri-group-line", perm: "member.view" },
       { name: "Membership Plans", url: "/membership-plans", icon: "ri-vip-crown-line", perm: "membership_plan.view" },
-      { name: "Memberships", url: "/memberships", icon: "ri-id-card-line", perm: "membership.view" },
+      { name: "Memberships", url: "/memberships", icon: "ri-profile-line", perm: "membership.view" },
     ]),
     group("arambh-commerce", "POS & Shop", "ri-store-2-line", [
       { name: "POS", url: "/pos", icon: "ri-store-2-line", perm: "pos.create", comingSoon: true },
@@ -129,7 +129,7 @@ export function buildArambhNavGroups() {
       { name: "Shop / Inventory", url: "/shop/inventory", icon: "ri-shopping-bag-3-line", perm: "inventory.view", comingSoon: true },
       { name: "CRM", url: "/crm/pipeline", icon: "ri-customer-service-2-line", perm: "lead.view", comingSoon: true },
     ]),
-    group("arambh-finance", "Finance", "ri-money-rupee-circle-line", [
+    group("arambh-finance", "Finance", "ri-bank-line", [
       { name: "Customers", url: "/customers", icon: "ri-contacts-book-line", perm: "customer.view" },
       { name: "Invoices", url: "/finance/invoices", icon: "ri-file-list-3-line", perm: "invoice.view" },
       { name: "Payments", url: "/settings/payments", icon: "ri-bank-card-line", perm: "payment.manage" },
@@ -176,13 +176,31 @@ export function mergeAdminNavGroups(apiGroups = [], arambhGroups = [], legacyGro
   };
 
   for (const g of legacyGroups) push(g);
+  const arambhNames = new Set(
+    (arambhGroups || [])
+      .map((g) => String(g.groupName || "").trim().toLowerCase())
+      .filter(Boolean),
+  );
+
   for (const g of apiGroups || []) {
     const key = String(g.groupName || "").trim().toLowerCase();
     // Skip API groups we already covered via legacy (Setup/Master/CMS/Dashboard)
+    // or via the coded Arambh nav (icons, permissions, child items).
     if (["setup", "master", "cms", "dashboard"].includes(key)) continue;
+    if (arambhNames.has(key)) continue;
     push(g);
   }
   for (const g of arambhGroups) push(g);
 
   return out;
+}
+
+const ICON_BY_PATH = Object.fromEntries(
+  ARAMBH_ROUTES.filter((r) => r.icon).map((r) => [r.path, r.icon]),
+);
+
+/** Remix class for a sidebar URL when the stored menu has no icon. */
+export function iconForMenuUrl(url) {
+  if (!url) return "";
+  return ICON_BY_PATH[url] || "";
 }

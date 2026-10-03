@@ -1,4 +1,10 @@
 import MenuGroupMaster from "../../models/MenuGroupMaster.js";
+import "../../models/MenuMaster.js";
+import "../../models/EmployeeRoles.js";
+import {
+  getReferencingCounts,
+  formatReferenceMessage,
+} from "../../utils/referenceHelper.js";
 
 // Helper: Escape regex special characters to prevent NoSQL injection
 const escapeRegex = (str = "") =>
@@ -108,6 +114,27 @@ export const updateMenuGroup = async (req, res) => {
 export const deleteMenuGroup = async (req, res) => {
   try {
     const { menuGroupId } = req.params;
+
+    const existing = await MenuGroupMaster.findById(menuGroupId);
+    if (!existing) {
+      return res.status(404).json({
+        isOk: false,
+        status: 404,
+        message: "Menu group not found",
+      });
+    }
+
+    const referenceInfo = await getReferencingCounts("MenuGroupMaster", menuGroupId);
+    if (referenceInfo.totalReferences > 0) {
+      return res.status(409).json({
+        isOk: false,
+        status: 409,
+        message: "Cannot delete menu group. It is being used by other records.",
+        totalReferences: referenceInfo.totalReferences,
+        references: referenceInfo.details,
+        formattedMessage: formatReferenceMessage(referenceInfo.details),
+      });
+    }
 
     const menuGroup = await MenuGroupMaster.findByIdAndUpdate(
       menuGroupId,

@@ -17,6 +17,15 @@ export const createCountry = async (req, res) => {
     const { countryName, countryCode, isActive } = req.body;
 
     const safeCountryName = typeof countryName === "string" ? countryName.trim() : "";
+    const safeCountryCode = typeof countryCode === "string" ? countryCode.trim() : "";
+
+    if (!safeCountryName || !safeCountryCode) {
+      return res.status(400).json({
+        isOk: false,
+        message: "Country name and code are required",
+        status: 400,
+      });
+    }
 
     const existingCountry = await CountryModels.findOne({ countryName: safeCountryName });
 
@@ -29,9 +38,9 @@ export const createCountry = async (req, res) => {
     }
 
     const country = new CountryModels({
-      countryName,
-      countryCode,
-      isActive,
+      countryName: safeCountryName,
+      countryCode: safeCountryCode,
+      isActive: isActive !== false && isActive !== "false",
     });
     await country.save();
 
@@ -50,9 +59,14 @@ export const createCountry = async (req, res) => {
   }
 };
 
+const namedCountry = {
+  countryName: { $regex: /\S/ },
+  countryCode: { $regex: /\S/ },
+};
+
 export const listAllCountries = async (req, res) => {
   try {
-    const countries = await CountryModels.find({ isActive: true });
+    const countries = await CountryModels.find({ isActive: true, ...namedCountry });
 
     return res.status(200).json({
       isOk: true,
@@ -117,6 +131,16 @@ export const updateCountry = async (req, res) => {
   try {
     const { countryId } = req.params;
     const { countryName, countryCode, isActive } = req.body;
+    const safeCountryName = typeof countryName === "string" ? countryName.trim() : "";
+    const safeCountryCode = typeof countryCode === "string" ? countryCode.trim() : "";
+
+    if (!safeCountryName || !safeCountryCode) {
+      return res.status(400).json({
+        isOk: false,
+        message: "Country name and code are required",
+        status: 400,
+      });
+    }
 
     const country = await CountryModels.findById(countryId);
 
@@ -128,8 +152,8 @@ export const updateCountry = async (req, res) => {
       });
     }
 
-    country.countryName = countryName;
-    country.countryCode = countryCode;
+    country.countryName = safeCountryName;
+    country.countryCode = safeCountryCode;
     country.isActive = isActive;
 
     await country.save();
@@ -172,6 +196,12 @@ export const listCountryByParams = async (req, res) => {
     const safeMatch = typeof match === "string" ? match.trim() : "";
 
     const pipeline = [
+      {
+        $match: {
+          countryName: { $type: "string", $regex: "\\S" },
+          countryCode: { $type: "string", $regex: "\\S" },
+        },
+      },
       {
         $sort: {
           [sorton && typeof sorton === "string" ? sorton : "createdAt"]: sortdir === "desc" ? -1 : 1
@@ -387,6 +417,19 @@ export const deleteState = async (req, res) => {
         isOk: false,
         message: "State not found",
         status: 404,
+      });
+    }
+
+    const referenceInfo = await getReferencingCounts("State", stateId);
+
+    if (referenceInfo.totalReferences > 0) {
+      return res.status(409).json({
+        message: "Cannot delete state. It is being used by other records.",
+        isOk: false,
+        status: 409,
+        totalReferences: referenceInfo.totalReferences,
+        references: referenceInfo.details,
+        formattedMessage: formatReferenceMessage(referenceInfo.details),
       });
     }
 
@@ -702,6 +745,19 @@ export const deleteCity = async (req, res) => {
       });
     }
 
+    const referenceInfo = await getReferencingCounts("City", cityId);
+
+    if (referenceInfo.totalReferences > 0) {
+      return res.status(409).json({
+        message: "Cannot delete city. It is being used by other records.",
+        isOk: false,
+        status: 409,
+        totalReferences: referenceInfo.totalReferences,
+        references: referenceInfo.details,
+        formattedMessage: formatReferenceMessage(referenceInfo.details),
+      });
+    }
+
     await CityModels.deleteOne({ _id: cityId });
 
     return res.status(200).json({
@@ -931,7 +987,7 @@ export const listCityByParams = async (req, res) => {
 
 export const listCountryStateCity = async (req, res) => {
   try {
-    const countries = await CountryModels.find({ isActive: true });
+    const countries = await CountryModels.find({ isActive: true, ...namedCountry });
 
     const result = await Promise.all(
       countries.map(async (country) => {

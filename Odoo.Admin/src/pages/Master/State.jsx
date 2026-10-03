@@ -25,6 +25,7 @@ import {
 } from "../../api/locations.api";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -149,6 +150,8 @@ const State = () => {
   };
 
   const [modal_delete, setmodal_delete] = useState(false);
+  const [referenceModal, setReferenceModal] = useState(false);
+  const [referenceData, setReferenceData] = useState(null);
   const tog_delete = (_id) => {
     setmodal_delete(!modal_delete);
     setRemove_id(_id);
@@ -231,7 +234,13 @@ const State = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to remove state. Please try again.");
+        setmodal_delete(false);
+        if (err.response?.status === 409) {
+          setReferenceData(err.response.data);
+          setReferenceModal(true);
+        } else {
+          toast.error("Failed to remove state. Please try again.");
+        }
       }).finally(() => {
         setIsDeleteLoading(false);
       });
@@ -597,6 +606,12 @@ const State = () => {
         toggle={handleDeleteClose}
         setmodal_delete={setmodal_delete}
         disabled={isDeleteLoading}
+      />
+      <ReferenceErrorModal
+        isOpen={referenceModal}
+        toggle={() => setReferenceModal(false)}
+        title="Cannot Delete State"
+        referenceData={referenceData}
       />
     </React.Fragment>
   );

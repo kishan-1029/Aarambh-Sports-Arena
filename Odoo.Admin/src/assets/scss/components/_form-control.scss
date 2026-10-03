@@ -38,7 +38,28 @@
     }
 
     .form-control {
-        background-color: var(--#{$prefix}gray-200) !important;
+        background-color: var(--#{$prefix}input-bg) !important;
+        color: var(--#{$prefix}body-color) !important;
         border-color: var(--#{$prefix}border-color) !important;
+    }
+
+    .form-floating > label {
+        color: var(--#{$prefix}body-color);
+    }
+
+    .form-floating > label::after {
+        background-color: var(--#{$prefix}input-bg) !important;
+    }
+
+    .form-control::placeholder,
+    textarea::placeholder {
+        color: var(--#{$prefix}gray-500);
+    }
+
+    /* Keep the floating label alone until the field is focused */
+    .form-floating > .form-control:not(:focus)::placeholder,
+    .form-floating > .form-control-plaintext::placeholder,
+    .form-floating > textarea:not(:focus)::placeholder {
+        color: transparent !important;
     }
   }

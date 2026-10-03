@@ -138,7 +138,7 @@ const Bookings = () => {
           <Col md={3}>
             <label className="form-label">Search</label>
             <Input
-              placeholder="Booking no, name, phone…"
+              placeholder="Booking no"
               value={q}
               onChange={(e) => {
                 setQ(e.target.value);
@@ -235,6 +235,7 @@ const Bookings = () => {
                             <Money paise={r.price?.totalPaise ?? 0} />
                           </td>
                           <td>
+                            <div className="d-flex flex-wrap gap-1">
                             {["held", "confirmed"].includes(r.status) && (
                               <Button
                                 size="sm"
@@ -257,6 +258,7 @@ const Bookings = () => {
                                 Cancel
                               </Button>
                             )}
+                            </div>
                           </td>
                         </tr>
                       ))}
