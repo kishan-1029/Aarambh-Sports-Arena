@@ -101,11 +101,16 @@ export const additionalSecurityHeaders = (req, res, next) => {
  * @returns {Object} CORS configuration object
  */
 export const getCorsConfig = (allowedOrigins = []) => {
+    // 3000 = Odoo.Admin, 3001 = public website (Arambh Sports Arena)
     const defaultOrigins = [
         'http://localhost:3000',
         'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
         'http://localhost:7002',
         'https://demo-test.barodaweb.net.in',
+        ...(process.env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
+        ...(process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
     ];
 
     const origins = new Set([...defaultOrigins, ...allowedOrigins]);

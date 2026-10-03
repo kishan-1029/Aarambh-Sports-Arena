@@ -25,6 +25,7 @@ import memberRoutes from "./src/modules/members/member.routes.js";
 import membershipRoutes from "./src/modules/membership/membership.routes.js";
 import facilitiesRoutes from "./src/modules/facilities/facilities.routes.js";
 import bookingRoutes from "./src/modules/booking/booking.routes.js";
+import publicRoutes from "./src/modules/public/public.routes.js";
 import { logger } from "./src/lib/logger.js";
 
 // ============ SECURITY IMPORTS ============
@@ -384,6 +385,7 @@ app.use("/api/admin", memberRoutes);
 app.use("/api/admin", membershipRoutes);
 app.use("/api/admin", facilitiesRoutes);
 app.use("/api/admin", bookingRoutes);
+app.use("/api/public", publicRoutes);
 app.use("/api", webhookRoutes);
 
 app.get("/api", (req, res) => {

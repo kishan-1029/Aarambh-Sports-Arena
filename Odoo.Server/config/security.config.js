@@ -51,11 +51,15 @@ export const rateLimitConfig = {
 // ============ CORS CONFIGURATION ============
 export const corsConfig = {
     // Allowed origins - expand this list for production
+    // 3000 = Odoo.Admin, 3001 = public website (Arambh Sports Arena)
     allowedOrigins: [
         'http://localhost:3000',
         'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
         'http://localhost:7002',
         ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
+        ...(process.env.CORS_ORIGINS?.split(',') || []),
     ].filter(Boolean),
 
     // Allowed methods
