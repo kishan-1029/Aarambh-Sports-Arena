@@ -45,7 +45,7 @@
 [data-option-flag-img-name] {
     &::before {
         content: "\f0140";
-        font-family: "Material Design Icons";
+        font-family: "Material Design Icons", sans-serif;
         position: absolute;
         right: $input-padding-x;
         top: $input-padding-y;

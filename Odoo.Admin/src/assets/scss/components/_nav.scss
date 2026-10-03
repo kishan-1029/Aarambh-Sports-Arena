@@ -2,8 +2,7 @@
 // _nav.scss
 //
 
-.nav-tabs,
-.nav-pills {
+.nav-tabs {
     >li {
         >a {
             color: var(--#{$prefix}gray-700);
@@ -13,13 +12,17 @@
 }
 
 .nav-pills {
+    >li {
+        >a {
+            color: var(--#{$prefix}gray-700);
+            font-weight: $font-weight-medium;
+        }
+    }
+
     >a {
         color: var(--#{$prefix}gray-700);
         font-weight: $font-weight-medium;
     }
-}
-
-.nav-pills {
 
     .nav-link.active,
     .show>.nav-link {

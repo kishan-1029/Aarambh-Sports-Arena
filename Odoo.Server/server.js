@@ -3,11 +3,12 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 import bodyParser from "body-parser";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import hpp from "hpp";
+import session from "express-session";
 import { setupSwagger } from "./config/swagger.js";
 
 // ============ SECURITY IMPORTS ============
@@ -19,18 +20,10 @@ import {
   sanitizeErrors
 } from "./middlewares/securityHeaders.js";
 import {
-  generalRateLimiter,
-  authRateLimiter,
-  passwordResetRateLimiter,
-  searchRateLimiter
+  generalRateLimiter
 } from "./middlewares/rateLimiter.js";
 import {
-  mongoSanitizer,
-  loginValidation,
-  searchValidation,
-  allowOnlyFields,
-  allowedLoginFields,
-  allowedSearchFields
+  mongoSanitizer
 } from "./middlewares/inputValidator.js";
 
 // ES6 module equivalent of __dirname and __filename
@@ -39,7 +32,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-global.__basedir = __dirname;
+globalThis.__basedir = __dirname;
 
 // Create log directory if it doesn't exist
 if (!fs.existsSync("log")) {
@@ -113,32 +106,209 @@ app.use(mongoSanitizer);
 app.use(hpp());
 
 // ============ STATIC FILE SERVING ============
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads", {
+  setHeaders: (res, filePath) => {
+    const ext = path.extname(filePath).toLowerCase();
+    const inlineExtensions = [
+      ".pdf", ".png", ".jpg", ".jpeg", ".gif", 
+      ".svg", ".webp", ".mp4", ".webm", 
+      ".ogg", ".mp3", ".wav"
+    ];
+    if (inlineExtensions.includes(ext)) {
+      res.setHeader("Content-Disposition", "inline");
+      if (ext === ".pdf") {
+        res.setHeader("Content-Type", "application/pdf");
+        res.removeHeader("Content-Security-Policy");
+        res.removeHeader("X-Frame-Options");
+      }
+    }
+  }
+}));
+app.use(express.static("files"));
+app.use("/", express.static(path.join(__dirname, "/out/admin")));
 // NOTE: Removed /log static serving for security - logs should not be publicly accessible
+
+// 7. Express Session - MongoDB Session Storage (persistent)
+import MongoStore from "connect-mongo";
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  name: 'sessionId',
+  store: MongoStore.create({
+    mongoUrl: process.env.DATABASE,
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60, // 24 hours in seconds
+    autoRemove: 'native', // Use MongoDB TTL index for cleanup
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    httpOnly: true, // Prevents XSS attacks
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax' // CSRF protection
+  }
+}));
+
+console.log("✅ Express session middleware configured (MongoDB storage)");
 
 mongoose.set("strictQuery", false);
 mongoose.set("debug", true);
 
 const dbURI = process.env.DATABASE;
 
-mongoose
-  .connect(dbURI, {
+import MenuGroupMaster from "./models/MenuGroupMaster.js";
+import MenuMaster from "./models/MenuMaster.js";
+
+const seedFaqMenus = async () => {
+  try {
+    const setupGroup = await MenuGroupMaster.findOne({ menuGroupName: "Setup" });
+    if (!setupGroup) {
+      console.log("⚠️ Setup menu group not found. Cannot seed FAQ menus.");
+      return;
+    }
+
+    // 1. Create or Find "Faq Master" parent menu under Setup
+    let faqMasterMenu = await MenuMaster.findOne({
+      menuName: "Faq Master",
+      menuGroup: setupGroup._id,
+    });
+
+    if (!faqMasterMenu) {
+      faqMasterMenu = new MenuMaster({
+        menuName: "Faq Master",
+        menuGroup: setupGroup._id,
+        menuUrl: "#",
+        sequence: 6,
+        isActive: true,
+        isParent: true,
+        parentMenu: null,
+        icon: "ri-question-answer-line",
+      });
+      await faqMasterMenu.save();
+      console.log("✅ Seeded parent FAQ Master menu");
+    }
+
+    // 2. Create or Find "FAQ Categories" child menu
+    let faqCategoryMenu = await MenuMaster.findOne({
+      menuName: "FAQ Categories",
+      parentMenu: faqMasterMenu._id,
+    });
+
+    if (!faqCategoryMenu) {
+      faqCategoryMenu = new MenuMaster({
+        menuName: "FAQ Categories",
+        menuGroup: setupGroup._id,
+        menuUrl: "/faq-category",
+        sequence: 1,
+        isActive: true,
+        isParent: false,
+        parentMenu: faqMasterMenu._id,
+      });
+      await faqCategoryMenu.save();
+      console.log("✅ Seeded child FAQ Categories menu");
+    }
+
+    // 3. Create or Find "FAQs" child menu
+    let faqsMenu = await MenuMaster.findOne({
+      menuName: "FAQs",
+      parentMenu: faqMasterMenu._id,
+    });
+
+    if (!faqsMenu) {
+      faqsMenu = new MenuMaster({
+        menuName: "FAQs",
+        menuGroup: setupGroup._id,
+        menuUrl: "/faq",
+        sequence: 2,
+        isActive: true,
+        isParent: false,
+        parentMenu: faqMasterMenu._id,
+      });
+      await faqsMenu.save();
+      console.log("✅ Seeded child FAQs menu");
+    }
+  } catch (err) {
+    console.error("❌ Error seeding FAQ menus =>", err);
+  }
+};
+
+const seedHelpAndGuideMenus = async () => {
+  try {
+    let helpGroup = await MenuGroupMaster.findOne({ menuGroupName: "Help and Guide" });
+    if (!helpGroup) {
+      helpGroup = new MenuGroupMaster({
+        menuGroupName: "Help and Guide",
+        sequence: 5,
+        isActive: true,
+        isLink: false,
+        menuUrl: "#",
+        icon: "ri-customer-service-line",
+      });
+      await helpGroup.save();
+      console.log("✅ Seeded Help and Guide menu group");
+    }
+
+    let guidesGalleryMenu = await MenuMaster.findOne({
+      menuName: "Guides Gallery",
+      menuGroup: helpGroup._id,
+    });
+
+    if (!guidesGalleryMenu) {
+      guidesGalleryMenu = new MenuMaster({
+        menuName: "Guides Gallery",
+        menuGroup: helpGroup._id,
+        menuUrl: "/guides-gallery",
+        sequence: 1,
+        isActive: true,
+        isParent: false,
+        parentMenu: null,
+      });
+      await guidesGalleryMenu.save();
+      console.log("✅ Seeded Guides Gallery menu");
+    }
+
+    let manageGuidesMenu = await MenuMaster.findOne({
+      menuName: "Manage Guides",
+      menuGroup: helpGroup._id,
+    });
+
+    if (!manageGuidesMenu) {
+      manageGuidesMenu = new MenuMaster({
+        menuName: "Manage Guides",
+        menuGroup: helpGroup._id,
+        menuUrl: "/manage-guides",
+        sequence: 2,
+        isActive: true,
+        isParent: false,
+        parentMenu: null,
+      });
+      await manageGuidesMenu.save();
+      console.log("✅ Seeded Manage Guides menu");
+    }
+  } catch (err) {
+    console.error("❌ Error seeding Help and Guide menus =>", err);
+  }
+};
+
+try {
+  await mongoose.connect(dbURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 10000,
-  })
-  .then(() => {
-    console.log("✅ DB connected");
-    databasestatus = "Connected";
-  })
-  .catch((err) => {
-    console.error("❌ DB Connection Error =>", err);
-    if (err instanceof mongoose.Error.MongooseServerSelectionError) {
-      console.error(
-        "Server selection failed. Check network, URI, and Atlas IP whitelist.",
-      );
-    }
   });
+  console.log("✅ DB connected");
+  databasestatus = "Connected";
+  await seedFaqMenus();
+  await seedHelpAndGuideMenus();
+} catch (err) {
+  console.error("❌ DB Connection Error =>", err);
+  if (err instanceof mongoose.Error.MongooseServerSelectionError) {
+    console.error(
+      "Server selection failed. Check network, URI, and Atlas IP whitelist.",
+    );
+  }
+}
 
 // Optional: handle runtime disconnects
 mongoose.connection.on("disconnected", () => {
@@ -152,7 +322,6 @@ mongoose.connection.on("reconnected", () => {
 // ============ ADDITIONAL MIDDLEWARE ============
 // Development request logging (disable in production for performance)
 app.use(morgan("dev"));
-app.use(express.static("files"));
 
 // Setup Swagger documentation (consider disabling in production)
 setupSwagger(app);
@@ -169,6 +338,12 @@ import locationsRoutes from "./routes/v1/locations.routes.js";
 import menusRoutes from "./routes/v1/menus.routes.js";
 import rolesRoutes from "./routes/v1/roles.routes.js";
 import otpRoutes from "./routes/v1/otp.routes.js";
+import blogCategoryRoutes from "./routes/v1/blogCategory.routes.js";
+import blogTagRoutes from "./routes/v1/blogTag.routes.js";
+import blogMasterRoutes from "./routes/v1/blogMaster.routes.js";
+import faqCategoryRoutes from "./routes/v1/faqCategory.routes.js";
+import faqRoutes from "./routes/v1/faq.routes.js";
+import guideRoutes from "./routes/v1/guide.routes.js";
 
 app.use("/api/v1", companiesRoutes);
 app.use("/api/v1", currenciesRoutes);
@@ -180,6 +355,12 @@ app.use("/api/v1", locationsRoutes);
 app.use("/api/v1", menusRoutes);
 app.use("/api/v1", rolesRoutes);
 app.use("/api/v1/otp", otpRoutes);
+app.use("/api/v1", blogCategoryRoutes);
+app.use("/api/v1", blogTagRoutes);
+app.use("/api/v1", blogMasterRoutes);
+app.use("/api/v1", faqCategoryRoutes);
+app.use("/api/v1", faqRoutes);
+app.use("/api/v1", guideRoutes);
 
 console.log("✅ V1 API routes loaded");
 
@@ -192,7 +373,7 @@ app.get("/api", (req, res) => {
   });
 });
 
-app.use("/", express.static(path.join(__dirname, "/out/admin")));
+
 
 app.get("/*", async (req, res) => {
   res.sendFile(path.join(__dirname, "/out/admin", "index.html"));

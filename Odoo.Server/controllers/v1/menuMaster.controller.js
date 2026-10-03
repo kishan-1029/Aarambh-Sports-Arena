@@ -1,6 +1,10 @@
 import MenuMaster from "../../models/MenuMaster.js";
 import mongoose from "mongoose";
 
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
 export const createMenuMaster = async (req, res) => {
   try {
     const {
@@ -12,7 +16,7 @@ export const createMenuMaster = async (req, res) => {
       isParent,
       parentMenu,
     } = req.body;
-    console.log("Received createMenuMaster data:", req.body); // Debug incoming data
+    
 
     const menuMaster = await MenuMaster.create({
       menuName,
@@ -70,7 +74,7 @@ export const updateMenuMaster = async (req, res) => {
       isParent,
       parentMenu,
     } = req.body;
-    console.log("Received updateMenuMaster data:", req.body); // Debug incoming data
+    
 
     const menuMaster = await MenuMaster.findByIdAndUpdate(
       menuMasterId,
@@ -105,7 +109,7 @@ export const updateMenuMaster = async (req, res) => {
 export const deleteMenuMaster = async (req, res) => {
   try {
     const { menuMasterId } = req.params;
-    console.log("Deleting menu master with ID:", menuMasterId);
+    
 
     const menuMaster = await MenuMaster.findByIdAndUpdate(menuMasterId, {
       isActive: false,
@@ -150,13 +154,59 @@ export const listMenuMasterByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    // Sanitize numeric inputs
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+    const escapedMatch = escapeRegex(safeMatch);
+
+    const allowedFields = ["menuName", "menuGroup", "menuUrl", "sequence", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedFields.includes(sorton) ? sorton : "createdAt";
+    const sortOrder = sortdir === "desc" ? -1 : 1;
+
+    const pipeline = [
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    menuName: {
+                      $regex: escapedMatch,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    menuGroup: {
+                      $regex: escapedMatch,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    menuUrl: {
+                      $regex: escapedMatch,
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -182,8 +232,11 @@ export const listMenuMasterByParams = async (req, res) => {
           sequence: 1,
           isActive: 1,
           icon: 1,
+          createdAt: 1,
+          updatedAt: 1,
         },
       },
+      { $sort: { [safeSortField]: sortOrder } },
       {
         $facet: {
           stage1: [
@@ -194,7 +247,7 @@ export const listMenuMasterByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -208,45 +261,7 @@ export const listMenuMasterByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                menuName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                menuGroup: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                menuUrl: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await MenuMaster.aggregate(query);
+    const list = await MenuMaster.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,

@@ -10,7 +10,7 @@
   &::before{
     content: "\ea61";
     position: absolute;
-    font-family: "remixicon";
+    font-family: "remixicon", sans-serif;
     left: 50%;
     transform: translateX(-50%);
     bottom: 86px;

@@ -6,13 +6,19 @@ import {
   formatReferenceMessage,
 } from "../../utils/referenceHelper.js";
 
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
 // COUNTRY
 
 export const createCountry = async (req, res) => {
   try {
     const { countryName, countryCode, isActive } = req.body;
 
-    const existingCountry = await CountryModels.findOne({ countryName });
+    const safeCountryName = typeof countryName === "string" ? countryName.trim() : "";
+
+    const existingCountry = await CountryModels.findOne({ countryName: safeCountryName });
 
     if (existingCountry) {
       return res.status(400).json({
@@ -147,13 +153,52 @@ export const listCountryByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const pipeline = [
+      {
+        $sort: {
+          [sorton && typeof sorton === "string" ? sorton : "createdAt"]: sortdir === "desc" ? -1 : 1
+        }
+      },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    countryName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    countryCode: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -171,10 +216,10 @@ export const listCountryByParams = async (req, res) => {
           ],
           stage2: [
             {
-              $skip: skip,
+              $skip: safeSkip,
             },
             {
-              $limit: per_page,
+              $limit: safePerPage,
             },
           ],
         },
@@ -191,48 +236,8 @@ export const listCountryByParams = async (req, res) => {
         },
       },
     ];
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                countryName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                countryCode: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
 
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir == "desc" ? -1 : 1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    } else {
-      let sort = {};
-      sort["createdAt"] = -1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    }
-
-    const list = await CountryModels.aggregate(query);
+    const list = await CountryModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,
@@ -283,9 +288,11 @@ export const getCountryById = async (req, res) => {
 export const createState = async (req, res) => {
   try {
     const { stateName, stateCode, countryId, isActive } = req.body;
-    console.log(req.body);
+    
 
-    const existingState = await StateModels.findOne({ stateName });
+    const safeStateName = typeof stateName === "string" ? stateName.trim() : "";
+
+    const existingState = await StateModels.findOne({ stateName: safeStateName });
 
     if (existingState) {
       return res.status(400).json({
@@ -462,13 +469,58 @@ export const listStateByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const pipeline = [
+      {
+        $sort: {
+          [sorton && typeof sorton === "string" ? sorton : "createdAt"]: sortdir === "desc" ? -1 : 1
+        }
+      },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    stateName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    stateCode: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    countryName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -505,10 +557,10 @@ export const listStateByParams = async (req, res) => {
           ],
           stage2: [
             {
-              $skip: skip,
+              $skip: safeSkip,
             },
             {
-              $limit: per_page,
+              $limit: safePerPage,
             },
           ],
         },
@@ -525,54 +577,8 @@ export const listStateByParams = async (req, res) => {
         },
       },
     ];
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                stateName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                stateCode: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                countryName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
 
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir == "desc" ? -1 : 1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    } else {
-      let sort = {};
-      sort["createdAt"] = -1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    }
-
-    const list = await StateModels.aggregate(query);
+    const list = await StateModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,
@@ -595,7 +601,9 @@ export const createCity = async (req, res) => {
   const { cityName, cityCode, stateId, countryId, isActive } = req.body;
 
   try {
-    const existingCity = await CityModels.findOne({ cityName });
+    const safeCityName = typeof cityName === "string" ? cityName.trim() : "";
+
+    const existingCity = await CityModels.findOne({ cityName: safeCityName });
 
     if (existingCity) {
       return res.status(400).json({
@@ -774,13 +782,58 @@ export const listCityByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const pipeline = [
+      {
+        $sort: {
+          [sorton && typeof sorton === "string" ? sorton : "createdAt"]: sortdir === "desc" ? -1 : 1
+        }
+      },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    stateName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    countryName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    cityName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -836,10 +889,10 @@ export const listCityByParams = async (req, res) => {
           ],
           stage2: [
             {
-              $skip: skip,
+              $skip: safeSkip,
             },
             {
-              $limit: per_page,
+              $limit: safePerPage,
             },
           ],
         },
@@ -856,54 +909,8 @@ export const listCityByParams = async (req, res) => {
         },
       },
     ];
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                stateName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                countryName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                cityName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
 
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir == "desc" ? -1 : 1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    } else {
-      let sort = {};
-      sort["createdAt"] = -1;
-      query = [
-        {
-          $sort: sort,
-        },
-      ].concat(query);
-    }
-
-    const list = await CityModels.aggregate(query);
+    const list = await CityModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,

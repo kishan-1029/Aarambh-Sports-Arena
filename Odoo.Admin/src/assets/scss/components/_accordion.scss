@@ -33,7 +33,7 @@
     .accordion-button {
         &::after {
             background-image: none !important;
-            font-family: "Material Design Icons";
+            font-family: "Material Design Icons", sans-serif;
             content: "\F0142";
             font-size: 1.1rem;
             vertical-align: middle;
@@ -56,7 +56,7 @@
     .accordion-button {
         &::after {
             background-image: none !important;
-            font-family: "Material Design Icons";
+            font-family: "Material Design Icons", sans-serif;
             content: "\F0415";
             font-size: 1.1rem;
             vertical-align: middle;

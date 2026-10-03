@@ -91,7 +91,7 @@
             }
             &::after{
                 content: '\eb80';
-                font-family: "remixicon";
+                font-family: "remixicon", sans-serif;
                 position: absolute;
                 top: 50%;
                 left: 50%;
@@ -109,7 +109,7 @@
         border-color: $primary !important;
         &::before{
             content: "\eb80";
-            font-family: remixicon;
+            font-family: remixicon, sans-serif;
             position: absolute;
             top: 2px;
             right: 6px;

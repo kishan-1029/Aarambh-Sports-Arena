@@ -17,6 +17,11 @@ const DepartmentSchema = new mongoose.Schema(
       default: true,
       required: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+    },
   },
   { timestamps: true },
 );

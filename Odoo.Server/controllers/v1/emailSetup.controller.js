@@ -1,11 +1,18 @@
 import EmailSetupModels from "../../models/EmailSetup.js";
 import EmailTemplateModels from "../../models/EmailTemplate.js";
+import mongoose from "mongoose";
+
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 export const createEmailSetup = async (req, res) => {
   try {
     const { email, appPassword, SSL, port, host, isActive } = req.body;
 
-    const existingEmailSetup = await EmailSetupModels.findOne({ email });
+    const safeEmail = typeof email === "string" ? email.trim() : "";
+
+    const existingEmailSetup = await EmailSetupModels.findOne({ email: safeEmail });
 
     if (existingEmailSetup) {
       return res.status(409).json({
@@ -16,12 +23,15 @@ export const createEmailSetup = async (req, res) => {
     }
 
     const newEmailSetup = new EmailSetupModels({
-      email,
+      email: safeEmail,
       appPassword,
       SSL,
       port,
       host,
       isActive,
+      // === RBAC OWNERSHIP FILTER START ===
+      createdBy: req.user?.id || null,
+      // === RBAC OWNERSHIP FILTER END ===
     });
 
     await newEmailSetup.save();
@@ -48,7 +58,10 @@ export const updateEmailSetup = async (req, res) => {
 
     const { email, appPassword, SSL, port, host, isActive } = req.body;
 
-    const emailSetup = await EmailSetupModels.findById(emailSetupId);
+    const safeEmailSetupId = typeof emailSetupId === "string" ? emailSetupId.trim() : "";
+    const safeEmail = typeof email === "string" ? email.trim() : "";
+
+    const emailSetup = await EmailSetupModels.findById(safeEmailSetupId);
 
     if (!emailSetup) {
       return res.status(404).json({
@@ -58,9 +71,19 @@ export const updateEmailSetup = async (req, res) => {
       });
     }
 
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailSetup.createdBy && emailSetup.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot modify this Email Setup",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
     const existingEmailSetup = await EmailSetupModels.findOne({
-      email,
-      _id: { $ne: emailSetupId },
+      email: safeEmail,
+      _id: { $ne: safeEmailSetupId },
     });
 
     if (existingEmailSetup) {
@@ -71,7 +94,7 @@ export const updateEmailSetup = async (req, res) => {
       });
     }
 
-    emailSetup.email = email;
+    emailSetup.email = safeEmail;
     emailSetup.appPassword = appPassword;
     emailSetup.SSL = SSL;
     emailSetup.port = port;
@@ -110,6 +133,16 @@ export const getEmailSetupById = async (req, res) => {
       });
     }
 
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailSetup.createdBy && emailSetup.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot view this Email Setup",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
     return res.status(200).json({
       isOk: true,
       status: 200,
@@ -128,7 +161,13 @@ export const getEmailSetupById = async (req, res) => {
 
 export const listAllEmailSetup = async (req, res) => {
   try {
-    const emailSetup = await EmailSetupModels.find({ isActive: true });
+    // === RBAC OWNERSHIP FILTER START ===
+    const filterQuery = { isActive: true };
+    if (req.user?.role !== "ADMIN") {
+      filterQuery.createdBy = req.user?.id;
+    }
+    const emailSetup = await EmailSetupModels.find(filterQuery);
+    // === RBAC OWNERSHIP FILTER END ===
 
     return res.status(200).json({
       isOk: true,
@@ -159,6 +198,16 @@ export const deleteEmailSetup = async (req, res) => {
         message: "Email Setup not found",
       });
     }
+
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailSetup.createdBy && emailSetup.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot delete this Email Setup",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
 
     const dependantTemplate = await EmailTemplateModels.find({
       emailFrom: emailSetup._id,
@@ -195,13 +244,52 @@ export const listEmailSetupByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    // Sanitize numeric inputs
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && req.user?.id) {
+      matchCondition.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const allowedFields = ["email", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedFields.includes(sorton) ? sorton : "createdAt";
+    const sortOrder = sortdir === "desc" ? -1 : 1;
+
+    const pipeline = [
+      { $sort: { [safeSortField]: sortOrder } },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    email: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -215,7 +303,7 @@ export const listEmailSetupByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -229,33 +317,7 @@ export const listEmailSetupByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                email: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await EmailSetupModels.aggregate(query);
+    const list = await EmailSetupModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,

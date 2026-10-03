@@ -50,10 +50,6 @@
                 color: $vertical-menu-item-active-color;
             }
 
-            &:hover {
-                color: $vertical-menu-item-hover-color;
-            }
-
             i {
                 display: inline-block;
                 min-width: $vertical-menu-item-icon-width;
@@ -86,7 +82,7 @@
                 &:after {
                     display: block;
                     content: "\F0142";
-                    font-family: 'Material Design Icons';
+                    font-family: 'Material Design Icons', sans-serif;
                     margin-left: auto;
                     transition: transform .2s;
                     font-size: 1.05rem;
@@ -962,7 +958,6 @@
             .navbar-menu {
                 top: calc(#{$header-height} + #{$grid-gutter-width});
                 bottom: $grid-gutter-width;
-                padding: 0;
                 border-right: $vertical-menu-bg;
                 border-radius: 5px;
                 padding: 10px 0;
@@ -1265,7 +1260,7 @@
 }
 
 .bg-vertical-gradient {
-    background: linear-gradient(to right, var(--#{$prefix}primary), var(--#{$prefix}success));;
+    background: linear-gradient(to right, var(--#{$prefix}primary), var(--#{$prefix}success));
 }
 
 .bg-vertical-gradient-2 {

@@ -87,9 +87,7 @@
             color: var(--#{$prefix}choices-link-color);
         }
     }
-}
 
-.ql-snow {
     .ql-picker-options {
         background-color: var(--#{$prefix}choices-bg);
         border-color: $dropdown-border-color !important;

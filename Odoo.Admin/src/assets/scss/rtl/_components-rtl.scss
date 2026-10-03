@@ -458,6 +458,15 @@ $value in $theme-colors {
             }
         }
 
+        .ribbon-three {
+            left: 10px;
+            right: auto;
+        }
+
+        .trending-ribbon {
+            transform: translateX(-50px);
+        }
+
     }
 
     @each $color,
@@ -545,15 +554,10 @@ $value in $theme-colors {
         }
     }
 
-}
-
-.ribbon-box {
-    &.right {
-        .ribbon-three {
-            left: 10px;
-            right: auto;
-        }
+    .trending-ribbon {
+        transform: translateX(50px);
     }
+
 }
 
 .ribbon-three {
@@ -577,19 +581,6 @@ $value in $theme-colors {
     &::after {
         border-right: 44px solid transparent;
         border-left: 44px solid transparent;
-    }
-}
-
-//Ribbon Hover
-.ribbon-box {
-    .trending-ribbon {
-        transform: translateX(50px);
-    }
-
-    &.right {
-        .trending-ribbon {
-            transform: translateX(-50px);
-        }
     }
 }
 

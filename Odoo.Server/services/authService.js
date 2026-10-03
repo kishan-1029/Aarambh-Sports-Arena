@@ -1,5 +1,6 @@
 import LoginAttempt from "../models/LoginAttempt.js";
 import geoip from "geoip-lite";
+import mongoose from "mongoose";
 
 // Constants
 const MAX_ATTEMPTS = 3;
@@ -60,7 +61,7 @@ const getLocationFromIP = (ipAddress) => {
  * @param {string} userEmail - The user's email
  * @param {string} ipAddress - The request IP address
  * @param {Object} clientLocation - Optional client-provided location { latitude, longitude }
- * @returns {Object} Updated login attempt record
+ * @returns {Promise<Object>} Updated login attempt record
  */
 const recordFailedAttempt = async (userId, userEmail, ipAddress, clientLocation = null) => {
     try {
@@ -82,7 +83,14 @@ const recordFailedAttempt = async (userId, userEmail, ipAddress, clientLocation 
 
         let attempt = await LoginAttempt.findOne({ userId });
 
-        if (!attempt) {
+        if (attempt) {
+            // Update existing record
+            attempt.attemptCount += 1;
+            attempt.lastLoginAttempt = new Date();
+            attempt.ipAddress = ipAddress || "unknown";
+            attempt.locationCoordinates = location;
+            attempt.updatedAt = new Date();
+        } else {
             // Create new record
             attempt = new LoginAttempt({
                 userId,
@@ -94,22 +102,13 @@ const recordFailedAttempt = async (userId, userEmail, ipAddress, clientLocation 
                 isLocked: false,
                 lockUntil: null,
             });
-        } else {
-            // Update existing record
-            attempt.attemptCount += 1;
-            attempt.lastLoginAttempt = new Date();
-            attempt.ipAddress = ipAddress || "unknown";
-            attempt.locationCoordinates = location;
-            attempt.updatedAt = new Date();
         }
 
         // Auto-lock if attempts >= MAX_ATTEMPTS
         if (attempt.attemptCount >= MAX_ATTEMPTS) {
             attempt.isLocked = true;
             attempt.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
-            console.log(
-                `Account locked for ${userEmail} until ${attempt.lockUntil}`
-            );
+
         }
 
         await attempt.save();
@@ -130,14 +129,18 @@ const recordFailedAttempt = async (userId, userEmail, ipAddress, clientLocation 
  * 2. Lock an account manually
  * Sets isLocked: true, lockUntil: now + 24 hours
  * @param {string} userId - The user's MongoDB ObjectId
- * @returns {Object} Updated login attempt record
+ * @returns {Promise<Object>} Updated login attempt record
  */
 const lockAccount = async (userId) => {
     try {
+        const cleanUserId = typeof userId === "string" ? userId.trim() : "";
+        const isValid = /^[0-9a-fA-F]{24}$/.test(cleanUserId);
+        if (!isValid) return null;
+
         const lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
 
         const result = await LoginAttempt.findOneAndUpdate(
-            { userId },
+            { userId: new mongoose.Types.ObjectId(cleanUserId) },
             {
                 isLocked: true,
                 lockUntil,
@@ -147,7 +150,7 @@ const lockAccount = async (userId) => {
         );
 
         if (result) {
-            console.log(`Account manually locked for userId ${userId} until ${lockUntil}`);
+            console.log(`Account manually locked until ${lockUntil}`);
         }
 
         return result;
@@ -162,22 +165,31 @@ const lockAccount = async (userId) => {
  * Returns true if locked AND lockUntil > now. Auto-unlocks if expired.
  * @param {string} userId - The user's MongoDB ObjectId
  * @param {string} email - Optional email to check by email instead
- * @returns {boolean} Whether the account is locked
+ * @returns {Promise<boolean>} Whether the account is locked
  */
 const isAccountLocked = async (userId, email = null) => {
     try {
-        const query = email ? { userEmail: email } : { userId };
+        let query = {};
+        if (email) {
+            const cleanEmail = typeof email === "string" ? email.trim() : "";
+            query = { userEmail: cleanEmail };
+        } else {
+            const cleanUserId = typeof userId === "string" ? userId.trim() : "";
+            const isValid = /^[0-9a-fA-F]{24}$/.test(cleanUserId);
+            if (!isValid) return false;
+            query = { userId: new mongoose.Types.ObjectId(cleanUserId) };
+        }
         const attempt = await LoginAttempt.findOne(query);
 
-        if (!attempt || !attempt.isLocked) {
+        if (!attempt?.isLocked) {
             return false;
         }
 
         // Check if lock has expired
         if (attempt.lockUntil && attempt.lockUntil < new Date()) {
             // Auto-unlock expired lock
-            await LoginAttempt.findOneAndUpdate(
-                query,
+            await LoginAttempt.findByIdAndUpdate(
+                attempt._id,
                 {
                     isLocked: false,
                     lockUntil: null,
@@ -185,7 +197,7 @@ const isAccountLocked = async (userId, email = null) => {
                     updatedAt: new Date(),
                 }
             );
-            console.log(`Account auto-unlocked for ${email || userId}`);
+
             return false;
         }
 
@@ -203,7 +215,7 @@ const isAccountLocked = async (userId, email = null) => {
  * @param {string} userEmail - The user's email
  * @param {string} ipAddress - The request IP address
  * @param {Object} clientLocation - Optional client-provided location { latitude, longitude }
- * @returns {Object} Updated login attempt record
+ * @returns {Promise<Object>} Updated login attempt record
  */
 const recordSuccessfulLogin = async (userId, userEmail, ipAddress = null, clientLocation = null) => {
     try {
@@ -254,7 +266,7 @@ const recordSuccessfulLogin = async (userId, userEmail, ipAddress = null, client
             await result.save();
         }
 
-        console.log(`Successful login recorded for ${userEmail} from IP: ${ipAddress}`);
+
         return result;
     } catch (error) {
         console.error("Error recording successful login:", error);
@@ -267,14 +279,60 @@ const recordSuccessfulLogin = async (userId, userEmail, ipAddress = null, client
  * Returns {attemptCount, isLocked, lockUntil, remainingTimeMs}
  * @param {string} userId - The user's MongoDB ObjectId
  * @param {string} email - Optional email to check by email
- * @returns {Object} Login attempt status
+ * @returns {Promise<Object>} Login attempt status
  */
+const buildAttemptQuery = (userId, email) => {
+    if (email) {
+        const cleanEmail = typeof email === "string" ? email.trim() : "";
+        return { userEmail: cleanEmail };
+    }
+
+    const cleanUserId = typeof userId === "string" ? userId.trim() : "";
+    const isValid = /^[0-9a-fA-F]{24}$/.test(cleanUserId);
+    if (!isValid) return null;
+
+    return { userId: new mongoose.Types.ObjectId(cleanUserId) };
+};
+
+const processAttemptLock = async (attempt) => {
+    let isLocked = attempt.isLocked;
+    let lockUntil = attempt.lockUntil;
+    let remainingTime = null;
+    let attemptCount = attempt.attemptCount;
+
+    if (isLocked && lockUntil) {
+        const now = new Date();
+        if (lockUntil <= now) {
+            await LoginAttempt.findByIdAndUpdate(
+                attempt._id,
+                {
+                    isLocked: false,
+                    lockUntil: null,
+                    attemptCount: 0,
+                    updatedAt: new Date(),
+                }
+            );
+            isLocked = false;
+            lockUntil = null;
+            attemptCount = 0;
+        } else {
+            remainingTime = lockUntil.getTime() - now.getTime();
+        }
+    }
+
+    return {
+        attemptCount,
+        isLocked,
+        lockUntil,
+        remainingTime,
+        attemptsRemaining: Math.max(0, MAX_ATTEMPTS - attemptCount),
+    };
+};
+
 const getLoginAttemptStatus = async (userId, email = null) => {
     try {
-        const query = email ? { userEmail: email } : { userId };
-        const attempt = await LoginAttempt.findOne(query);
-
-        if (!attempt) {
+        const query = buildAttemptQuery(userId, email);
+        if (query === null) {
             return {
                 attemptCount: 0,
                 isLocked: false,
@@ -284,40 +342,17 @@ const getLoginAttemptStatus = async (userId, email = null) => {
             };
         }
 
-        // Check if lock has expired
-        let isLocked = attempt.isLocked;
-        let lockUntil = attempt.lockUntil;
-        let remainingTime = null;
-        let attemptCount = attempt.attemptCount;
-
-        if (isLocked && lockUntil) {
-            const now = new Date();
-            if (lockUntil <= now) {
-                // Auto-unlock expired lock
-                await LoginAttempt.findOneAndUpdate(
-                    query,
-                    {
-                        isLocked: false,
-                        lockUntil: null,
-                        attemptCount: 0,
-                        updatedAt: new Date(),
-                    }
-                );
-
-                isLocked = false;
-                lockUntil = null;
-                attemptCount = 0;
-            } else {
-                remainingTime = lockUntil.getTime() - now.getTime();
-            }
+        const attempt = await LoginAttempt.findOne(query);
+        if (attempt) {
+            return await processAttemptLock(attempt);
         }
 
         return {
-            attemptCount,
-            isLocked,
-            lockUntil,
-            remainingTime,
-            attemptsRemaining: Math.max(0, MAX_ATTEMPTS - attemptCount),
+            attemptCount: 0,
+            isLocked: false,
+            lockUntil: null,
+            remainingTime: null,
+            attemptsRemaining: MAX_ATTEMPTS,
         };
     } catch (error) {
         console.error("Error getting login attempt status:", error);
@@ -328,12 +363,16 @@ const getLoginAttemptStatus = async (userId, email = null) => {
 /**
  * Admin: Unlock a user account
  * @param {string} userId - The user's MongoDB ObjectId
- * @returns {Object} Updated login attempt record
+ * @returns {Promise<Object>} Updated login attempt record
  */
 const unlockAccount = async (userId) => {
     try {
+        const cleanUserId = typeof userId === "string" ? userId.trim() : "";
+        const isValid = /^[0-9a-fA-F]{24}$/.test(cleanUserId);
+        if (!isValid) return null;
+
         const result = await LoginAttempt.findOneAndUpdate(
-            { userId },
+            { userId: new mongoose.Types.ObjectId(cleanUserId) },
             {
                 isLocked: false,
                 lockUntil: null,
@@ -344,7 +383,7 @@ const unlockAccount = async (userId) => {
         );
 
         if (result) {
-            console.log(`Account unlocked for userId ${userId}`);
+            console.log("Account unlocked successfully");
         }
 
         return result;
@@ -357,12 +396,16 @@ const unlockAccount = async (userId) => {
 /**
  * Admin: Reset login attempts for a user
  * @param {string} userId - The user's MongoDB ObjectId
- * @returns {Object} Updated login attempt record
+ * @returns {Promise<Object>} Updated login attempt record
  */
 const resetLoginAttempts = async (userId) => {
     try {
+        const cleanUserId = typeof userId === "string" ? userId.trim() : "";
+        const isValid = /^[0-9a-fA-F]{24}$/.test(cleanUserId);
+        if (!isValid) return null;
+
         const result = await LoginAttempt.findOneAndUpdate(
-            { userId },
+            { userId: new mongoose.Types.ObjectId(cleanUserId) },
             {
                 attemptCount: 0,
                 isLocked: false,
@@ -373,7 +416,7 @@ const resetLoginAttempts = async (userId) => {
         );
 
         if (result) {
-            console.log(`Login attempts reset for userId ${userId}`);
+            console.log("Login attempts reset successfully");
         }
 
         return result;

@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 import {
   createMenuGroup,
   getAllMenuGroups,
@@ -46,6 +47,7 @@ const router = express.Router();
 router.post(
   "/menu-groups",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "write"),
   createMenuGroup,
 );
 
@@ -75,6 +77,7 @@ router.post(
 router.get(
   "/menu-groups",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "read"),
   getAllMenuGroups,
 );
 
@@ -102,6 +105,7 @@ router.get(
 router.get(
   "/menu-groups/:menuGroupId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "read"),
   getMenuGroupById,
 );
 
@@ -135,6 +139,7 @@ router.get(
 router.put(
   "/menu-groups/:menuGroupId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "edit"),
   updateMenuGroup,
 );
 
@@ -162,6 +167,7 @@ router.put(
 router.delete(
   "/menu-groups/:menuGroupId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "delete"),
   deleteMenuGroup,
 );
 
@@ -190,6 +196,7 @@ router.delete(
 router.post(
   "/menu-groups/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-group", "read"),
   listMenuGroupByParams,
 );
 
@@ -215,7 +222,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post("/menus", authMiddleware(["ADMIN", "EMPLOYEE"]), createMenuMaster);
+router.post("/menus", authMiddleware(["ADMIN", "EMPLOYEE"]), checkPermission("/menu-master", "write"), createMenuMaster);
 
 /**
  * @swagger
@@ -240,7 +247,7 @@ router.post("/menus", authMiddleware(["ADMIN", "EMPLOYEE"]), createMenuMaster);
  *                   items:
  *                     $ref: '#/components/schemas/Menu'
  */
-router.get("/menus", authMiddleware(["ADMIN", "EMPLOYEE"]), getAllMenuMasters);
+router.get("/menus", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/menu-master", "read"), getAllMenuMasters);
 
 /**
  * @swagger
@@ -298,6 +305,7 @@ router.get("/menus/test", authMiddleware(["ADMIN", "EMPLOYEE"]), getMenuTest);
 router.get(
   "/menus/:menuMasterId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-master", "read"),
   getMenuMasterById,
 );
 
@@ -331,6 +339,7 @@ router.get(
 router.put(
   "/menus/:menuMasterId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-master", "edit"),
   updateMenuMaster,
 );
 
@@ -358,6 +367,7 @@ router.put(
 router.delete(
   "/menus/:menuMasterId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-master", "delete"),
   deleteMenuMaster,
 );
 
@@ -386,6 +396,7 @@ router.delete(
 router.post(
   "/menus/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/menu-master", "read"),
   listMenuMasterByParams,
 );
 

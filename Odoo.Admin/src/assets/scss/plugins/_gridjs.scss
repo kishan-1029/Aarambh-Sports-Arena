@@ -40,6 +40,8 @@
 .gridjs-footer {
     border: none !important;
     padding: 12px 0 0;
+    box-shadow: none;
+    background-color: $table-bg;
 }
 
 .gridjs-table {
@@ -62,6 +64,12 @@ th {
         color: $table-color;
         background-color: rgba(var(--#{$prefix}light-rgb), .75);
 
+        .gridjs-th-content {
+            float: none;
+            display: inline-block;
+            vertical-align: middle;
+            font-weight: $font-weight-semibold;
+        }
     }
 
     &.gridjs-th-sort {
@@ -77,12 +85,7 @@ th {
     padding-top: 0;
 }
 
-.gridjs-footer {
-    box-shadow: none;
-    border: 1px solid $table-border-color;
-    border-top: 0;
-    background-color: $table-bg;
-}
+
 
 .gridjs-summary {
     color: $text-muted;
@@ -140,7 +143,7 @@ th {
 
     &::before {
         content: "\f0d1";
-        font-family: "remixicon";
+        font-family: "remixicon", sans-serif;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -170,14 +173,7 @@ input.gridjs-input {
     }
 }
 
-th.gridjs-th {
-    .gridjs-th-content {
-        float: none;
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: $font-weight-semibold;
-    }
-}
+
 
 button.gridjs-sort {
     float: none;

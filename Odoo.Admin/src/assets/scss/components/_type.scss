@@ -17,14 +17,16 @@
             background-color: var(--#{$prefix}card-bg-custom) !important;
             border: 1px solid;
             border-left: 3px solid;
-        }
-    }
-}
 
-@each $color,
-$value in $theme-colors {
-    .custom-blockquote {
-        &.blockquote {
+            &.blockquote-dark {
+                border-color: var(--#{$prefix}dark);
+                .blockquote-footer {
+                    color: var(--#{$prefix}dark);
+                }
+            }
+        }
+
+        @each $color, $value in $theme-colors {
             &.blockquote-#{$color} {
                 color: #{$value};
                 border-color: #{$value};
@@ -35,7 +37,7 @@ $value in $theme-colors {
                 }
             }
 
-            &.blockquote-outline{
+            &.blockquote-outline {
                 &.blockquote-#{$color} {
                     border-color: #{$value};
 
@@ -45,25 +47,13 @@ $value in $theme-colors {
                 }
             }
         }
-    }
-}
 
-.custom-blockquote{
-    &.blockquote{
-        &.blockquote-dark{
+        &.blockquote-dark {
             color: var(--#{$prefix}dark);
             border-color: var(--#{$prefix}dark);
             background-color: rgba(var(--#{$prefix}dark-rgb), 0.15);
             .blockquote-footer {
                 color: var(--#{$prefix}dark);
-            }
-        }
-        &.blockquote-outline{
-            &.blockquote-dark{
-                border-color: var(--#{$prefix}dark);
-                .blockquote-footer {
-                    color: var(--#{$prefix}dark);
-                }
             }
         }
     }

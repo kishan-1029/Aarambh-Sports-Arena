@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 import {
   createCountry,
   listAllCountries,
@@ -52,7 +53,7 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  */
-router.post("/countries", authMiddleware(["ADMIN", "EMPLOYEE"]), createCountry);
+router.post("/countries", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/country", "write"), createCountry);
 
 /**
  * @swagger
@@ -105,6 +106,7 @@ router.get("/countries", listAllCountries);
 router.get(
   "/countries/:countryId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/country", "read"),
   getCountryById,
 );
 
@@ -138,6 +140,7 @@ router.get(
 router.put(
   "/countries/:countryId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/country", "edit"),
   updateCountry,
 );
 
@@ -165,6 +168,7 @@ router.put(
 router.delete(
   "/countries/:countryId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+   checkPermission("/country", "delete"),
   deleteCountry,
 );
 
@@ -193,6 +197,7 @@ router.delete(
 router.post(
   "/countries/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/country", "read"),
   listCountryByParams,
 );
 
@@ -218,6 +223,7 @@ router.post(
 router.get(
   "/countries/:countryId/states",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/country", "read"),
   listStateByCountry,
 );
 
@@ -243,7 +249,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.post("/states", authMiddleware(["ADMIN", "EMPLOYEE"]), createState);
+router.post("/states", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/state", "write"), createState);
 
 /**
  * @swagger
@@ -292,6 +298,7 @@ router.get("/states", listAllStates);
 router.get(
   "/states/:stateId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/state", "read"),
   getStateById,
 );
 
@@ -325,6 +332,7 @@ router.get(
 router.put(
   "/states/:stateId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/state", "edit"),
   updateState,
 );
 
@@ -352,6 +360,7 @@ router.put(
 router.delete(
   "/states/:stateId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+   checkPermission("/state", "delete"),
   deleteState,
 );
 
@@ -380,6 +389,7 @@ router.delete(
 router.post(
   "/states/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/state", "read"),
   listStateByParams,
 );
 
@@ -405,6 +415,7 @@ router.post(
 router.get(
   "/states/:stateId/cities",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/state", "read"),
   listCityByState,
 );
 
@@ -430,7 +441,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.post("/cities", authMiddleware(["ADMIN", "EMPLOYEE"]), createCity);
+router.post("/cities", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/city", "write"), createCity);
 
 /**
  * @swagger
@@ -479,6 +490,7 @@ router.get("/cities", listAllCities);
 router.get(
   "/cities/:cityId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/city", "read"),
   getCityById,
 );
 
@@ -512,6 +524,7 @@ router.get(
 router.put(
   "/cities/:cityId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/city", "edit"),
   updateCity,
 );
 
@@ -539,6 +552,7 @@ router.put(
 router.delete(
   "/cities/:cityId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/city", "delete"),
   deleteCity,
 );
 
@@ -567,6 +581,7 @@ router.delete(
 router.post(
   "/cities/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/city", "read"),
   listCityByParams,
 );
 
@@ -585,6 +600,7 @@ router.post(
 router.get(
   "/locations",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/country", "read"),
   listCountryStateCity,
 );
 

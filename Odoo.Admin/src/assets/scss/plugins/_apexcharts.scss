@@ -10,6 +10,47 @@
     .apexcharts-canvas {
         margin: 0 auto;
     }
+
+    .apexcharts-xaxis,
+    .apexcharts-yaxis {
+        line {
+            stroke: var(--#{$prefix}border-color);
+        }
+    }
+
+    .apexcharts-xaxis-tick {
+        stroke: var(--#{$prefix}border-color);
+    }
+
+    .apexcharts-pie-series,
+    .apexcharts-bar-series {
+        path {
+            stroke: var(--#{$prefix}card-bg-custom);
+        }
+    }
+
+    .apexcharts-radialbar-track {
+        path {
+            stroke: var(--#{$prefix}light);
+        }
+    }
+
+    .apexcharts-marker {
+        stroke: var(--#{$prefix}card-bg-custom);
+    }
+
+    .apexcharts-boxPlot-series {
+        path {
+            stroke: var(--#{$prefix}border-color);
+        }
+    }
+
+    .apexcharts-treemap,
+    .apexcharts-heatmap-series {
+        rect {
+            stroke: var(--#{$prefix}card-bg-custom);
+        }
+    }
 }
 
 .apexcharts-tooltip-title,
@@ -144,47 +185,4 @@
         fill: var(--#{$prefix}body-color);
     }
 }
-
-.apex-charts {
-
-    .apexcharts-xaxis,
-    .apexcharts-yaxis {
-        line {
-            stroke: var(--#{$prefix}border-color);
-        }
-    }
-
-    .apexcharts-xaxis-tick {
-        stroke: var(--#{$prefix}border-color);
-    }
-
-    .apexcharts-pie-series,
-    .apexcharts-bar-series {
-        path {
-            stroke: var(--#{$prefix}card-bg-custom);
-        }
-    }
-
-    .apexcharts-radialbar-track {
-        path {
-            stroke: var(--#{$prefix}light);
-        }
-    }
-
-    .apexcharts-marker {
-        stroke: var(--#{$prefix}card-bg-custom);
-    }
-
-    .apexcharts-boxPlot-series {
-        path {
-            stroke: var(--#{$prefix}border-color);
-        }
-    }
-
-    .apexcharts-treemap,
-    .apexcharts-heatmap-series {
-        rect {
-            stroke: var(--#{$prefix}card-bg-custom);
-        }
-    }
-}
+

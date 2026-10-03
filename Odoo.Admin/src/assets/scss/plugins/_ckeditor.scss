@@ -8,15 +8,13 @@
     &.ck-reset_all, &.ck-reset_all *{
         color: var(--#{$prefix}body-color) !important;
     }
-    &.ck-toolbar{
-        background: #{rgba(var(--#{$prefix}light-rgb), .75)} !important;
-    }
 
     p {
         margin-bottom: 0;
     }
 
     &.ck-toolbar {
+        background: #{rgba(var(--#{$prefix}light-rgb), .75)} !important;
         border: 1px solid $input-border-color !important;
 
         &.ck-toolbar_grouping>.ck-toolbar__items {
@@ -35,13 +33,14 @@
         box-shadow: none !important;
     }
 
-    &.ck-dropdown__panel{
+    &.ck-dropdown__panel {
         background: var(--#{$prefix}choices-bg) !important;
-        box-shadow: $box-shadow-lg;
+        box-shadow: $dropdown-box-shadow !important;
         animation-name: DropDownSlide;
         animation-duration: .3s;
         animation-fill-mode: both;
-        border-radius: $dropdown-border-radius;
+        border-radius: $dropdown-border-radius !important;
+        border: 1px solid $dropdown-border-color !important;
     }
 
     &.ck-list {
@@ -64,10 +63,35 @@
         }
     }
 
-    &.ck-dropdown__panel {
-        box-shadow: $dropdown-box-shadow !important;
-        border-radius: $dropdown-border-radius !important;
+    &.ck-tooltip{
+        .ck-tooltip__text {
+            background: $dark !important;
+            color: $light !important;
+        }
+    }
+
+    &.ck-input-text{
+        background: $input-bg !important;
+        border: 1px solid $input-border-color !important;
+        &:focus{
+            border: 1px solid $input-focus-border-color !important;
+            box-shadow: none !important;
+        }
+    }
+
+    &.ck-balloon-panel{
+        background: $dropdown-bg !important;
         border: 1px solid $dropdown-border-color !important;
+
+        &[class*=arrow_n]{
+            &:after{
+                border-bottom-color: $dropdown-bg !important;
+            }
+
+            &::before{
+                border-bottom-color: $dropdown-border-color !important;
+            }
+        }
     }
 }
 
@@ -124,38 +148,7 @@ a.ck {
     }
 }
 
-.ck{
-    &.ck-tooltip{
-        .ck-tooltip__text {
-            background: $dark !important;
-            color: $light !important;
-        }
-    }
 
-    &.ck-input-text{
-        background: $input-bg !important;
-        border: 1px solid $input-border-color !important;
-        &:focus{
-            border: 1px solid $input-focus-border-color !important;
-            box-shadow: none !important;
-        }
-    }
-
-    &.ck-balloon-panel{
-        background: $dropdown-bg !important;
-        border: 1px solid $dropdown-border-color !important;
-
-        &[class*=arrow_n]{
-            &:after{
-                border-bottom-color: $dropdown-bg !important;
-            }
-
-            &::before{
-                border-bottom-color: $dropdown-border-color !important;
-            }
-        }
-    }
-}
 
 
 

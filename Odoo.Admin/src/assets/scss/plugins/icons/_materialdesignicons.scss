@@ -10,7 +10,7 @@
 .mdi:before,
 .mdi-set {
   display: inline-block;
-  font: normal normal normal 24px/1 "Material Design Icons";
+  font: normal normal normal 24px/1 "Material Design Icons", sans-serif;
   font-size: inherit;
   text-rendering: auto;
   line-height: inherit;
@@ -26435,24 +26435,6 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
-.mdi-rotate-45 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(45deg);
-            transform: scaleX(-1) rotate(45deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(45deg);
-            -ms-transform: rotate(45deg);
-            transform: scaleY(-1) rotate(45deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
 
 .mdi-rotate-45:before {
   -webkit-transform: rotate(45deg);
@@ -26460,24 +26442,7 @@
   transform: rotate(45deg);
 }
 
-.mdi-rotate-90 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(90deg);
-            transform: scaleX(-1) rotate(90deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(90deg);
-            -ms-transform: rotate(90deg);
-            transform: scaleY(-1) rotate(90deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-90:before {
   -webkit-transform: rotate(90deg);
@@ -26485,24 +26450,7 @@
   transform: rotate(90deg);
 }
 
-.mdi-rotate-135 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(135deg);
-            transform: scaleX(-1) rotate(135deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(135deg);
-            -ms-transform: rotate(135deg);
-            transform: scaleY(-1) rotate(135deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-135:before {
   -webkit-transform: rotate(135deg);
@@ -26510,24 +26458,7 @@
   transform: rotate(135deg);
 }
 
-.mdi-rotate-180 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(180deg);
-            transform: scaleX(-1) rotate(180deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(180deg);
-            -ms-transform: rotate(180deg);
-            transform: scaleY(-1) rotate(180deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-180:before {
   -webkit-transform: rotate(180deg);
@@ -26535,24 +26466,7 @@
   transform: rotate(180deg);
 }
 
-.mdi-rotate-225 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(225deg);
-            transform: scaleX(-1) rotate(225deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(225deg);
-            -ms-transform: rotate(225deg);
-            transform: scaleY(-1) rotate(225deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-225:before {
   -webkit-transform: rotate(225deg);
@@ -26560,24 +26474,7 @@
   transform: rotate(225deg);
 }
 
-.mdi-rotate-270 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(270deg);
-            transform: scaleX(-1) rotate(270deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(270deg);
-            -ms-transform: rotate(270deg);
-            transform: scaleY(-1) rotate(270deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-270:before {
   -webkit-transform: rotate(270deg);
@@ -26585,24 +26482,7 @@
   transform: rotate(270deg);
 }
 
-.mdi-rotate-315 {
-  /*
-        // Not included in production
-        &.mdi-flip-h:before {
-            -webkit-transform: scaleX(-1) rotate(315deg);
-            transform: scaleX(-1) rotate(315deg);
-            filter: FlipH;
-            -ms-filter: "FlipH";
-        }
-        &.mdi-flip-v:before {
-            -webkit-transform: scaleY(-1) rotate(315deg);
-            -ms-transform: rotate(315deg);
-            transform: scaleY(-1) rotate(315deg);
-            filter: FlipV;
-            -ms-filter: "FlipV";
-        }
-        */
-}
+
 
 .mdi-rotate-315:before {
   -webkit-transform: rotate(315deg);

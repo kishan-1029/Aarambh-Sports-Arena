@@ -1,4 +1,9 @@
 import EmailTemplateModels from "../../models/EmailTemplate.js";
+import mongoose from "mongoose";
+
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 export const createEmailTemplate = async (req, res) => {
   try {
@@ -12,6 +17,8 @@ export const createEmailTemplate = async (req, res) => {
       emailSubject,
       emailSignature,
       isActive,
+      isAdmin,
+      emailTo,
     } = req.body;
 
     const emailTemplate = new EmailTemplateModels({
@@ -24,6 +31,11 @@ export const createEmailTemplate = async (req, res) => {
       emailSubject,
       emailSignature,
       isActive,
+      isAdmin,
+      emailTo: emailTo || null,
+      // === RBAC OWNERSHIP FILTER START ===
+      createdBy: req.user?.id || null,
+      // === RBAC OWNERSHIP FILTER END ===
     });
 
     await emailTemplate.save();
@@ -58,9 +70,13 @@ export const updateEmailTemplate = async (req, res) => {
       emailSubject,
       emailSignature,
       isActive,
+      isAdmin,
+      emailTo,
     } = req.body;
 
-    const emailTemplate = await EmailTemplateModels.findById(emailTemplateId);
+    const safeEmailTemplateId = typeof emailTemplateId === "string" ? emailTemplateId.trim() : "";
+
+    const emailTemplate = await EmailTemplateModels.findById(safeEmailTemplateId);
 
     if (!emailTemplate) {
       return res.status(404).json({
@@ -69,6 +85,16 @@ export const updateEmailTemplate = async (req, res) => {
         message: "Email Template not found",
       });
     }
+
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailTemplate.createdBy && emailTemplate.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot modify this Email Template",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
 
     await EmailTemplateModels.findByIdAndUpdate(
       emailTemplateId,
@@ -82,6 +108,8 @@ export const updateEmailTemplate = async (req, res) => {
         emailSubject,
         emailSignature,
         isActive,
+        isAdmin,
+        emailTo: emailTo || null,
       },
       { new: true },
     );
@@ -108,7 +136,8 @@ export const getEmailTemplateById = async (req, res) => {
 
     const emailTemplate = await EmailTemplateModels.findById(emailTemplateId)
       .populate("emailFrom")
-      .populate("emailFor");
+      .populate("emailFor")
+      .populate("emailTo");
 
     if (!emailTemplate) {
       return res.status(404).json({
@@ -117,6 +146,16 @@ export const getEmailTemplateById = async (req, res) => {
         message: "Email Template not found",
       });
     }
+
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailTemplate.createdBy && emailTemplate.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot view this Email Template",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
 
     return res.status(200).json({
       isOk: true,
@@ -148,6 +187,16 @@ export const deleteEmailTemplate = async (req, res) => {
       });
     }
 
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailTemplate.createdBy && emailTemplate.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot delete this Email Template",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
     await EmailTemplateModels.findByIdAndDelete(emailTemplateId);
 
     return res.status(200).json({
@@ -170,13 +219,77 @@ export const listEmailTemplateByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    // Sanitize numeric inputs
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && req.user?.id) {
+      matchCondition.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+    const escapedMatch = escapeRegex(safeMatch);
+
+    const allowedFields = ["templateName", "mailerName", "emailSubject", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedFields.includes(sorton) ? sorton : "createdAt";
+    const sortOrder = sortdir === "desc" ? -1 : 1;
+
+    const pipeline = [
+      { $sort: { [safeSortField]: sortOrder } },
+      ...(safeMatch
+        ? [
+          {
+            $match: {
+              $or: [
+                {
+                  templateName: {
+                    $regex: escapedMatch,
+                    $options: "i",
+                  },
+                },
+                {
+                  mailerName: {
+                    $regex: escapedMatch,
+                    $options: "i",
+                  },
+                },
+                {
+                  emailSubject: {
+                    $regex: escapedMatch,
+                    $options: "i",
+                  },
+                },
+                {
+                  "emailFrom.email": {
+                    $regex: escapedMatch,
+                    $options: "i",
+                  },
+                },
+                {
+                  "emailFor.emailFor": {
+                    $regex: escapedMatch,
+                    $options: "i",
+                  },
+                },
+              ],
+            },
+          },
+        ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -197,6 +310,14 @@ export const listEmailTemplateByParams = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "emailtos",
+          localField: "emailTo",
+          foreignField: "_id",
+          as: "emailTo",
+        },
+      },
+      {
         $unwind: {
           path: "$emailFrom",
           preserveNullAndEmptyArrays: true,
@@ -205,6 +326,12 @@ export const listEmailTemplateByParams = async (req, res) => {
       {
         $unwind: {
           path: "$emailFor",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$emailTo",
           preserveNullAndEmptyArrays: true,
         },
       },
@@ -218,7 +345,7 @@ export const listEmailTemplateByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -232,57 +359,7 @@ export const listEmailTemplateByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                templateName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                mailerName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                emailSubject: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                "emailFrom.email": {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                "emailFor.emailFor": {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await EmailTemplateModels.aggregate(query);
+    const list = await EmailTemplateModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,
@@ -301,9 +378,13 @@ export const listEmailTemplateByParams = async (req, res) => {
 
 export const listAllEmailTemplates = async (req, res) => {
   try {
-    const emailTemplates = await EmailTemplateModels.find({
-      isActive: true,
-    }).select("_id templateName");
+    // === RBAC OWNERSHIP FILTER START ===
+    const filterQuery = { isActive: true };
+    if (req.user?.role !== "ADMIN") {
+      filterQuery.createdBy = req.user?.id;
+    }
+    const emailTemplates = await EmailTemplateModels.find(filterQuery).select("_id templateName");
+    // === RBAC OWNERSHIP FILTER END ===
     return res.status(200).json({
       isOk: true,
       data: emailTemplates,

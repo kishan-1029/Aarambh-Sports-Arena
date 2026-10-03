@@ -609,7 +609,7 @@ $grid-columns:                12;
 $grid-gutter-width:           1.5rem;
 $grid-row-columns:            6;
 
-// $gutters: $spacers;
+
 
 // Container padding
 
@@ -1625,7 +1625,7 @@ $list-group-action-color:           var(--#{$prefix}body-color);
 $list-group-action-hover-color:     $list-group-action-color;
 
 $list-group-action-active-color:    var(--#{$prefix}body-color);
-$list-group-action-active-bg:       var(--#{$prefix}list-group-hover-bg);;
+$list-group-action-active-bg:       var(--#{$prefix}list-group-hover-bg);
 // scss-docs-end list-group-variables
 
 
@@ -1763,6 +1763,6 @@ $kbd-padding-x:                     .4rem;
 $kbd-font-size:                     $code-font-size;
 $kbd-color:                         $white;
 $kbd-bg:                            $gray-900;
-$nested-kbd-font-weight:            $font-weight-bold;; // Deprecated in v5.2.0, removing in v6
+$nested-kbd-font-weight:            $font-weight-bold; // Deprecated in v5.2.0, removing in v6
 
 $pre-color:                         null;

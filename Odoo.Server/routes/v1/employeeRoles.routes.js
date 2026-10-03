@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 import {
   createEmployeeRoles,
   getEmployeeRoles,
@@ -31,6 +32,7 @@ const router = express.Router();
 router.post(
   "/employee-roles",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/employee-roles", "write"),
   createEmployeeRoles,
 );
 
@@ -58,6 +60,7 @@ router.post(
 router.get(
   "/employee-roles/:roleId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/employee-roles", "read"),
   getEmployeeRoles,
 );
 
@@ -91,6 +94,7 @@ router.get(
 router.put(
   "/employee-roles/:roleId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/employee-roles", "edit"),
   updateEmployeeRoles,
 );
 

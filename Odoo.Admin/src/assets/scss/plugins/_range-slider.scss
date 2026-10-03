@@ -43,6 +43,7 @@
   border-radius: $tooltip-border-radius;
   background-color: var(--#{$prefix}card-bg-custom);
   color: var(--#{$prefix}body-color);
+  display: none;
 }
 
 // Vertical Slider
@@ -165,9 +166,6 @@
 
 // showing tooltips
 
-.noUi-tooltip {
-    display: none;
-}
 .noUi-active .noUi-tooltip {
     display: block;
 }

@@ -87,7 +87,7 @@
             border-color: $dark transparent transparent;
             right: 11.5px;
             left: auto;
-            font-family: 'Material Design Icons';
+            font-family: 'Material Design Icons', sans-serif;
             width: auto;
             height: auto;
             margin-top: 0;
@@ -262,6 +262,11 @@
 
     .choices__list {
         margin: 0 -16px -16px;
+        position: relative;
+        max-height: 300px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        will-change: scroll-position;
     }
 
     .has-no-results {
@@ -271,6 +276,12 @@
 
     .choices__item--selectable:after{
         display: none;
+    }
+
+    .choices__item {
+        position: relative;
+        font-size: $dropdown-font-size;
+        padding: $dropdown-item-padding-y $dropdown-item-padding-x $dropdown-item-padding-y 16px;
     }
 }
   
@@ -294,21 +305,7 @@
     }
 }
   
-.choices__list--dropdown{
-    .choices__list {
-        position: relative;
-        max-height: 300px;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
-        will-change: scroll-position;
-    }
 
-    .choices__item {
-        position: relative;
-        font-size: $dropdown-font-size;
-        padding: $dropdown-item-padding-y $dropdown-item-padding-x $dropdown-item-padding-y 16px;
-    }
-}
   
 
   

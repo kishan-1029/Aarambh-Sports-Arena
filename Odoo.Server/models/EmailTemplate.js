@@ -16,6 +16,15 @@ const EmailTemplateSchema = new mongoose.Schema(
       ref: "EmailFor",
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    emailTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "EmailTo",
+      default: null,
+    },
     mailerName: {
       type: String,
       required: true,
@@ -42,6 +51,13 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // === RBAC OWNERSHIP FILTER START ===
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+    },
+    // === RBAC OWNERSHIP FILTER END ===
   },
   { timestamps: true },
 );

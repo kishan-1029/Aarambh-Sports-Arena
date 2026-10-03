@@ -17,14 +17,14 @@ import helmet from 'helmet';
  * @returns {Function} Helmet middleware with custom configuration
  */
 export const securityHeaders = helmet({
-    // Content-Security-Policy: Helps prevent XSS attacks
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for now
+            styleSrc: ["'self'", "'unsafe-inline'"],
             scriptSrc: ["'self'"],
-            imgSrc: ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'", 'https://api.ipify.org'], // Allow IP lookup API
+            imgSrc: ["'self'", 'data:', 'http:', 'https:'],
+            connectSrc: ["'self'", 'http:', 'https:', 'https://api.ipify.org'],
             fontSrc: ["'self'", 'https:', 'data:'],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
@@ -108,14 +108,14 @@ export const getCorsConfig = (allowedOrigins = []) => {
         'https://demo-test.barodaweb.net.in',
     ];
 
-    const origins = [...new Set([...defaultOrigins, ...allowedOrigins])];
+    const origins = new Set([...defaultOrigins, ...allowedOrigins]);
 
     return {
         origin: (origin, callback) => {
             // Allow requests with no origin (mobile apps, curl, etc.)
             if (!origin) return callback(null, true);
 
-            if (origins.includes(origin)) {
+            if (origins.has(origin)) {
                 return callback(null, true);
             }
 
@@ -157,7 +157,7 @@ export const getCorsConfig = (allowedOrigins = []) => {
  */
 export const bodySizeLimit = (limit = 1024 * 1024) => { // Default 1MB
     return (req, res, next) => {
-        const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+        const contentLength = Number.parseInt(req.headers['content-length'] || '0', 10);
 
         if (contentLength > limit) {
             return res.status(413).json({

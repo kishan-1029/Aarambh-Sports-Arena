@@ -13,29 +13,11 @@
   }
 }
 
-/* .google-trans {
-  position: relative;
-  top: 0;
-  z-index: 999;
-  pointer-events: all;
-  right: 170px;
-  border-radius: 5px;
-  background: #fff;
-} */
-
 .newsletter-popup {
   width: 300px;
   font-size: 35px;
-  /* margin-left: auto;
-  position: relative;
-  color: #000;
-  background: #cb8161; */
-
-
 }
-/* .modal-content { 
-  height: 550px;
-} */
+
 .newsletter-popup .newsletter-container .newsletter-form {
   width: 100%;
   padding: 30px 0;
@@ -60,23 +42,24 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 
-.appvide{
+.appvide {
   display: flex;
   align-items: center;
 }
 
-.appcanvas{
+.appcanvas {
   position: absolute;
   /* top: 100px */
 }
 
-.myapp{
+.myapp {
   display: flex;
   width: 100vw;
   height: 100vh;

@@ -279,6 +279,23 @@
 }
 
 [data-layout="vertical"] {
+    &[data-sidebar-size="sm"],
+    &[data-sidebar-size="sm-hover"] {
+        #page-topbar {
+            @media (min-width: 768px) {
+                left: $vertical-menu-width-sm;
+            }
+        }
+    }
+
+    &[data-sidebar-size="md"] {
+        #page-topbar {
+            @media (min-width: 768px) {
+                left: $vertical-menu-width-md;
+            }
+        }
+    }
+
     &[data-layout-style="detached"] {
         @media (min-width: 1024.1px) {
             #page-topbar {
@@ -362,25 +379,6 @@
     }
 }
 
-[data-layout="vertical"] {
-
-    &[data-sidebar-size="sm"],
-    &[data-sidebar-size="sm-hover"] {
-        #page-topbar {
-            @media (min-width: 768px) {
-                left: $vertical-menu-width-sm;
-            }
-        }
-    }
-
-    &[data-sidebar-size="md"] {
-        #page-topbar {
-            @media (min-width: 768px) {
-                left: $vertical-menu-width-md;
-            }
-        }
-    }
-}
 
 [data-layout="twocolumn"] {
     #page-topbar {

@@ -1,5 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 import {
   createDepartment,
   updateDepartment,
@@ -34,6 +35,7 @@ const router = express.Router();
 router.post(
   "/departments",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+   checkPermission("/department", "write"),
   createDepartment,
 );
 
@@ -63,6 +65,7 @@ router.post(
 router.get(
   "/departments",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/department", "read"),
   listDepartments,
 );
 
@@ -90,6 +93,7 @@ router.get(
 router.get(
   "/departments/:departmentId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/department", "read"),
   getDeparmentById,
 );
 
@@ -123,6 +127,7 @@ router.get(
 router.put(
   "/departments/:departmentId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+   checkPermission("/department", "edit"),
   updateDepartment,
 );
 
@@ -150,6 +155,7 @@ router.put(
 router.delete(
   "/departments/:departmentId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/department", "delete"),
   deleteDepartment,
 );
 
@@ -178,6 +184,7 @@ router.delete(
 router.post(
   "/departments/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/department", "read"),
   listDepartmentByParams,
 );
 

@@ -11,7 +11,7 @@
  * https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
  */
 
-import { body, param, query, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import mongoSanitize from 'express-mongo-sanitize';
 
 // ============ CONSTANTS ============
@@ -76,23 +76,23 @@ export const mongoSanitizer = mongoSanitize({
 export const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().map(error => ({
-            field: error.path || error.param,
-            message: error.msg,
-            value: error.value !== undefined ? '[REDACTED]' : undefined, // Don't expose sensitive values
-        }));
-
-        return res.status(400).json({
-            isOk: false,
-            status: 400,
-            error: 'Validation Error',
-            message: 'Invalid input data',
-            details: formattedErrors,
-        });
+    if (errors.isEmpty()) {
+        return next();
     }
 
-    next();
+    const formattedErrors = errors.array().map(error => ({
+        field: error.path || error.param,
+        message: error.msg,
+        value: error.value === undefined ? undefined : '[REDACTED]', // Don't expose sensitive values
+    }));
+
+    return res.status(400).json({
+        isOk: false,
+        status: 400,
+        error: 'Validation Error',
+        message: 'Invalid input data',
+        details: formattedErrors,
+    });
 };
 
 // ============ REUSABLE VALIDATORS ============
@@ -271,9 +271,9 @@ export const createCompanyValidation = [
         .isLength({ max: 20 })
         .withMessage('GST number must not exceed 20 characters')
         .customSanitizer(sanitizeString),
-    mongoIdValidator('countryId', 'body'),
-    mongoIdValidator('stateId', 'body'),
-    mongoIdValidator('cityId', 'body'),
+    body('countryId').optional().isMongoId().withMessage('Country must be a valid ID'),
+    body('stateId').optional().isMongoId().withMessage('State must be a valid ID'),
+    body('cityId').optional().isMongoId().withMessage('City must be a valid ID'),
     body('address')
         .optional()
         .trim()
@@ -377,7 +377,8 @@ export const allowedEmployeeFields = [
 export const allowedCompanyFields = [
     'companyName', 'email', 'password', 'mobileNumber',
     'gstNumber', 'countryId', 'stateId', 'cityId',
-    'address', 'pincode', 'website', 'isActive', 'contactPersonName', 'contactNumber'
+    'address', 'pincode', 'website', 'isActive', 'contactPersonName', 'contactNumber',
+    'loginBanner', 'sidebarBgColor', 'addButtonColor', 'removeButtonColor', 'buttonStyle', 'enableSearchMenu'
 ];
 
 export const allowedSearchFields = [

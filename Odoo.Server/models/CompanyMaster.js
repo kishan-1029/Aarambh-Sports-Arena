@@ -62,6 +62,11 @@ const CompanyMasterSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    loginBanner: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     website: {
       type: String,
       required: true,
@@ -75,6 +80,44 @@ const CompanyMasterSchema = new mongoose.Schema(
     isSuperAdmin: {
       type: Boolean,
       default: false,
+    },
+    sidebarBgColor: {
+      type: String,
+      default: "#224c99",
+    },
+    addButtonColor: {
+      type: String,
+      default: "#0ab39c",
+    },
+    removeButtonColor: {
+      type: String,
+      default: "#f06548",
+    },
+    addButtonTextColor: {
+      type: String,
+      default: "",
+    },
+    removeButtonTextColor: {
+      type: String,
+      default: "",
+    },
+    buttonStyle: {
+      borderRadius: {
+        type: String,
+        default: "8px",
+      },
+      themeType: {
+        type: String,
+        default: "gradient",
+      },
+      buttonType: {
+        type: String,
+        default: "contained", // can be "contained", "outline", "soft", or "animated"
+      },
+    },
+    enableSearchMenu: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true },

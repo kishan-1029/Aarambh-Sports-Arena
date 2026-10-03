@@ -1,11 +1,18 @@
 import EmailForModels from "../../models/EmailFor.js";
 import EmailTemplateModels from "../../models/EmailTemplate.js";
+import mongoose from "mongoose";
+
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 export const createEmailFor = async (req, res) => {
   try {
     const { emailFor, isActive } = req.body;
 
-    const existingEmailFor = await EmailForModels.findOne({ emailFor });
+    const safeEmailFor = typeof emailFor === "string" ? emailFor.trim() : "";
+
+    const existingEmailFor = await EmailForModels.findOne({ emailFor: safeEmailFor });
 
     if (existingEmailFor) {
       return res.status(409).json({
@@ -16,8 +23,11 @@ export const createEmailFor = async (req, res) => {
     }
 
     const emailForData = new EmailForModels({
-      emailFor,
+      emailFor: safeEmailFor,
       isActive,
+      // === RBAC OWNERSHIP FILTER START ===
+      createdBy: req.user?.id || null,
+      // === RBAC OWNERSHIP FILTER END ===
     });
 
     await emailForData.save();
@@ -44,7 +54,10 @@ export const updateEmailFor = async (req, res) => {
 
     const { emailFor, isActive } = req.body;
 
-    const emailForData = await EmailForModels.findById(emailForId);
+    const safeEmailForId = typeof emailForId === "string" ? emailForId : "";
+    const safeEmailFor = typeof emailFor === "string" ? emailFor.trim() : "";
+
+    const emailForData = await EmailForModels.findById(safeEmailForId);
 
     if (!emailForData) {
       return res.status(404).json({
@@ -54,9 +67,19 @@ export const updateEmailFor = async (req, res) => {
       });
     }
 
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailForData.createdBy && emailForData.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot modify this Email For",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
     const existingEmailFor = await EmailForModels.findOne({
-      emailFor,
-      _id: { $ne: emailForId },
+      emailFor: safeEmailFor,
+      _id: { $ne: safeEmailForId },
     });
 
     if (existingEmailFor) {
@@ -67,7 +90,7 @@ export const updateEmailFor = async (req, res) => {
       });
     }
 
-    emailForData.emailFor = emailFor;
+    emailForData.emailFor = safeEmailFor;
     emailForData.isActive = isActive;
 
     await emailForData.save();
@@ -102,6 +125,16 @@ export const getEmailForById = async (req, res) => {
       });
     }
 
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailForData.createdBy && emailForData.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot view this Email For",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
     return res.status(200).json({
       status: 200,
       isOk: true,
@@ -120,7 +153,13 @@ export const getEmailForById = async (req, res) => {
 
 export const listAllEmailFor = async (req, res) => {
   try {
-    const emailForData = await EmailForModels.find({ isActive: true });
+    // === RBAC OWNERSHIP FILTER START ===
+    const filterQuery = { isActive: true };
+    if (req.user?.role !== "ADMIN") {
+      filterQuery.createdBy = req.user?.id;
+    }
+    const emailForData = await EmailForModels.find(filterQuery);
+    // === RBAC OWNERSHIP FILTER END ===
 
     return res.status(200).json({
       status: 200,
@@ -141,7 +180,7 @@ export const listAllEmailFor = async (req, res) => {
 export const deleteEmailFor = async (req, res) => {
   try {
     const { emailForId } = req.params;
-    console.log(emailForId);
+    
 
     const emailForData = await EmailForModels.findById(emailForId);
 
@@ -152,6 +191,16 @@ export const deleteEmailFor = async (req, res) => {
         message: "Email For not found",
       });
     }
+
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && emailForData.createdBy && emailForData.createdBy.toString() !== req.user?.id) {
+      return res.status(403).json({
+        isOk: false,
+        status: 403,
+        message: "Access Denied: You cannot delete this Email For",
+      });
+    }
+    // === RBAC OWNERSHIP FILTER END ===
 
     const dependantTemplate = await EmailTemplateModels.find({
       emailFor: emailForData._id,
@@ -188,13 +237,54 @@ export const listEmailForByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    // Sanitize numeric inputs
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    // Sanitize isActive input
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+    // === RBAC OWNERSHIP FILTER START ===
+    if (req.user?.role !== "ADMIN" && req.user?.id) {
+      matchCondition.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+    // === RBAC OWNERSHIP FILTER END ===
+
+    // Add sorting stage
+    const allowedFields = ["emailFor", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedFields.includes(sorton) ? sorton : "createdAt";
+    const sortOrder = sortdir === "desc" ? -1 : 1;
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const pipeline = [
+      { $sort: { [safeSortField]: sortOrder } },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    emailFor: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -208,7 +298,7 @@ export const listEmailForByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -222,33 +312,7 @@ export const listEmailForByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                emailFor: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await EmailForModels.aggregate(query);
+    const list = await EmailForModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,

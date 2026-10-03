@@ -22,7 +22,6 @@
         list-style: none;
 
         a {
-            display: block;
             background: var(--#{$prefix}light);
             border: 2px solid var(--#{$prefix}card-bg-custom);
             box-shadow: $box-shadow;
@@ -448,10 +447,6 @@
         }
         .second-list, .third-list {
             margin-left: 42px;
-            
-        }
-
-        .third-list, .second-list {
             position: relative;
             li {
                 position: relative;

@@ -20,7 +20,7 @@ table.dataTable>thead .sorting_desc_disabled:before {
     right: 0.5rem;
     top: 12px;
     font-size: .8rem;
-    font-family: "Material Design Icons";
+    font-family: "Material Design Icons", sans-serif;
 }
 
 table.dataTable>thead .sorting:after,
@@ -33,7 +33,7 @@ table.dataTable>thead .sorting_desc_disabled:after {
     right: 0.5rem;
     top: 18px;
     font-size: .8rem;
-    font-family: "Material Design Icons";
+    font-family: "Material Design Icons", sans-serif;
 }
 
 table.dataTable>tbody>tr.child span.dtr-title {

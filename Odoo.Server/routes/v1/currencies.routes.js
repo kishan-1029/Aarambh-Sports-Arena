@@ -9,6 +9,7 @@ import {
   getAllActiveCurrencyMasters,
 } from "../../controllers/v1/currency.controller.js";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 
 /**
  * @swagger
@@ -33,6 +34,7 @@ import { authMiddleware } from "../../middlewares/authMiddleware.js";
 router.post(
   "/currencies",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "write"),
   createCurrencyMaster,
 );
 
@@ -62,6 +64,7 @@ router.post(
 router.get(
   "/currencies",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "read"),
   getAllActiveCurrencyMasters,
 );
 
@@ -89,6 +92,7 @@ router.get(
 router.get(
   "/currencies/:id",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "read"),
   getCurrencyMasterById,
 );
 
@@ -122,6 +126,7 @@ router.get(
 router.put(
   "/currencies/:id",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "edit"),
   updateCurrencyMaster,
 );
 
@@ -149,6 +154,7 @@ router.put(
 router.delete(
   "/currencies/:id",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "delete"),
   deleteCurrencyMaster,
 );
 
@@ -177,6 +183,7 @@ router.delete(
 router.post(
   "/currencies/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/currency-master", "read"),
   listCurrencyMastersByParams,
 );
 

@@ -56,6 +56,9 @@ $border-style-mixing: double, dashed, groove, outset, ridge, dotted, inset;
             color: rgba(var(--#{$prefix}dark-rgb), 0.75) !important;
         }
     }
+    .btn-close{
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
 }
 
 
@@ -308,11 +311,7 @@ code {
     display: var(--#{$prefix}card-logo-dark);
 }
 
-[data-layout-mode="dark"]{
-    .btn-close{
-        filter: invert(1) grayscale(100%) brightness(200%);
-    }
-}
+
 
 
 #back-to-top {

@@ -56,6 +56,11 @@ const EmployeeSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+    },
   },
   { timestamps: true },
 );

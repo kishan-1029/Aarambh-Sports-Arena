@@ -1,8 +1,13 @@
 import RoleMaster from "../../models/RoleMaster.js";
+import mongoose from "mongoose";
 import {
   getReferencingCounts,
   formatReferenceMessage,
 } from "../../utils/referenceHelper.js";
+
+// Helper: Escape regex special characters to prevent NoSQL injection
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 export const createRole = async (req, res) => {
   try {
@@ -16,7 +21,8 @@ export const createRole = async (req, res) => {
 
     const newRole = new RoleMaster({
       roleName,
-      isActive: isActive !== undefined ? isActive : true,
+      isActive: isActive === undefined ? true : isActive,
+      createdBy: req.user.role === "EMPLOYEE" ? req.user.id : null,
     });
 
     await newRole.save();
@@ -29,11 +35,28 @@ export const createRole = async (req, res) => {
 
 export const listAllRoles = async (req, res) => {
   try {
-    const roles = await RoleMaster.find({ isActive: true });
-    res.status(200).json({ isOk: true, data: roles });
+    let query = { isActive: true };
+
+    if (req.user.role === "EMPLOYEE") {
+      const safeUserId = typeof req.user.id === "string" ? req.user.id.trim() : "";
+      const isValidUser = typeof safeUserId === "string" && /^[0-9a-fA-F]{24}$/.test(safeUserId);
+      if (isValidUser) {
+        query.createdBy = safeUserId;
+      }
+    }
+
+    const roles = await RoleMaster.find(query);
+
+    return res.status(200).json({
+      isOk: true,
+      data: roles,
+    });
   } catch (error) {
-    console.error("Error fetching roles:", error);
-    res.status(500).json({ isOk: false, message: "Internal server error" });
+    console.error("Error in listAllRoles:", error);
+    return res.status(500).json({
+      isOk: false,
+      message: "Internal server error",
+    });
   }
 };
 
@@ -129,13 +152,52 @@ export const listRoleByParams = async (req, res) => {
   try {
     let { skip, per_page, sorton, sortdir, match, isActive } = req.body;
 
-    // Build the initial match condition
-    let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    // Sanitize numeric inputs
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
+
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    // Build the initial match condition
+    let matchCondition = {};
+    if (safeIsActive !== undefined) {
+      matchCondition.isActive = safeIsActive;
+    }
+
+    // Employee filtering
+    if (req.user.role === "EMPLOYEE") {
+      matchCondition.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const allowedFields = ["roleName", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedFields.includes(sorton) ? sorton : "createdAt";
+    const sortOrder = sortdir === "desc" ? -1 : 1;
+
+    const pipeline = [
+      { $sort: { [safeSortField]: sortOrder } },
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    roleName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -149,7 +211,7 @@ export const listRoleByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -163,33 +225,7 @@ export const listRoleByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                roleName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await RoleMaster.aggregate(query);
+    const list = await RoleMaster.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,
@@ -202,6 +238,59 @@ export const listRoleByParams = async (req, res) => {
       isOk: false,
       message: error.message,
       status: 500,
+    });
+  }
+};
+export const listAdminCreatedRoles = async (req, res) => {
+  try {
+    const roles = await RoleMaster.findAdminCreatedRoles();
+
+    return res.status(200).json({
+      isOk: true,
+      data: roles,
+    });
+  } catch (error) {
+    console.error("Error in listAdminCreatedRoles:", error);
+    return res.status(500).json({
+      isOk: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const listEmployeeCreatedRoles = async (req, res) => {
+  try {
+    const roles = await RoleMaster.findEmployeeCreatedRoles();
+
+    // Group by employee
+    const grouped = {};
+    for (const role of roles) {
+      const employeeId = role.createdBy?._id?.toString();
+      const employeeName = role.createdBy?.employeeName || "Unknown";
+
+      if (!grouped[employeeId]) {
+        grouped[employeeId] = {
+          employeeId,
+          employeeName,
+          roles: [],
+        };
+      }
+
+      grouped[employeeId].roles.push({
+        value: role._id,
+        label: role.roleName,
+      });
+    }
+
+    return res.status(200).json({
+      isOk: true,
+      data: Object.values(grouped),
+    });
+  } catch (error) {
+    console.error("Error in listEmployeeCreatedRoles:", error);
+    return res.status(500).json({
+      isOk: false,
+      message: "Internal server error",
     });
   }
 };

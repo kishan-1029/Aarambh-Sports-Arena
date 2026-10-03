@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
 import {
   createRole,
   listAllRoles,
@@ -8,6 +9,8 @@ import {
   deleteRole,
   getRoleById,
   listRoleByParams,
+  listAdminCreatedRoles,   // ← add
+  listEmployeeCreatedRoles,
 } from "../../controllers/v1/roleMaster.controller.js";
 
 /**
@@ -30,7 +33,7 @@ import {
  *       401:
  *         description: Unauthorized
  */
-router.post("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]), createRole);
+router.post("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/role-master", "write"), createRole);
 
 /**
  * @swagger
@@ -55,7 +58,42 @@ router.post("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]), createRole);
  *                   items:
  *                     $ref: '#/components/schemas/Role'
  */
-router.get("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]), listAllRoles);
+router.get("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/role-master", "read"), listAllRoles);
+/**
+ * @swagger
+ * /roles/admin-created:
+ *   get:
+ *     summary: List all roles created by admin (createdBy = null)
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of admin created roles
+ */
+router.get(
+  "/roles/admin-created",
+  authMiddleware(["ADMIN"]),
+  listAdminCreatedRoles,
+);
+
+/**
+ * @swagger
+ * /roles/employee-created:
+ *   get:
+ *     summary: List all roles created by employees grouped by employee
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of employee created roles grouped by employee
+ */
+router.get(
+  "/roles/employee-created",
+  authMiddleware(["ADMIN"]),
+  listEmployeeCreatedRoles,
+);
 
 /**
  * @swagger
@@ -81,6 +119,7 @@ router.get("/roles", authMiddleware(["ADMIN", "EMPLOYEE"]), listAllRoles);
 router.get(
   "/roles/:roleId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/role-master", "read"),
   getRoleById,
 );
 
@@ -111,7 +150,7 @@ router.get(
  *       404:
  *         description: Role not found
  */
-router.put("/roles/:roleId", authMiddleware(["ADMIN", "EMPLOYEE"]), updateRole);
+router.put("/roles/:roleId", authMiddleware(["ADMIN", "EMPLOYEE"]),checkPermission("/role-master", "edit"), updateRole);
 
 /**
  * @swagger
@@ -137,6 +176,7 @@ router.put("/roles/:roleId", authMiddleware(["ADMIN", "EMPLOYEE"]), updateRole);
 router.delete(
   "/roles/:roleId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/role-master", "delete"),
   deleteRole,
 );
 
@@ -165,6 +205,7 @@ router.delete(
 router.post(
   "/roles/search",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
+  checkPermission("/role-master", "read"),
   listRoleByParams,
 );
 

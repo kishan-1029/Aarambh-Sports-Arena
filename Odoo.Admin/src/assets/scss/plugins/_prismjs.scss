@@ -6,9 +6,9 @@
 
 code[class*="language-"],
 pre[class*="language-"] {
-    color: black;
+    color: $gray-600;
     background: none;
-    text-shadow: 0 1px white;
+    text-shadow: none;
     font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
     font-size: 1em;
     text-align: left;
@@ -143,17 +143,7 @@ pre[class*="language-"] {
     cursor: help;
 }
 
-/* Prism editor */
-:not(pre) > code[class*="language-"],
-pre[class*="language-"] {
-    background: $gray-200;
-}
 
-code[class*="language-"],
-pre[class*="language-"] {
-    color: $gray-600;
-    text-shadow: none;
-}
 
 
 

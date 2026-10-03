@@ -31,13 +31,9 @@
 }
 
 .auth-one-bg{
-    // background-image: url("../../images/auth-one-bg.jpg");
-    // background-image: url("../../../assets/images/logo/ziya-logo-favicon.png");
+    
     background-position: center;
-    // background-size: cover;
-    // background-repeat: no-repeat;
-
-    // background-size: 300px 100px;
+    
 
     .bg-overlay{
         background: linear-gradient(to right, darken($primary, 6%), $primary);

@@ -3,15 +3,21 @@ import {
   getReferencingCounts,
   formatReferenceMessage,
 } from "../../utils/referenceHelper.js";
-
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 // Create CurrencyMaster
 export const createCurrencyMaster = async (req, res) => {
   try {
     const { currencyName, currencyCode, currencySymbol, isActive } = req.body;
 
+    const safeCurrencyName = typeof currencyName === "string" ? currencyName.trim() : "";
+    const safeCurrencyCode = typeof currencyCode === "string" ? currencyCode.trim() : "";
+
     // Check if currency with same name already exists
     const existingCurrencyByName = await CurrencyMaster.findOne({
-      currencyName: { $regex: new RegExp(`^${currencyName}$`, "i") },
+      currencyName: {
+        $regex: new RegExp(`^${escapeRegex(safeCurrencyName)}$`, "i"),
+      },
     });
 
     if (existingCurrencyByName) {
@@ -23,7 +29,9 @@ export const createCurrencyMaster = async (req, res) => {
 
     // Check if currency with same code already exists
     const existingCurrencyByCode = await CurrencyMaster.findOne({
-      currencyCode: { $regex: new RegExp(`^${currencyCode}$`, "i") },
+      currencyCode: {
+        $regex: new RegExp(`^${escapeRegex(safeCurrencyCode)}$`, "i"),
+      },
     });
 
     if (existingCurrencyByCode) {
@@ -34,8 +42,8 @@ export const createCurrencyMaster = async (req, res) => {
     }
 
     const newCurrencyMaster = new CurrencyMaster({
-      currencyName,
-      currencyCode,
+      currencyName: safeCurrencyName,
+      currencyCode: safeCurrencyCode,
       currencySymbol,
       isActive,
     });
@@ -89,10 +97,16 @@ export const updateCurrencyMaster = async (req, res) => {
     const { id } = req.params;
     const { currencyName, currencyCode, currencySymbol, isActive } = req.body;
 
+    const safeId = typeof id === "string" ? id.trim() : "";
+    const safeCurrencyName = typeof currencyName === "string" ? currencyName.trim() : "";
+    const safeCurrencyCode = typeof currencyCode === "string" ? currencyCode.trim() : "";
+
     // Check if another currency with same name already exists (excluding current currency)
     const existingCurrencyByName = await CurrencyMaster.findOne({
-      _id: { $ne: id },
-      currencyName: { $regex: new RegExp(`^${currencyName}$`, "i") },
+      _id: { $ne: safeId },
+      currencyName: {
+        $regex: new RegExp(`^${escapeRegex(safeCurrencyName)}$`, "i"),
+      },
     });
 
     if (existingCurrencyByName) {
@@ -104,8 +118,10 @@ export const updateCurrencyMaster = async (req, res) => {
 
     // Check if another currency with same code already exists (excluding current currency)
     const existingCurrencyByCode = await CurrencyMaster.findOne({
-      _id: { $ne: id },
-      currencyCode: { $regex: new RegExp(`^${currencyCode}$`, "i") },
+      _id: { $ne: safeId },
+      currencyCode: {
+        $regex: new RegExp(`^${escapeRegex(safeCurrencyCode)}$`, "i"),
+      },
     });
 
     if (existingCurrencyByCode) {
@@ -116,10 +132,10 @@ export const updateCurrencyMaster = async (req, res) => {
     }
 
     const updatedCurrencyMaster = await CurrencyMaster.findByIdAndUpdate(
-      id,
+      safeId,
       {
-        currencyName,
-        currencyCode,
+        currencyName: safeCurrencyName,
+        currencyCode: safeCurrencyCode,
         currencySymbol,
         isActive,
       },
@@ -202,35 +218,49 @@ export const listCurrencyMastersByParams = async (req, res) => {
       isActive,
     } = req.body;
 
-    let query = {};
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+    const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 100;
 
     // Filter by active status if provided
-    if (typeof isActive === "boolean") {
-      query.isActive = isActive;
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
+    }
+
+    let queryCondition = {};
+    if (typeof safeIsActive === "boolean") {
+      queryCondition.isActive = safeIsActive;
     }
 
     // Search functionality
-    if (match) {
-      query.$or = [
-        { currencyName: { $regex: match, $options: "i" } },
-        { currencyCode: { $regex: match, $options: "i" } },
-        { currencySymbol: { $regex: match, $options: "i" } },
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+    if (safeMatch) {
+      const escapedMatch = escapeRegex(safeMatch);
+
+      queryCondition.$or = [
+        { currencyName: { $regex: escapedMatch, $options: "i" } },
+        { currencyCode: { $regex: escapedMatch, $options: "i" } },
+        { currencySymbol: { $regex: escapedMatch, $options: "i" } },
       ];
     }
 
     // Sorting
+    const allowedSortFields = ["currencyName", "currencyCode", "currencySymbol", "isActive", "createdAt", "updatedAt"];
+    const safeSortField = allowedSortFields.includes(sorton) ? sorton : "createdAt";
     let sort = {};
-    sort[sorton] = sortdir === "desc" ? -1 : 1;
+    sort[safeSortField] = sortdir === "desc" ? -1 : 1;
 
     // Aggregation pipeline
     const pipeline = [
-      { $match: query },
+      { $match: queryCondition },
       {
         $facet: {
           data: [
             { $sort: sort },
-            { $skip: parseInt(skip) },
-            { $limit: parseInt(per_page) },
+            { $skip: safeSkip },
+            { $limit: safePerPage },
           ],
           count: [{ $count: "total" }],
         },

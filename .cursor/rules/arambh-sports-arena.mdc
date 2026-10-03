@@ -1,0 +1,19 @@
+---
+description: Arambh Sports Arena sports club platform — always-on project rules
+alwaysApply: true
+---
+
+- Brand everywhere is **Arambh Sports Arena** (slug `arambh`). "The Champions Club" is the problem-statement scenario only.
+- The spec lives in `docs/`. Before any task, read `docs/00-Cursor-Execution-Guide.md` and the phase in `docs/26-Implementation-Phases.md`. Resume from `docs/PROGRESS.md`.
+- If `docs/Audit/` is incomplete, finish Phase 0 first (notes only).
+- Admin/Server bases: `feature/finalRBAC` (server) and `feature/finalRBAC1` (admin). Reference repos: prefer `production` / `Production` branch only.
+- Paths: `Odoo.Server/`, `Odoo.Admin/` (not `server/`/`admin/`). See `docs/Audit/folder-mapping.md`.
+- Extend existing code. Never create a second auth middleware, API client, error class, table, toast or DB connection.
+- `d:\odoo2026\Reference Project\**` is read-only. Copy patterns, never import from it.
+- Money is integer paise. Time is UTC `Date` + IST `localDate`. Use `lib/money.js` and `lib/time.js`.
+- Business rules live in services. Multi-document writes use `withTransaction()`. Events and side effects run after commit.
+- Bookings only through `BookingService`; stock only through `InventoryService.move()`; money only through finance services.
+- Every new Arambh route: auth + permission + zod `validate`. Important writes: `audit.record()`.
+- Never write secrets into code, docs or logs. Mongo URI via config only (`MONGODB_URI` or `DATABASE` — ADR-0003). Tests use MongoMemoryReplSet.
+- Follow ADRs in `docs/ADR/`. When the spec is wrong, write an ADR instead of silently deviating.
+- Finish each phase with the checklist in `docs/00-Cursor-Execution-Guide.md` §6, update `docs/Changelog.md` and `docs/PROGRESS.md`, commit `phase-XX: …`.

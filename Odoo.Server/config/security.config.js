@@ -19,14 +19,14 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 export const rateLimitConfig = {
     // General API rate limit
     general: {
-        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-        maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+        windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+        maxRequests: Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
     },
 
     // Authentication endpoints (stricter)
     auth: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        maxRequests: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 5, // 5 attempts
+        maxRequests: Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 5, // 5 attempts
     },
 
     // Password reset (very strict)
@@ -109,7 +109,7 @@ export const passwordPolicy = {
         let pattern = `^`;
         if (this.requireLowercase) pattern += `(?=.*[a-z])`;
         if (this.requireUppercase) pattern += `(?=.*[A-Z])`;
-        if (this.requireNumbers) pattern += `(?=.*\\d)`;
+        if (this.requireNumbers) pattern += String.raw`(?=.*\d)`;
         if (this.requireSpecialChars) pattern += `(?=.*[@$!%*?&])`;
         pattern += `.{${this.minLength},${this.maxLength}}$`;
         return new RegExp(pattern);

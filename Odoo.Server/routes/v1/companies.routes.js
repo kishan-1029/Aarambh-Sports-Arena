@@ -1,12 +1,18 @@
 import express from "express";
-import fs from "fs";
+import fs from "node:fs";
 import {
   createCompanyMaster,
   updateCompanyMaster,
   loginCompany,
-  getCompanyMasterById,
+  getCurrentUserDetails,
+  getAdminList,
+  getPublicCompanyDetails,
+  deleteCompanyMaster,
+  getCompanyById,
 } from "../../controllers/v1/company.controller.js";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { checkPermission } from "../../middlewares/checkPermission.js";
+import { requireSuperAdmin } from "../../middlewares/requireSuperAdmin.js";
 // ============ SECURITY IMPORTS ============
 import { authRateLimiter, uploadRateLimiter } from "../../middlewares/rateLimiter.js";
 import {
@@ -42,6 +48,7 @@ const secureCompanyUpload = createSecureMultiUpload({
   fields: [
     { name: 'logo', maxCount: 1 },
     { name: 'favicon', maxCount: 1 },
+    { name: 'loginBanner', maxCount: 1 },
   ],
   maxSize: 5 * 1024 * 1024, // 5MB
   compress: true,
@@ -88,9 +95,20 @@ const secureCompanyUpload = createSecureMultiUpload({
 // SECURITY: Rate limit + secure upload with validation
 router.post(
   "/companies",
-  uploadRateLimiter,        // Rate limit uploads (10/hour)
-  secureCompanyUpload,      // Secure file validation & compression
+  authMiddleware(["ADMIN"]),
+  requireSuperAdmin,
+  uploadRateLimiter,       // Rate limit uploads (10/hour)
+  secureCompanyUpload,      // Secure file validation & compression (parses multipart fields)
+  allowOnlyFields(allowedCompanyFields),
+  createCompanyValidation,
   createCompanyMaster,
+);
+
+router.get(                                // ← new route
+  "/companies",
+  authMiddleware(["ADMIN"]),
+  requireSuperAdmin,
+  getAdminList,
 );
 
 /**
@@ -137,6 +155,9 @@ router.post(
  *       400:
  *         description: Validation error or invalid file type
  */
+// Public endpoint for company logo & favicon (to display on Login Page before logging in)
+router.get("/companies/public", getPublicCompanyDetails);
+
 // SECURITY: Auth + rate limit + secure upload
 router.put(
   "/companies/:id",
@@ -148,33 +169,29 @@ router.put(
 
 /**
  * @swagger
- * /companies/{companyId}:
+ * /companies/getCompanyDetails:
  *   get:
- *     summary: Get company by ID
+ *     summary: Get current user details using session
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: companyId
- *         required: true
- *         schema:
- *           type: string
- *         description: Company ID
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Company details
+ *         description: Current user details
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized - session invalid
  *       404:
- *         description: Company not found
+ *         description: User not found
  */
 router.get(
-  "/companies/:companyId",
+  "/companies/getCompanyDetails",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
-  getCompanyMasterById,
+  checkPermission("/company-details", "read"),
+  getCurrentUserDetails,
 );
 
 /**
@@ -208,6 +225,20 @@ router.post(
   allowOnlyFields(allowedLoginFields),      // Reject unexpected fields
   loginValidation,                          // Validate & sanitize input
   loginCompany
+);
+
+router.delete(
+  "/companies/:id",
+  authMiddleware(["ADMIN"]),
+  requireSuperAdmin,
+  deleteCompanyMaster
+);
+
+router.get(
+  "/companies/:id",
+  authMiddleware(["ADMIN"]),
+  requireSuperAdmin,
+  getCompanyById
 );
 
 export default router;

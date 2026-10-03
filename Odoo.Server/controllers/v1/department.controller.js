@@ -1,13 +1,33 @@
 import DepartmentModels from "../../models/Department.js";
+import mongoose from "mongoose";
 import {
   getReferencingCounts,
   formatReferenceMessage,
 } from "../../utils/referenceHelper.js";
+const escapeRegex = (str = "") =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
+// Helper: Build sort stage for aggregation pipeline
+const buildSortStage = (sorton, sortdir) => {
+  const allowedSortFields = [
+    "departmentName",
+    "departmentCode",
+    "isActive",
+    "createdAt",
+    "updatedAt",
+  ];
+
+  const safeSortField = allowedSortFields.includes(sorton)
+    ? sorton
+    : "createdAt";
+  const sortOrder = sortdir === "desc" ? -1 : 1;
+
+  return { $sort: { [safeSortField]: sortOrder } };
+};
 
 export const createDepartment = async (req, res) => {
   try {
     const { departmentName, departmentCode, isActive } = req.body;
-    console.log("Request Body:", req.body); // Debugging line
 
     if (!departmentName && !departmentCode) {
       return res.status(400).json({
@@ -17,8 +37,11 @@ export const createDepartment = async (req, res) => {
       });
     }
 
+    const safeDepartmentCode =
+      typeof departmentCode === "string" ? departmentCode.trim() : "";
+
     const existingDepartment = await DepartmentModels.findOne({
-      departmentCode,
+      departmentCode: safeDepartmentCode,
     });
 
     if (existingDepartment) {
@@ -33,6 +56,7 @@ export const createDepartment = async (req, res) => {
       departmentName,
       departmentCode,
       isActive,
+      createdBy: req.user.role === "EMPLOYEE" ? req.user.id : null,
     });
 
     await department.save();
@@ -174,11 +198,57 @@ export const listDepartmentByParams = async (req, res) => {
 
     // Build the initial match condition
     let matchCondition = {};
-    if (isActive !== undefined && isActive !== null && isActive !== "") {
-      matchCondition.isActive = isActive;
+    
+    // Extract nested ternary: normalize isActive to boolean or undefined
+    let safeIsActive;
+    if (isActive === true || isActive === "true") {
+      safeIsActive = true;
+    } else if (isActive === false || isActive === "false") {
+      safeIsActive = false;
     }
 
-    let query = [
+    if (typeof safeIsActive === "boolean") {
+      matchCondition.isActive = safeIsActive;
+    }
+    if (req.user.role === "EMPLOYEE") {
+      matchCondition.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+    const safeSkip = Number.isInteger(Number(skip)) ? Number(skip) : 0;
+
+    const safePerPage = Number.isInteger(Number(per_page))
+      ? Number(per_page)
+      : 100;
+
+    const safeMatch = typeof match === "string" ? match.trim() : "";
+
+    const sortStage = sorton && sortdir 
+      ? buildSortStage(sorton, sortdir)
+      : { $sort: { createdAt: -1 } };
+
+    const pipeline = [
+      sortStage,
+      ...(safeMatch
+        ? [
+            {
+              $match: {
+                $or: [
+                  {
+                    departmentName: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                  {
+                    departmentCode: {
+                      $regex: escapeRegex(safeMatch),
+                      $options: "i",
+                    },
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       {
         $match: matchCondition,
       },
@@ -192,7 +262,7 @@ export const listDepartmentByParams = async (req, res) => {
               },
             },
           ],
-          stage2: [{ $skip: skip }, { $limit: per_page }],
+          stage2: [{ $skip: safeSkip }, { $limit: safePerPage }],
         },
       },
       {
@@ -206,39 +276,7 @@ export const listDepartmentByParams = async (req, res) => {
       },
     ];
 
-    if (match) {
-      query = [
-        {
-          $match: {
-            $or: [
-              {
-                departmentName: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-              {
-                departmentCode: {
-                  $regex: match,
-                  $options: "i",
-                },
-              },
-            ],
-          },
-        },
-      ].concat(query);
-    }
-
-    // Add sorting
-    if (sorton && sortdir) {
-      let sort = {};
-      sort[sorton] = sortdir === "desc" ? -1 : 1;
-      query = [{ $sort: sort }].concat(query);
-    } else {
-      query = [{ $sort: { createdAt: -1 } }].concat(query);
-    }
-
-    const list = await DepartmentModels.aggregate(query);
+    const list = await DepartmentModels.aggregate(pipeline);
 
     return res.status(200).json({
       isOk: true,
@@ -257,7 +295,12 @@ export const listDepartmentByParams = async (req, res) => {
 
 export const listDepartments = async (req, res) => {
   try {
-    const departments = await DepartmentModels.find({ isActive: true });
+    let filter = { isActive: true };
+
+    if (req.user.role === "EMPLOYEE") {
+      filter.createdBy = new mongoose.Types.ObjectId(req.user.id);
+    }
+    const departments = await DepartmentModels.find(filter);
 
     return res.status(200).json({
       isOk: true,

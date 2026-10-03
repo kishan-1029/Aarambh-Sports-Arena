@@ -238,9 +238,7 @@
     .timeline-launch {
         position: relative;
         display: inline-block;
-        border: 1px solid $border-color;
         border-radius: 6px;
-        background: $white;
         width: 100%;
         margin-top: 15px;
         padding: 0;
@@ -386,7 +384,7 @@
 
         &::after {
             content: "\EA6E";
-            font-family: remixicon;
+            font-family: remixicon, sans-serif;
         }
     }
 
@@ -395,7 +393,7 @@
 
         &::after {
             content: "\EA64";
-            font-family: remixicon;
+            font-family: remixicon, sans-serif;
         }
     }
 }

@@ -70,18 +70,7 @@
     }
 }
 
-// [data-layout-mode="dark"]{
-//     .badge{
-//         &.bg-dark{
-//             background-color: var(--#{$prefix}light) !important;
-//         }
 
-//         &.bg-light{
-//             background-color: var(--#{$prefix}dark) !important;
-//             color: var(--#{$prefix}light) !important;
-//         }
-//     }
-// }
 
 //Badge Gradient Style
 $gradients: ();
