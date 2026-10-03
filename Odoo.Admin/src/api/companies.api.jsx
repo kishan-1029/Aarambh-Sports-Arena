@@ -11,11 +11,10 @@ import { ENDPOINTS } from "./endpoints";
  * @returns {Promise}
  */
 export const createCompany = async (data) => {
-    return api.post(ENDPOINTS.COMPANIES.BASE, data, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
+    // Do not set Content-Type here. A plain object is sent as JSON.
+    // FormData must keep the browser's multipart boundary; a bare
+    // "multipart/form-data" header drops the fields on some requests.
+    return api.post(ENDPOINTS.COMPANIES.BASE, data);
 };
 
 /**
@@ -43,11 +42,7 @@ export const getCompanyById = async (id) => {
  * @returns {Promise}
  */
 export const updateCompany = async (id, data) => {
-    return api.put(ENDPOINTS.COMPANIES.BY_ID(id), data, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
+    return api.put(ENDPOINTS.COMPANIES.BY_ID(id), data);
 };
 
 /**

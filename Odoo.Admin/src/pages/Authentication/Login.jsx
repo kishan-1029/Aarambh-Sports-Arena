@@ -16,7 +16,8 @@ import { useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
-import logoStacked from "../../assets/images/brand/logo-stacked.png";
+import loginHeroBg from "../../assets/images/brand/login-hero-bg.jpg";
+import loginLeftLogo from "../../assets/images/brand/login-left-logo.png";
 import logoHorizontal from "../../assets/images/brand/logo-horizontal.png";
 import { getPublicCompanyDetails } from "../../api/companies.api";
 import config from "../../config";
@@ -1055,17 +1056,18 @@ const Login = () => {
                         transition: background-color 9999s ease-in-out 0s;
                     }
                     .arambh-login-btn {
-                        background: linear-gradient(135deg, #3eb474, #2f9a5c) !important;
+                        background: linear-gradient(180deg, #2bb86a, #1f9d55) !important;
                         border: none !important;
                         color: #fff !important;
-                        border-radius: 10px !important;
+                        border-radius: 12px !important;
                         font-weight: 700 !important;
-                        padding: 0.75rem 1rem !important;
-                        box-shadow: 0 8px 20px rgba(62, 180, 116, 0.28);
+                        letter-spacing: 0.01em;
+                        padding: 0.8rem 1rem !important;
+                        box-shadow: 0 10px 22px rgba(31, 157, 85, 0.28);
                     }
                     .arambh-login-btn:hover:not(:disabled),
                     .arambh-login-btn:focus:not(:disabled) {
-                        background: linear-gradient(135deg, #35a868, #278552) !important;
+                        background: linear-gradient(180deg, #249e5b, #18864a) !important;
                         color: #fff !important;
                         box-shadow: 0 10px 24px rgba(62, 180, 116, 0.35);
                     }
@@ -1073,57 +1075,147 @@ const Login = () => {
                         opacity: 0.65;
                     }
                     .form-check-input:checked {
-                        background-color: #3eb474 !important;
-                        border-color: #3eb474 !important;
+                        background-color: #1f9d55 !important;
+                        border-color: #1f9d55 !important;
+                    }
+                    .login-hero {
+                        position: relative;
+                        width: 50%;
+                        min-height: 100vh;
+                        overflow: hidden;
+                        color: #fff;
+                        background: #07150F url(${loginHeroBg}) center / cover no-repeat;
+                    }
+                    .login-hero-content {
+                        position: relative;
+                        z-index: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 2.5rem;
+                    }
+                    .login-hero-logo {
+                        width: min(420px, 78%);
+                        height: auto;
+                        display: block;
+                    }
+                    .login-hero-foot {
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        bottom: 2rem;
+                        z-index: 1;
+                        text-align: center;
+                        letter-spacing: 0.22em;
+                        font-size: 0.72rem;
+                        font-weight: 600;
+                        color: rgba(255, 255, 255, 0.72);
+                    }
+                    .login-stage {
+                        position: relative;
+                        flex: 1;
+                        min-height: 100vh;
+                        overflow: auto;
+                        background: #f3faf4;
+                    }
+                    .login-stage::before,
+                    .login-stage::after {
+                        content: "";
+                        position: absolute;
+                        border-radius: 50%;
+                        border: 1px solid rgba(31, 157, 85, 0.12);
+                        pointer-events: none;
+                    }
+                    .login-stage::before {
+                        width: 280px;
+                        height: 280px;
+                        top: -80px;
+                        right: -70px;
+                    }
+                    .login-stage::after {
+                        width: 220px;
+                        height: 220px;
+                        left: -80px;
+                        bottom: -40px;
+                    }
+                    .login-card {
+                        position: relative;
+                        z-index: 1;
+                        width: min(440px, calc(100% - 2rem));
+                        margin: 2rem auto;
+                        background: #fff;
+                        border: none !important;
+                        border-radius: 28px !important;
+                        box-shadow: 0 18px 50px rgba(16, 55, 32, 0.08);
+                    }
+                    .login-title {
+                        margin: 0.35rem 0 0.25rem;
+                        font-size: 1.85rem;
+                        font-weight: 700;
+                        color: #1a1a1a;
+                        letter-spacing: -0.03em;
+                    }
+                    .login-subtitle {
+                        margin: 0 0 1.5rem;
+                        color: #7b8794;
+                        font-size: 0.95rem;
+                    }
+                    .login-field-control {
+                        position: relative;
+                    }
+                    .login-field-control > i {
+                        position: absolute;
+                        left: 14px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #9aa5b1;
+                        font-size: 1.05rem;
+                        z-index: 2;
+                        pointer-events: none;
+                    }
+                    .login-field-control .arambh-login-input {
+                        height: 48px;
+                        padding-left: 42px !important;
+                        border-radius: 12px !important;
+                        border-color: #e4ebe6 !important;
+                    }
+                    .login-forgot {
+                        border: 0;
+                        background: transparent;
+                        color: #1f9d55;
+                        font-size: 0.86rem;
+                        font-weight: 600;
+                        padding: 0;
+                    }
+                    .login-consent {
+                        background: #f3faf5;
+                        border: 1px solid #d7efe0;
+                        border-radius: 14px;
+                    }
+                    .login-secure {
+                        margin-top: 1.25rem;
+                        text-align: center;
+                        color: #8b97a3;
+                        font-size: 0.82rem;
                     }
                 `}
             </style>
-            <div className="auth-wrapper d-flex" style={{ height: "100vh", background: "#f4faf6" }}>
-                <div
-                    className="left-panel d-none d-lg-flex align-items-center justify-content-center"
-                    style={{
-                        background: "linear-gradient(165deg, #ffffff 0%, #eef8f1 100%)",
-                        width: "52%",
-                        height: "100vh",
-                        padding: "3rem",
-                        borderRight: "1px solid #dceee3",
-                    }}
-                >
-                    <img
-                        src={logoStacked}
-                        alt="Arambh Sports Arena"
-                        style={{
-                            width: "min(380px, 78%)",
-                            height: "auto",
-                            maxHeight: "68vh",
-                            objectFit: "contain",
-                        }}
-                    />
+            <div className="auth-wrapper d-flex" style={{ minHeight: "100vh", background: "#f3faf4" }}>
+                <div className="login-hero left-panel d-none d-lg-flex align-items-center justify-content-center">
+                    <div className="login-hero-content">
+                        <img
+                            className="login-hero-logo"
+                            src={loginLeftLogo}
+                            alt="Aarambh Sports Arena"
+                        />
+                    </div>
+                    <div className="login-hero-foot">SPORTS • COMMUNITY • PERFORMANCE</div>
                 </div>
-                <div
-                    className="right-panel d-flex align-items-center justify-content-center"
-                    style={{
-                        width: "100%",
-                        maxWidth: "100%",
-                        flex: 1,
-                        backgroundColor: "#f4faf6",
-                        height: "100vh",
-                        overflowY: "auto",
-                    }}
-                >
+                <div className="login-stage right-panel d-flex align-items-center justify-content-center">
                     <Container>
                         <Row className="justify-content-center">
-                            <Col xs={12} sm={12} md={10} lg={6} xl={12}>
-                                <Card
-                                    style={{
-                                        border: "none",
-                                        background: "transparent",
-                                        boxShadow: "none",
-                                        borderRadius: "12px",
-                                        maxWidth: 420,
-                                        margin: "0 auto",
-                                    }}
-                                >
+                            <Col xs={12}>
+                                <Card className="login-card">
                                     <CardBody className="p-4 p-md-5 mobile-card-body">
                                          {forgotPasswordMode ? (
                                              <ForgotPasswordForm
@@ -1151,21 +1243,19 @@ const Login = () => {
                                              />
                                          ) : (
                                             <>
-                                                <div className="text-center mb-4">
+                                                <div className="text-center">
                                                     <img
                                                         src={logoHorizontal}
                                                         alt="Arambh Sports Arena"
                                                         style={{
                                                             width: "100%",
-                                                            maxWidth: 260,
+                                                            maxWidth: 210,
                                                             height: "auto",
                                                             objectFit: "contain",
-                                                            marginBottom: "0.85rem",
                                                         }}
                                                     />
-                                                    <p className="text-muted mb-0" style={{ fontSize: "0.95rem" }}>
-                                                        Sign in to the club admin panel
-                                                    </p>
+                                                    <h2 className="login-title">Welcome back</h2>
+                                                    <p className="login-subtitle">Sign in to your club admin panel</p>
                                                 </div>
                                                 <Form>
                                                     {/* Account Lock Warning */}
@@ -1229,37 +1319,40 @@ const Login = () => {
                                                             </div>
                                                         </div>
                                                     )}
-                                                    <div className="p-2 mt-4">
+                                                    <div className="mt-2">
                                                         <div className="mb-3">
                                                             <Label
                                                                 htmlFor="email"
                                                                 className="form-label"
                                                                 style={{
-                                                                    fontWeight:
-                                                                        "500",
-                                                                    color: "#495057",
+                                                                    fontWeight: "600",
+                                                                    color: "#243042",
                                                                 }}
                                                             >
                                                                 Email
                                                             </Label>
-                                                            <Input
-                                                                onSubmit={login}
-                                                                name="email"
-                                                                className={
-                                                                    errEmail &&
-                                                                        isSubmit
-                                                                        ? "form-control is-invalid arambh-login-input"
-                                                                        : "form-control arambh-login-input"
-                                                                }
-                                                                placeholder="Enter email"
-                                                                type="email"
-                                                                onChange={
-                                                                    handleChange
-                                                                }
-                                                                value={
-                                                                    values.email
-                                                                }
-                                                            />
+                                                            <div className="login-field-control">
+                                                                <i className="ri-mail-line" />
+                                                                <Input
+                                                                    id="email"
+                                                                    onSubmit={login}
+                                                                    name="email"
+                                                                    className={
+                                                                        errEmail &&
+                                                                            isSubmit
+                                                                            ? "form-control is-invalid arambh-login-input"
+                                                                            : "form-control arambh-login-input"
+                                                                    }
+                                                                    placeholder="Enter your email"
+                                                                    type="email"
+                                                                    onChange={
+                                                                        handleChange
+                                                                    }
+                                                                    value={
+                                                                        values.email
+                                                                    }
+                                                                />
+                                                            </div>
                                                             {isSubmit &&
                                                                 formErrors.email && (
                                                                     <p className="text-danger">
@@ -1274,15 +1367,16 @@ const Login = () => {
                                                                 className="form-label"
                                                                 htmlFor="password-input"
                                                                 style={{
-                                                                    fontWeight:
-                                                                        "500",
-                                                                    color: "#495057",
+                                                                    fontWeight: "600",
+                                                                    color: "#243042",
                                                                 }}
                                                             >
                                                                 Password
                                                             </Label>
-                                                            <div className="position-relative auth-pass-inputgroup mb-3">
+                                                            <div className="login-field-control">
+                                                                <i className="ri-lock-2-line" />
                                                                 <Input
+                                                                    id="password-input"
                                                                     onSubmit={
                                                                         login
                                                                     }
@@ -1298,7 +1392,7 @@ const Login = () => {
                                                                             ? "form-control is-invalid arambh-login-input pe-5"
                                                                             : "form-control arambh-login-input pe-5"
                                                                     }
-                                                                    placeholder="Enter Password"
+                                                                    placeholder="Enter your password"
                                                                     onChange={
                                                                         handleChange
                                                                     }
@@ -1314,12 +1408,22 @@ const Login = () => {
                                                                             !showPassword
                                                                         )
                                                                     }
+                                                                    style={{ zIndex: 2 }}
                                                                 >
                                                                     {showPassword ? (
-                                                                        <i className="ri-eye-off-fill align-middle"></i>
+                                                                        <i className="ri-eye-off-line align-middle"></i>
                                                                     ) : (
-                                                                        <i className="ri-eye-fill align-middle"></i>
+                                                                        <i className="ri-eye-line align-middle"></i>
                                                                     )}
+                                                                </button>
+                                                            </div>
+                                                            <div className="text-end mt-2">
+                                                                <button
+                                                                    type="button"
+                                                                    className="login-forgot"
+                                                                    onClick={() => setForgotPasswordMode(true)}
+                                                                >
+                                                                    Forgot password?
                                                                 </button>
                                                             </div>
                                                             {isSubmit &&
@@ -1332,23 +1436,16 @@ const Login = () => {
                                                         </div>
 
                                                         {/* Consent Checkboxes */}
-                                                        <div
-                                                            className="consent-section mb-3 p-3"
-                                                            style={{
-                                                                backgroundColor: "#e8f5ee",
-                                                                borderRadius: "10px",
-                                                                border: "1px solid #cfe8d8",
-                                                            }}
-                                                        >
+                                                        <div className="login-consent mb-3 p-3">
                                                             <p
                                                                 className="mb-2"
                                                                 style={{
-                                                                    fontSize: "0.85rem",
-                                                                    color: "#6c757d",
-                                                                    fontWeight: "500"
+                                                                    fontSize: "0.92rem",
+                                                                    color: "#3d4a42",
+                                                                    fontWeight: "700"
                                                                 }}
                                                             >
-                                                                <i className="ri-shield-check-line me-1"></i> Security Consent Required
+                                                                <i className="ri-shield-check-line me-1" style={{ color: "#1f9d55" }}></i> Security Consent Required
                                                             </p>
                                                             <div className="form-check mb-2">
                                                                 <Input
@@ -1372,7 +1469,7 @@ const Login = () => {
                                                                         marginLeft: "4px"
                                                                     }}
                                                                 >
-                                                                    <i className="ri-map-pin-line me-1" style={{ color: "#3eb474" }}></i> I consent to location tracking for security purposes
+                                                                    I consent to location tracking for security purposes.
                                                                     {isSubmit && !locationConsent && (
                                                                         <span className="text-danger ms-1" style={{ fontSize: "0.8rem" }}>*Required</span>
                                                                     )}
@@ -1400,7 +1497,7 @@ const Login = () => {
                                                                         marginLeft: "4px"
                                                                     }}
                                                                 >
-                                                                    <i className="ri-global-line me-1" style={{ color: "#3eb474" }}></i> I consent to IP address tracking for security purposes
+                                                                    I consent to IP address tracking for security purposes.
                                                                     {isSubmit && !ipConsent && (
                                                                         <span className="text-danger ms-1" style={{ fontSize: "0.8rem" }}>*Required</span>
                                                                     )}
@@ -1426,10 +1523,14 @@ const Login = () => {
                                                                         in...
                                                                     </>
                                                                 ) : (
-                                                                    "Login"
+                                                                    <>Login <i className="ri-arrow-right-line align-middle ms-1"></i></>
                                                                 )}
                                                             </Button>
                                                         </div>
+                                                        <p className="login-secure mb-0">
+                                                            <i className="ri-lock-2-line me-1"></i>
+                                                            Secure access • Aarambh Sports Arena
+                                                        </p>
                                                     </div>
                                                 </Form>
                                             </>
