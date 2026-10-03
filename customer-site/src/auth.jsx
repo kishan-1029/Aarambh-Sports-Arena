@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api, setAuthToken, clearAuthToken, hasAuthToken } from './api';
+import { withMembershipFlag } from './sessionUser';
+
+function adoptUser(data) {
+  const raw = data?.user || data?.profile || data;
+  return withMembershipFlag(raw) || raw || null;
+}
 
 const AuthContext = createContext({
   user: null,
@@ -21,7 +27,7 @@ export function AuthProvider({ children }) {
     }
     api.me()
       .then((data) => {
-        setUser(data.user || data.profile || data);
+        setUser(adoptUser(data));
       })
       .catch(() => {
         clearAuthToken();
@@ -37,7 +43,7 @@ export function AuthProvider({ children }) {
     if (data.token) {
       setAuthToken(data.token);
     }
-    const profile = data.user || data.profile || data;
+    const profile = adoptUser(data);
     setUser(profile);
     return profile;
   };
@@ -47,7 +53,7 @@ export function AuthProvider({ children }) {
     if (data.token) {
       setAuthToken(data.token);
     }
-    const profile = data.user || data.profile || data;
+    const profile = adoptUser(data);
     setUser(profile);
     return profile;
   };

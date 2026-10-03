@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api, formatPaise, planMonthlyPaise } from '../api';
 import { useAuth } from '../auth';
 import { useAuthDialog } from '../authDialog';
+import { isPortalUser, sessionUserAfterMembershipPurchase, withMembershipFlag } from '../sessionUser';
 import { useToast } from '../toast';
 
 const FALLBACK_METHODS = [
@@ -102,7 +103,15 @@ export default function Membership({ embedded = false }) {
     setError('');
     try {
       const data = await api.buyMembership({ planId: checkout.id, months: Number(months), paymentMethod: method });
-      setUser(data.profile);
+      let nextUser = sessionUserAfterMembershipPurchase(user, data);
+      try {
+        const me = await api.me();
+        const refreshed = me?.user || me?.profile || me;
+        if (isPortalUser(refreshed)) nextUser = withMembershipFlag(refreshed) || refreshed;
+      } catch {
+        // The purchase already succeeded. Keep the signed-in session.
+      }
+      if (nextUser) setUser(nextUser);
       setActivated(true);
       setNotice(`${checkout.name} is active.`);
       toast.success(`${checkout.name} membership activated successfully!`);
