@@ -217,8 +217,24 @@ const Sidebar = ({ layoutType }) => {
                     .menu-dropdown-open .nav-item:nth-child(10) { transition-delay: 0.20s; }
                     
                     .menu-dropdown .nav-link {
-                        padding-left: 35px !important;
+                        padding-left: 12px !important;
                         font-size: 12px;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    .menu-dropdown .nav-link i {
+                        display: inline-block !important;
+                        font-size: 15px !important;
+                        width: 18px;
+                        margin-right: 8px !important;
+                        opacity: 0.9;
+                        flex-shrink: 0;
+                    }
+
+                    /* Theme draws a dash in place of a child icon. Hide it when an icon is rendered. */
+                    .minimal-sidebar .menu-dropdown .nav-link:has(i)::before {
+                        display: none !important;
                     }
 
                     .app-menu.navbar-menu {

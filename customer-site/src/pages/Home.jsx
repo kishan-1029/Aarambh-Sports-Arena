@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, formatPaise, planMonthlyPaise } from '../api';
+import { api } from '../api';
 import Skeleton from '../components/Skeleton.jsx';
+import PlanCard from '../components/PlanCard.jsx';
 import heroImg from '../assets/hero.png';
 
 export default function Home() {
@@ -120,7 +121,7 @@ export default function Home() {
       </section>
 
       {features.showMembershipPlans !== false && (
-        <section className="section" style={{ paddingTop: 0 }}>
+        <section className="section">
           <div className="section-head">
             <h2>Membership that matches how often you play</h2>
             <p>Plans and prices come live from admin Membership Plans (inactive plans stay hidden).</p>
@@ -130,30 +131,12 @@ export default function Home() {
           ) : (
             <div className="plan-grid">
               {plans.map((p, idx) => (
-                <div className={`plan ${idx === 0 ? 'featured' : ''}`} key={p.id || p.key || p.name}>
-                  <span className="tag">{p.key || 'plan'}</span>
-                  <h3>{p.name}</h3>
-                  <p>{p.description || 'Club membership with court benefits.'}</p>
-                  <div className="price">
-                    {formatPaise(planMonthlyPaise(p))}
-                    <small>from / month</small>
-                  </div>
-                  <ul className="perk-list">
-                    {(p.entitlements?.perks?.length
-                      ? p.entitlements.perks
-                      : ['Court access', 'Member rates']
-                    )
-                      .slice(0, 4)
-                      .map((perk) => (
-                        <li className="perk" key={perk}>
-                          {perk}
-                        </li>
-                      ))}
-                  </ul>
-                  <Link className={`btn ${idx === 0 ? 'btn-primary' : 'btn-outline'}`} to="/membership">
-                    Compare plans
-                  </Link>
-                </div>
+                <PlanCard
+                  key={p.id || p.key || p.name}
+                  plan={p}
+                  featured={idx === 0}
+                  action="compare"
+                />
               ))}
               {!plans.length && (
                 <p className="text-muted">No active plans — turn plans on in admin Membership Plans.</p>
@@ -164,7 +147,7 @@ export default function Home() {
       )}
 
       {features.showBlogs !== false && blogs.length > 0 && (
-        <section className="section" style={{ paddingTop: 0 }}>
+        <section className="section">
           <div className="section-head">
             <h2>From the club desk</h2>
             <p>Latest guides — seeded and editable in CMS Blog Master.</p>
@@ -185,7 +168,7 @@ export default function Home() {
         </section>
       )}
 
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section">
         <div className="section-head">
           <h2>Find us</h2>
           <p>Aarambh Sports Arena — easy to reach, hard to leave after a good set.</p>
@@ -196,7 +179,7 @@ export default function Home() {
             <p>{loc?.address || 'Vadodara, Gujarat'}</p>
             <p>{loc?.phone || '+91-9999999999'}</p>
             <p>{loc?.timezone || 'Asia/Kolkata'} · Open evenings & weekends</p>
-            <div style={{ marginTop: '1.1rem' }}>
+            <div className="location-actions">
               {features.showContact !== false && (
                 <Link className="btn btn-solid" to="/contact">
                   Contact the club

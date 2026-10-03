@@ -10,10 +10,14 @@ import {
   purchase,
   renew,
   updatePlan,
+  archivePlan,
+  listPlans,
+  quote,
   expireDue,
   sendReminders,
   entitlementsFor,
 } from '../src/modules/membership/membership.service.js';
+import { listMembershipPlansPublic } from '../src/modules/public/public.service.js';
 import { toLocalDate, localDateTimeToUtc } from '../src/lib/time.js';
 import { AppError } from '../src/lib/errors.js';
 
@@ -306,5 +310,67 @@ describe('membership', () => {
       'data.memberId': String(member2._id),
     });
     expect(notifs).toBe(1);
+  });
+
+  test('deleting a plan cancels live memberships on it and leaves other plans alone', async () => {
+    const { gold, junior } = await seedPlans();
+    const onGold = await registerMember({
+      firstName: 'Keep',
+      lastName: 'Gold',
+      phone: '9777777777',
+      email: 'keep@test.arambh',
+      dob: '1990-01-01',
+    });
+    const onJunior = await registerMember({
+      firstName: 'Stay',
+      lastName: 'Junior',
+      phone: '9888888888',
+      email: 'stay@test.arambh',
+      dob: '2012-04-04',
+      guardian: { name: 'Parent', phone: '9999999999' },
+    });
+    const bought = await purchase({
+      memberId: String(onGold._id),
+      planId: String(gold._id),
+      months: 1,
+      paymentMethod: 'cash',
+    });
+    const juniorBuy = await purchase({
+      memberId: String(onJunior._id),
+      planId: String(junior._id),
+      months: 1,
+      paymentMethod: 'cash',
+    });
+
+    const result = await archivePlan(String(gold._id));
+    expect(result.cancelledMemberships).toBe(1);
+
+    const admin = await listPlans({ query: {} });
+    expect(admin.data.map((p) => p.key)).toEqual(['junior']);
+
+    const published = await listMembershipPlansPublic();
+    expect(published.map((p) => p.key)).toEqual(['junior']);
+
+    await expect(quote(String(onGold._id), String(gold._id), 1)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+
+    const ended = await Membership.findById(bought.membership._id).lean();
+    expect(ended.status).toBe('cancelled');
+    expect(ended.cancelReason).toBe('Plan Gold deleted');
+
+    const cleared = await Member.findById(onGold._id).lean();
+    expect(cleared.tierKey).toBe('none');
+    expect(cleared.status).toBe('expired');
+    expect(cleared.currentMembershipId).toBeNull();
+
+    const ents = await entitlementsFor(String(onGold._id));
+    expect(ents.shopDiscountPct).toBe(0);
+    expect(ents.planKey).toBeUndefined();
+
+    const juniorMembership = await Membership.findById(juniorBuy.membership._id).lean();
+    expect(juniorMembership.status).toBe('active');
+    const juniorMember = await Member.findById(onJunior._id).lean();
+    expect(juniorMember.tierKey).toBe('junior');
   });
 });

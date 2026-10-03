@@ -25,8 +25,10 @@ import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import {
   listPlans,
+  listMemberships,
   createPlan,
   updatePlan,
+  archivePlan,
 } from "../../api/arambhMembership.api";
 
 const EMPTY_FORM = {
@@ -41,7 +43,19 @@ const EMPTY_FORM = {
   price2: "",
   shopDiscountPct: "0",
   barDiscountPct: "0",
+  benefits: "",
 };
+
+function linesToPerks(text) {
+  return String(text || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function perksToLines(perks) {
+  return (perks || []).join("\n");
+}
 
 function defaultCourtEntitlements(existing) {
   return (
@@ -61,7 +75,7 @@ function buildEntitlements(form, existing) {
     shopDiscountPct: Number(form.shopDiscountPct) || 0,
     barDiscountPct: Number(form.barDiscountPct) || 0,
     guestPasses: existing?.entitlements?.guestPasses ?? 0,
-    perks: existing?.entitlements?.perks ?? [],
+    perks: linesToPerks(form.benefits),
   };
 }
 
@@ -96,6 +110,7 @@ function planToForm(p) {
     price2: d1.pricePaise != null ? String(d1.pricePaise / 100) : "",
     shopDiscountPct: String(p.entitlements?.shopDiscountPct ?? 0),
     barDiscountPct: String(p.entitlements?.barDiscountPct ?? 0),
+    benefits: perksToLines(p.entitlements?.perks),
   };
 }
 
@@ -119,6 +134,9 @@ const MembershipPlans = () => {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteCount, setDeleteCount] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -229,6 +247,38 @@ const MembershipPlans = () => {
     }
   };
 
+  const openDelete = async (p) => {
+    setDeleteTarget(p);
+    setDeleteCount(null);
+    try {
+      const res = await listMemberships({
+        planKey: p.key,
+        status: "current",
+        pageSize: 1,
+      });
+      const total = res?.data?.meta?.total;
+      setDeleteCount(Number.isFinite(total) ? total : null);
+    } catch {
+      setDeleteCount(null);
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await archivePlan(deleteTarget._id);
+      setDeleteTarget(null);
+      await load();
+    } catch (err) {
+      window.alert(
+        err?.response?.data?.message || err?.message || "Could not delete plan",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Can
       anyOf={["membership_plan.view", "membership.view", "member.view"]}
@@ -245,6 +295,50 @@ const MembershipPlans = () => {
       }
     >
       <div className="page-content">
+        <style>
+          {`
+            .plan-summary {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+            .plan-summary p,
+            .plan-summary ul {
+              margin: 0;
+            }
+            .plan-summary-desc {
+              color: var(--vz-secondary-color, #878a99);
+              font-size: 0.8125rem;
+              line-height: 1.45;
+            }
+            .plan-summary-facts,
+            .plan-summary-list {
+              display: flex;
+              flex-direction: column;
+              gap: 0.25rem;
+              font-size: 0.8125rem;
+              line-height: 1.45;
+            }
+            .plan-summary-list {
+              margin: 0;
+              padding-left: 1.1rem;
+            }
+            .plan-summary-list li {
+              margin: 0;
+            }
+            .plan-summary-list-plain {
+              list-style: none;
+              padding-left: 0;
+            }
+            .plan-summary-actions {
+              margin-top: auto;
+              padding-top: 0.75rem;
+            }
+            .plan-summary-actions .plan-delete {
+              margin-left: auto;
+            }
+          `}
+        </style>
         <Container fluid>
           <BreadCrumb title="Membership Plans" pageTitle="Arambh" />
           <Row className="mb-3">
@@ -305,27 +399,28 @@ const MembershipPlans = () => {
                       </div>
                     </CardHeader>
                     <CardBody className="d-flex flex-column">
-                      <p className="text-muted small flex-grow-1">
-                        {p.description || "—"}
-                      </p>
-                      <p className="mb-1 small">
-                        Court: {p.entitlements?.court?.access || "—"} ·{" "}
-                        {p.entitlements?.court?.pricing?.mode === "free"
-                          ? "free"
-                          : `${p.entitlements?.court?.pricing?.value ?? 0}% off`}
-                      </p>
-                      <p className="mb-1 small">
-                        Shop {p.entitlements?.shopDiscountPct || 0}% · Bar{" "}
-                        {p.entitlements?.barDiscountPct || 0}%
-                      </p>
-                      <ul className="list-unstyled mb-3 small">
-                        {(p.durations || []).map((d) => (
-                          <li key={`${p._id}-${d.months}`}>
-                            {d.months} mo — <Money paise={d.pricePaise} />
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto">
+                      <div className="plan-summary">
+                        <p className="plan-summary-desc">
+                          {p.description || "—"}
+                        </p>
+                        <div className="plan-summary-facts">
+                          <ul className="plan-summary-list plan-summary-list-plain">
+                            {(p.durations || []).map((d) => (
+                              <li key={`${p._id}-${d.months}`}>
+                                {d.months} mo — <Money paise={d.pricePaise} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {(p.entitlements?.perks || []).length > 0 && (
+                          <ul className="plan-summary-list">
+                            {p.entitlements.perks.map((perk) => (
+                              <li key={`${p._id}-${perk}`}>{perk}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="d-flex flex-wrap gap-2 align-items-center plan-summary-actions">
                         <Can anyOf={["membership_plan.edit"]}>
                           <Button
                             size="sm"
@@ -352,6 +447,16 @@ const MembershipPlans = () => {
                               {busyId === p._id ? "…" : p.active ? "On" : "Off"}
                             </Label>
                           </div>
+                          <Button
+                            size="sm"
+                            color="soft-danger"
+                            className="plan-delete"
+                            disabled={busyId === p._id || deleting}
+                            onClick={() => openDelete(p)}
+                          >
+                            <i className="ri-delete-bin-line me-1" />
+                            Delete
+                          </Button>
                         </Can>
                       </div>
                     </CardBody>
@@ -362,6 +467,46 @@ const MembershipPlans = () => {
           )}
         </Container>
       </div>
+
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        toggle={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        centered
+      >
+        <ModalHeader
+          toggle={() => {
+            if (!deleting) setDeleteTarget(null);
+          }}
+        >
+          Delete plan
+        </ModalHeader>
+        <ModalBody>
+          <p className="mb-2">
+            Delete <strong>{deleteTarget?.name}</strong>?
+          </p>
+          <p className="text-muted mb-0">
+            {deleteCount > 0
+              ? `${deleteCount} member${deleteCount === 1 ? "" : "s"} currently on this plan will have that membership cancelled. They lose the plan benefits, the same as cancelling the membership. The plan also leaves this list and the website.`
+              : deleteCount === 0
+                ? "No members are on this plan. It will leave this list and the website."
+                : "Members currently on this plan will have that membership cancelled, the same as cancelling the membership. The plan also leaves this list and the website."}
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            color="light"
+            disabled={deleting}
+            onClick={() => setDeleteTarget(null)}
+          >
+            Cancel
+          </Button>
+          <Button color="danger" disabled={deleting} onClick={onConfirmDelete}>
+            {deleting ? "Deleting…" : "Delete"}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Modal isOpen={modal} toggle={closeModal} centered size="lg">
         <Form onSubmit={onSubmit}>
@@ -515,6 +660,23 @@ const MembershipPlans = () => {
                     value={form.barDiscountPct}
                     onChange={onFormChange}
                   />
+                </FormGroup>
+              </Col>
+              <Col md={12}>
+                <FormGroup className="mb-0">
+                  <Label>Benefits</Label>
+                  <Input
+                    type="textarea"
+                    name="benefits"
+                    rows={5}
+                    value={form.benefits}
+                    onChange={onFormChange}
+                    placeholder={"Up to 2 bookings / day\n10% shop discount"}
+                  />
+                  <p className="text-muted small mb-0 mt-1">
+                    One point per line. These are the lines on the membership cards.
+                    Shop and bar percentages above still set the till discount.
+                  </p>
                 </FormGroup>
               </Col>
             </Row>

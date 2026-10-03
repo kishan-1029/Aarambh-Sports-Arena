@@ -19,6 +19,7 @@ export const listPlans = (params) => api.get(`${ADMIN}/membership-plans`, { para
 export const getPlan = (id) => api.get(`${ADMIN}/membership-plans/${id}`);
 export const createPlan = (body) => api.post(`${ADMIN}/membership-plans`, body);
 export const updatePlan = (id, body) => api.patch(`${ADMIN}/membership-plans/${id}`, body);
+export const archivePlan = (id) => api.post(`${ADMIN}/membership-plans/${id}/archive`);
 
 export const listMemberships = (params) => api.get(`${ADMIN}/memberships`, { params });
 export const purchaseMembership = (body) => api.post(`${ADMIN}/memberships`, body);

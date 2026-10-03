@@ -176,13 +176,31 @@ export function mergeAdminNavGroups(apiGroups = [], arambhGroups = [], legacyGro
   };
 
   for (const g of legacyGroups) push(g);
+  const arambhNames = new Set(
+    (arambhGroups || [])
+      .map((g) => String(g.groupName || "").trim().toLowerCase())
+      .filter(Boolean),
+  );
+
   for (const g of apiGroups || []) {
     const key = String(g.groupName || "").trim().toLowerCase();
     // Skip API groups we already covered via legacy (Setup/Master/CMS/Dashboard)
+    // or via the coded Arambh nav (icons, permissions, child items).
     if (["setup", "master", "cms", "dashboard"].includes(key)) continue;
+    if (arambhNames.has(key)) continue;
     push(g);
   }
   for (const g of arambhGroups) push(g);
 
   return out;
+}
+
+const ICON_BY_PATH = Object.fromEntries(
+  ARAMBH_ROUTES.filter((r) => r.icon).map((r) => [r.path, r.icon]),
+);
+
+/** Remix class for a sidebar URL when the stored menu has no icon. */
+export function iconForMenuUrl(url) {
+  if (!url) return "";
+  return ICON_BY_PATH[url] || "";
 }

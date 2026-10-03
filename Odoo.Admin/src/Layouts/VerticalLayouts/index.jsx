@@ -7,6 +7,7 @@ import { AuthContext } from "../../context/AuthContext";
 import {
     buildArambhNavGroups,
     buildLegacyNavGroups,
+    iconForMenuUrl,
     mergeAdminNavGroups,
 } from "../../config/arambhNav";
 import { usePermission } from "../../hooks/usePermission";
@@ -206,6 +207,8 @@ const VerticalLayout = (props) => {
             return null;
         }
 
+        const iconClass = item.icon || iconForMenuUrl(item.url);
+
         // If this item has children, render a collapsible menu
         if (item.isParent && item.children?.length > 0) {
             // Get sibling IDs for children (for nested accordion behavior)
@@ -229,7 +232,7 @@ const VerticalLayout = (props) => {
                             expandedItems[item.id] ? "true" : "false"
                         }
                     >
-                        {item.icon ? <i className={item.icon}></i> : null}
+                        {iconClass ? <i className={iconClass}></i> : null}
                         <span data-key="t-apps">{item.name}</span>
                     </Link>
                     <div
@@ -254,7 +257,7 @@ const VerticalLayout = (props) => {
                         to={item.url}
                         onClick={() => handleMenuItemClick(item.id)}
                     >
-                        {item.icon ? <i className={item.icon}></i> : null}
+                        {iconClass ? <i className={iconClass}></i> : null}
                         <span data-key="t-apps">{item.name}</span>
                         {item.badge ? (
                             <span className="badge bg-warning-subtle text-warning ms-auto" style={{ fontSize: "0.65rem" }}>

@@ -23,6 +23,7 @@ import { Payment } from '../modules/finance/payment.model.js';
 import { createAndPost } from '../modules/finance/invoice.service.js';
 import { Member } from '../modules/members/member.model.js';
 import { MembershipPlan } from '../modules/membership/plan.model.js';
+import { benefitLinesForPlan, SEEDED_EXTRA_PERKS } from '../modules/membership/benefitLines.js';
 import { Membership } from '../modules/membership/membership.model.js';
 import { ActivityEvent } from '../modules/membership/activity.model.js';
 import { register as registerMember } from '../modules/members/member.service.js';
@@ -296,7 +297,7 @@ async function seedMembershipPlans(taxes) {
         shopDiscountPct: 15,
         barDiscountPct: 15,
         guestPasses: 2,
-        perks: ['Locker', 'Free towel'],
+        perks: [],
       },
     },
     {
@@ -348,13 +349,17 @@ async function seedMembershipPlans(taxes) {
         shopDiscountPct: 10,
         barDiscountPct: 0,
         guestPasses: 0,
-        perks: ['Junior coaching discount'],
+        perks: [],
       },
     },
   ];
 
   const plans = [];
   for (const s of specs) {
+    s.entitlements.perks = benefitLinesForPlan(
+      s.entitlements,
+      SEEDED_EXTRA_PERKS[s.key] || [],
+    );
     const doc = await MembershipPlan.findOneAndUpdate(
       { key: s.key, version: 1, isDemo: true },
       {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { validate } from '../../middleware/validate.js';
 import { requireMcpAuth } from './mcpAuth.middleware.js';
 import * as mcp from './mcp.service.js';
@@ -24,7 +24,7 @@ const mcpLimiter = rateLimit({
   max: process.env.NODE_ENV === 'production' ? 60 : 600,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.apiKey?.prefix || req.ip,
+  keyGenerator: (req) => req.apiKey?.prefix || ipKeyGenerator(req.ip),
   message: {
     isOk: false,
     status: 429,

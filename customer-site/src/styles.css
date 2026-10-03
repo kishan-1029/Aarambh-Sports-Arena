@@ -244,6 +244,14 @@ button { cursor: pointer; }
   margin: 0 auto;
   width: 100%;
 }
+/* One gap between stacked blocks. Inline padding overrides were skipping some and doubling others. */
+.band + .section,
+.section + .section {
+  padding-top: 0;
+}
+.page-hero + .section {
+  padding-top: clamp(2rem, 4vw, 2.75rem);
+}
 .section-head {
   display: grid;
   gap: 0.45rem;
@@ -348,17 +356,18 @@ button { cursor: pointer; }
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
 }
 .plan {
   position: relative;
-  padding: 1.5rem 1.35rem 1.4rem;
+  height: 100%;
+  padding: 1.35rem 1.25rem 1.25rem;
   border-radius: 24px;
   background: var(--white);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   overflow: hidden;
   transition: transform 0.25s ease;
 }
@@ -368,10 +377,13 @@ button { cursor: pointer; }
   color: var(--white);
   border-color: transparent;
 }
-.plan.featured p,
-.plan.featured .perk { color: rgba(215, 232, 221, 0.85); }
+.plan-copy {
+  display: grid;
+  gap: 0.4rem;
+}
+.plan :is(h3, p) { margin: 0; }
 .plan .tag {
-  align-self: flex-start;
+  justify-self: start;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -386,16 +398,24 @@ button { cursor: pointer; }
   color: var(--lime);
 }
 .plan h3 {
-  margin: 0;
   font-family: var(--font-display);
   font-size: 1.8rem;
   letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.plan-desc {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  min-height: 2.9em;
 }
 .plan .price {
+  margin-top: 1rem;
   font-family: var(--font-display);
   font-size: 2.1rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+  line-height: 1;
   color: var(--green);
 }
 .plan.featured .price { color: var(--lime); }
@@ -405,29 +425,49 @@ button { cursor: pointer; }
   font-size: 0.85rem;
   font-weight: 600;
   opacity: 0.7;
-  margin-top: 0.15rem;
+  margin-top: 0.4rem;
 }
+.plan-terms {
+  margin-top: 0.55rem;
+  min-height: 2.7em;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.plan.featured .plan-desc,
+.plan.featured .plan-terms { color: rgba(215, 232, 221, 0.85); }
 .perk-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 1rem 0 0;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid var(--line);
   display: grid;
-  gap: 0.4rem;
+  align-content: start;
+  gap: 0.6rem;
+  flex: 1;
 }
+.plan.featured .perk-list { border-top-color: rgba(255, 255, 255, 0.16); }
 .perk-list li {
+  display: grid;
+  grid-template-columns: 0.5rem 1fr;
+  column-gap: 0.6rem;
+  align-items: start;
   font-size: 0.92rem;
-  padding-left: 1.1rem;
-  position: relative;
+  line-height: 1.4;
 }
 .perk-list li::before {
   content: '';
-  position: absolute;
-  left: 0; top: 0.45rem;
-  width: 0.45rem; height: 0.45rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.38rem;
   border-radius: 50%;
   background: var(--green-bright);
 }
 .plan.featured .perk-list li::before { background: var(--lime); }
+.plan-cta {
+  margin-top: 1.15rem;
+  width: 100%;
+}
 
 .location-strip {
   display: grid;
@@ -453,6 +493,7 @@ button { cursor: pointer; }
   margin: 0 0 0.5rem;
 }
 .location-panel p { margin: 0 0 0.55rem; color: var(--muted); }
+.location-actions { margin-top: 1.1rem; }
 .map-panel {
   background:
     linear-gradient(135deg, rgba(15,122,74,0.85), rgba(6,40,22,0.92)),
