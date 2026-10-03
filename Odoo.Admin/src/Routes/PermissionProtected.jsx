@@ -29,7 +29,11 @@ const WHITELISTED_ROUTES = [
     "/kds",
     "/shop/inventory",
     "/crm/pipeline",
+    "/customers",
     "/finance/invoices",
+    "/settings/payments",
+    "/settings/club",
+    "/settings/taxes",
     "/staff",
     "/staff/directory",
     "/reports",
@@ -57,7 +61,11 @@ const PermissionProtected = ({ children }) => {
             const isWhitelisted = WHITELISTED_ROUTES.some((route) => {
                 const normalizedRoute = normalizeUrl(route);
                 return (
-                    normalizedPath === normalizedRoute || normalizedPath === "/"
+                    normalizedPath === normalizedRoute ||
+                    normalizedPath === "/" ||
+                    // Invoice detail: /finance/invoices/:id
+                    (normalizedRoute === "/finance/invoices" &&
+                        normalizedPath.startsWith("/finance/invoices/"))
                 );
             });
 

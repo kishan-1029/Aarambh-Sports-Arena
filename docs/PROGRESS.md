@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 4
+Current phase: 5
 
 ## Phases
 
@@ -8,7 +8,7 @@ Current phase: 4
 - [x] Phase 1 — Foundation
 - [x] Phase 2 — Authentication and RBAC
 - [x] Phase 3 — Design system and admin shell
-- [ ] Phase 4 — Club setup, customers, finance core
+- [x] Phase 4 — Club setup, customers, finance core
 - [ ] Phase 5 — Members and membership
 - [ ] Phase 6 — Courts and booking engine
 - [ ] Phase 7 — Front desk
@@ -27,10 +27,10 @@ Current phase: 4
 
 ## Current phase tasks
 
-### Phase 4 — Club setup, customers, finance core
-- [ ] Locations / settings / taxes
-- [ ] Customers CRUD
-- [ ] Invoice + payment services (paise, mock provider)
+### Phase 5 — Members and membership
+- [ ] Member + plan + membership models/services
+- [ ] Entitlements helper
+- [ ] Admin Members / Plans / Memberships
 
 ## Decisions & deviations
 
@@ -44,6 +44,7 @@ Current phase: 4
 - ADR-0006 Bootstrap admin UI kit — accepted.
 - Phase 2: menu CRUD stays on `session.user.permissions`; Arambh strings on `stringPermissions` to avoid breaking MenuContext.
 - Phase 3: Arambh nav merged after API menus (static `arambhNav.js`); command palette is custom modal (no `cmdk`); building blocks on Bootstrap/Reactstrap.
+- Phase 4: finance under `/api/admin/*`; `customer.*` permissions added; webhook event idempotency is process-local Set (durable store later); receivables/payables UI deferred to Phase 13.
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -56,6 +57,6 @@ Current phase: 4
 
 ## Test status
 
-- Odoo.Server: `npm test` → 36/36 pass (MongoMemoryReplSet), including Phase 2 RBAC table-driven tests.
-- Odoo.Server: may be running on http://localhost:7002; restart after pull to load auth session changes.
-- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002); Phase 3 shell: brand tokens, Arambh nav placeholders, ⌘K, dark mode, `/staff/directory` sample list, `/pos` fullscreen stub.
+- Odoo.Server: `npm test` → **44/44 pass** (MongoMemoryReplSet), including Phase 4 finance (totals, credit note, mock pay, numbering concurrency).
+- Odoo.Server: restart after pull to load `/api/admin` finance mounts (port 7002).
+- Odoo.Admin: Vite on http://localhost:3000/ — Club/Taxes/Customers/Invoices/Payments pages live.

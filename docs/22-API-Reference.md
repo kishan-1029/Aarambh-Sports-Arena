@@ -83,12 +83,13 @@ Each module doc lists its own request/response details; this is the full invento
 | KDS | GET `/api/kds/tickets?station=` · PATCH `/api/kds/lines/:lineId` [kds.*] |
 | POS config | CRUD `/pos/terminals`, `/floors`, `/tables` [pos.manage] |
 | CRM | GET/POST `/leads` · GET/PATCH `/leads/:id` · POST `/leads/:id/{activities,assign,stage,convert,lost}` · CRUD `/quotes` · POST `/quotes/:id/send` [lead.*, quote.*] |
-| Finance | GET/POST `/invoices` · GET `/invoices/:id[/pdf]` · POST `/invoices/:id/{post,credit-note,send,record-payment}` · GET `/payments` · GET `/receivables` · GET `/payables` · CRUD `/expenses` · GET/POST `/reconciliation/:localDate` · GET `/tax-summary` [invoice.*, payment.*, expense.*] |
+| Finance | GET/POST `/invoices` · GET `/invoices/:id[/pdf]` · POST `/invoices/:id/{post,credit-note,send,record-payment}` · GET `/payments` · GET `/payments/settings` · GET `/receivables` · GET `/payables` · CRUD `/expenses` · GET/POST `/reconciliation/:localDate` · GET `/tax-summary` [invoice.*, payment.*, expense.*] — **Phase 4 live:** invoices, payments, record-payment, credit-note, pdf; receivables/payables/expenses/recon in Phase 13 |
+| Customers | GET/POST `/customers` · GET/PATCH `/customers/:id` · POST `/customers/:id/archive` [customer.*, member.*, invoice.*] — **Phase 4** |
 | HR | CRUD `/employees` · CRUD `/shifts` · POST `/shifts/{publish,copy-week}` · POST `/attendance/{clock-in,clock-out}` · GET `/attendance` · GET `/leave` · POST `/leave/:id/{approve,reject}` · POST `/payroll-runs` · PATCH `/payroll-runs/:id/lines/:employeeId` · POST `/payroll-runs/:id/{approve,pay}` · GET `/payroll-runs/:id/payslips/:employeeId.pdf` [employee.*, shift.*, leave.*, payroll.*] |
 | Reports | GET `/reports/:report?from=&to=&...` · GET `/reports/:report/export?format=csv|pdf` [report.*] |
 | AI | GET `/ai/conversations` · GET `/ai/conversations/:id` [ai_admin.view] · GET/PATCH `/ai/settings` [ai_admin.manage] |
 | MCP | GET/POST `/mcp/keys` · POST `/mcp/keys/:id/revoke` · GET `/mcp/activity` [mcp.manage] |
-| Settings | GET/PATCH `/settings` · CRUD `/locations`, `/taxes`, `/users`, `/roles`, `/notification-templates` · GET `/audit` · GET `/audit/export` [settings.manage, user.*, role.*, audit.*] |
+| Settings | GET/PATCH `/settings` · CRUD `/locations`, `/taxes`, `/users`, `/roles`, `/notification-templates` · GET `/audit` · GET `/audit/export` [settings.manage, user.*, role.*, audit.*] — **Phase 4 live:** settings, locations, taxes |
 
 ## MCP backend (`/api/mcp/*`, auth K)
 One endpoint per MCP tool in [[20-MCP-Server#2. Tools]] (e.g. GET `/api/mcp/club-summary`, POST `/api/mcp/purchase-orders/prepare`), plus POST `/api/mcp/actions/:id/confirm` and `/cancel`.

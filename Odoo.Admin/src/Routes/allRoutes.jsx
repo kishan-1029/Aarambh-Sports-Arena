@@ -27,6 +27,12 @@ import GuidesGallery from "../pages/HelpGuides/GuidesGallery";
 import ManageGuides from "../pages/HelpGuides/ManageGuides";
 import ComingSoon from "../pages/Arambh/ComingSoon";
 import StaffDirectory from "../pages/Arambh/StaffDirectory";
+import SettingsClub from "../pages/Arambh/SettingsClub";
+import Taxes from "../pages/Arambh/Taxes";
+import Customers from "../pages/Arambh/Customers";
+import Invoices from "../pages/Arambh/Invoices";
+import InvoiceDetail from "../pages/Arambh/InvoiceDetail";
+import PaymentsSettings from "../pages/Arambh/PaymentsSettings";
 import PosPlaceholder from "../pages/Arambh/PosPlaceholder";
 
 
@@ -66,7 +72,12 @@ const authProtectedRoutes = [
     { path: "/kds", component: <ComingSoon /> },
     { path: "/shop/inventory", component: <ComingSoon /> },
     { path: "/crm/pipeline", component: <ComingSoon /> },
-    { path: "/finance/invoices", component: <ComingSoon /> },
+    { path: "/customers", component: <Customers /> },
+    { path: "/finance/invoices", component: <Invoices /> },
+    { path: "/finance/invoices/:id", component: <InvoiceDetail /> },
+    { path: "/settings/payments", component: <PaymentsSettings /> },
+    { path: "/settings/club", component: <SettingsClub /> },
+    { path: "/settings/taxes", component: <Taxes /> },
     { path: "/staff", component: <ComingSoon /> },
     { path: "/staff/directory", component: <StaffDirectory /> },
     { path: "/reports", component: <ComingSoon /> },

@@ -59,3 +59,14 @@ Invoices (filters: kind, status, stream, customer, date, overdue), invoice view/
 - Tax summary equals the sum of line taxes for the period.
 - Partial payments update `paidPaise`/`duePaise` and status.
 - Webhook replay doesn't double-confirm.
+
+## Implementation notes (Phase 4)
+
+- **Modules:** `Odoo.Server/src/modules/settings` (location, settings, tax), `customers`, `finance` (invoice/payment services + `providers/{mock,razorpay}` + webhook routes). PDF via `src/lib/pdf.js` (pdfkit).
+- **Money:** all amounts integer paise; line totals from shared `computeLine` in `src/lib/money.js`.
+- **Numbering:** FY April–March (`INV/2026-27/00001`) via `counters` + `allocateInvoiceNumber`; concurrent allocate tested.
+- **API prefix:** `/api/admin/*` for authenticated CRUD; `/api/webhooks/razorpay` (stub); `/api/payments/mock/:intentId/{succeed,fail}` when `PAYMENTS_PROVIDER=mock`.
+- **Auth:** existing `authMiddleware` session + `requirePermission` + zod `validate`; `audit.record` on create/post/pay/refund/settings writes.
+- **Admin UI:** Settings → Club & locations, Taxes, Payments; Customers list; Invoices list + detail (mock pay, PDF, credit note).
+- **Seed:** 1 location `MAIN`, GST 18%/5%, 3 customers, 1 posted sample invoice — all `isDemo: true`; club name **Arambh Sports Arena**.
+- Deferred to Phase 13: receivables ageing UI, payables, expenses, reconciliation, tax summary report screens.
