@@ -5,17 +5,15 @@ import Membership from './pages/Membership.jsx';
 import Sports from './pages/Sports.jsx';
 import Trial from './pages/Trial.jsx';
 import Contact from './pages/Contact.jsx';
-import leftLogo from './assets/brand/left.jpg';
+import logoHorizontal from './assets/brand/logo-horizontal.png';
+import logoStacked from './assets/brand/logo-stacked.png';
 
 function Layout({ children }) {
   return (
     <div className="shell">
       <header className="topnav">
         <Link to="/" className="brand brand-lockup" aria-label="Arambh Sports Arena">
-          <span className="brand-symbol" style={{ backgroundImage: `url(${leftLogo})` }} />
-          <span className="brand-text">
-            Arambh <span>Sports Arena</span>
-          </span>
+          <img className="brand-logo" src={logoStacked} alt="Arambh Sports Arena" />
         </Link>
         <nav className="nav-links" aria-label="Primary">
           <NavLink to="/sports">Sports</NavLink>
@@ -31,11 +29,8 @@ function Layout({ children }) {
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <span className="brand-symbol footer-symbol" style={{ backgroundImage: `url(${leftLogo})` }} />
-            <div>
-              <strong>Arambh Sports Arena</strong>
-              <div>Vadodara · Courts · Membership · Live slots</div>
-            </div>
+            <img className="footer-logo" src={logoHorizontal} alt="Arambh Sports Arena" />
+            <div>Vadodara · Courts · Membership · Live slots</div>
           </div>
           <div className="footer-links">
             <Link to="/availability">Availability</Link>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Spinner } from 'reactstrap';
-import logo from "../../assets/images/logo.png";
+import logo from "../../assets/images/brand/logo-stacked.png";
 
 const LoadingScreen = () => {
   return (

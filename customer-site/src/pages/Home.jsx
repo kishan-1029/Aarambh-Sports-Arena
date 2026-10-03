@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, formatPaise, planMonthlyPaise } from '../api';
 import heroImg from '../assets/hero.png';
-import leftLogo from '../assets/brand/left.jpg';
 
 const FALLBACK_SPORTS = [
   { key: 'tennis', name: 'Tennis', courtCount: 2 },
@@ -35,17 +34,6 @@ export default function Home() {
           <img src={heroImg} alt="" />
         </div>
         <div className="hero-inner">
-          <span
-            className="brand-symbol"
-            style={{
-              width: 72,
-              height: 72,
-              marginBottom: '1rem',
-              backgroundImage: `url(${leftLogo})`,
-              boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
-            }}
-            aria-hidden="true"
-          />
           <div className="hero-kicker">Vadodara · Multi-sport club</div>
           <h1>{club?.name || 'Arambh Sports Arena'}</h1>
           <p className="hero-lead">

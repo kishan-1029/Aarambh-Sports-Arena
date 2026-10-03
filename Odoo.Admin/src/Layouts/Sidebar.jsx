@@ -2,7 +2,8 @@ import React, { useContext, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
-import leftLogo from "../assets/images/brand/left.jpg";
+import logoHorizontal from "../assets/images/brand/logo-horizontal.png";
+import logoStacked from "../assets/images/brand/logo-stacked.png";
 
 //Import Components
 import VerticalLayout from "./VerticalLayouts";
@@ -96,7 +97,7 @@ const Sidebar = ({ layoutType }) => {
                     }
                     
                     .minimal-logo-box {
-                        background: #ffffff;
+                        background: transparent !important;
                         border-bottom: 1px solid rgba(255, 255, 255, 0.12);
                         display: flex;
                         align-items: center;
@@ -632,10 +633,10 @@ const Sidebar = ({ layoutType }) => {
                 <div className="navbar-brand-box minimal-logo-box">
                     <Link to="/dashboard" className="logo logo-dark logo-light text-center w-100 d-block">
                         <span className="logo-sm">
-                            <img src={leftLogo} alt="Arambh Sports Arena" />
+                            <img src={logoStacked} alt="Arambh Sports Arena" />
                         </span>
                         <span className="logo-lg">
-                            <img src={leftLogo} alt="Arambh Sports Arena" />
+                            <img src={logoHorizontal} alt="Arambh Sports Arena" />
                         </span>
                     </Link>
                     <button

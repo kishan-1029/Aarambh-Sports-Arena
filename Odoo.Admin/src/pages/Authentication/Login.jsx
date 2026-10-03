@@ -16,8 +16,8 @@ import { useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
-import leftLogo from "../../assets/images/brand/left.jpg";
-import rightLogo from "../../assets/images/brand/right.jpg";
+import logoStacked from "../../assets/images/brand/logo-stacked.png";
+import logoHorizontal from "../../assets/images/brand/logo-horizontal.png";
 import { getPublicCompanyDetails } from "../../api/companies.api";
 import config from "../../config";
 import {
@@ -1090,7 +1090,7 @@ const Login = () => {
                     }}
                 >
                     <img
-                        src={leftLogo}
+                        src={logoStacked}
                         alt="Arambh Sports Arena"
                         style={{
                             width: "min(380px, 78%)",
@@ -1153,7 +1153,7 @@ const Login = () => {
                                             <>
                                                 <div className="text-center mb-4">
                                                     <img
-                                                        src={rightLogo}
+                                                        src={logoHorizontal}
                                                         alt="Arambh Sports Arena"
                                                         style={{
                                                             width: "100%",
