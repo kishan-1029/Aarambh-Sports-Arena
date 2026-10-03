@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { SkeletonCards } from '../components/Skeleton.jsx';
 
 export default function Sports() {
   const [sports, setSports] = useState([]);
@@ -8,41 +9,43 @@ export default function Sports() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .sports()
-      .then((d) => setSports(Array.isArray(d) ? d : []))
-      .catch((e) => setError(e.message))
+    api.sports()
+      .then((rows) => setSports(Array.isArray(rows) ? rows : []))
+      .catch(() => setError("We couldn't load sports."))
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <>
+    <section className="page container">
       <header className="page-hero">
-        <h1>Sports & courts</h1>
-        <p>Pick a discipline, then jump into live availability for tonight or this week.</p>
+        <h1>Sports</h1>
+        <p>Explore the sports and courts available at Aarambh Sports Arena.</p>
       </header>
-      <section className="section">
-        {loading && <div className="skeleton" />}
-        {error && <div className="msg msg-err">{error}</div>}
-        {!loading && !error && sports.length === 0 && (
-          <div className="empty">Sports data is syncing — book a trial and we will place you on a court.</div>
-        )}
-        <div className="sport-grid">
-          {sports.map((s) => (
-            <article className="sport-card" key={s.id || s.key}>
-              <span className="chip">{s.key}</span>
-              <h3>{s.name}</h3>
-              <p>
-                {s.courtCount} active court{s.courtCount === 1 ? '' : 's'} · {s.sessionMinutes || 60}{' '}
-                minute sessions · slots every {s.slotStepMinutes || 30} min
-              </p>
-              <Link className="btn btn-solid" to={`/availability?sportId=${encodeURIComponent(s.id)}`}>
-                View slots
-              </Link>
-            </article>
-          ))}
-        </div>
-      </section>
-    </>
+      {loading && <SkeletonCards count={4} />}
+      {error && <div className="msg msg-err">{error}</div>}
+      {!loading && !error && sports.length === 0 && <div className="empty">No sports are currently available.</div>}
+      <div className="sport-grid">
+        {sports.map((sport) => (
+          <article className="sport-card" key={sport.id}>
+            <span className="chip">{sport.key}</span>
+            <h3>{sport.name}</h3>
+            {sport.courtCount > 0 ? (
+              <>
+                <p className="muted">{`${sport.courtCount} ${sport.courtCount === 1 ? 'court' : 'courts'}`}</p>
+                <p className="muted">{sport.sessionMinutes || 60}-minute sessions</p>
+                <p className="muted">Starts every {sport.slotStepMinutes || 30} minutes</p>
+              </>
+            ) : (
+              <p className="muted">Currently unavailable</p>
+            )}
+            {sport.courtCount > 0 ? (
+              <Link className="btn btn-primary" to={`/availability?sportId=${encodeURIComponent(sport.id)}`}>View Availability</Link>
+            ) : (
+              <span className="btn btn-secondary">Currently unavailable</span>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

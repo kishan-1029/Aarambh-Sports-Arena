@@ -105,7 +105,8 @@ const bookingSchema = new mongoose.Schema(
     cancellation: { type: cancellationSchema, default: null },
     notes: { type: String, default: '' },
     priceOverrideReason: { type: String, default: '' },
-    idempotencyKey: { type: String, default: null },
+    // Omit when unset — a sparse unique index still indexes explicit nulls
+    idempotencyKey: { type: String },
     isDemo: { type: Boolean, default: false },
   },
   { timestamps: true },

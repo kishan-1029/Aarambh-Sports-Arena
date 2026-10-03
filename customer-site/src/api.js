@@ -13,57 +13,158 @@ export function mediaUrl(path) {
   return API ? `${API}/${clean}` : `/${clean}`;
 }
 
-async function get(path) {
-  const res = await fetch(`${API}${path}`);
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.isOk === false) {
-    throw new Error(json.message || `Request failed (${res.status})`);
+export const TOKEN_KEY = 'aarambh_portal_token';
+
+export function getAuthToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
   }
-  return json.data;
 }
 
-async function post(path, body) {
-  const res = await fetch(`${API}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.isOk === false) {
-    throw new Error(json.message || `Request failed (${res.status})`);
+export function setAuthToken(token) {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {}
+}
+
+export function clearAuthToken() {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {}
+}
+
+export function hasAuthToken() {
+  return Boolean(getAuthToken());
+}
+
+function authHeaders() {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function request(path, { method = 'GET', body, auth = false } = {}) {
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, {
+      method,
+      headers: {
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...(auth ? authHeaders() : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    const err = new Error("We couldn't reach the club just now. Please try again.");
+    err.status = 0;
+    throw err;
   }
-  return json.data;
-}
 
-export function formatPaise(paise) {
-  if (paise == null || Number.isNaN(Number(paise))) return '—';
-  return `₹${(Number(paise) / 100).toLocaleString('en-IN')}`;
-}
+  const contentType = res.headers.get('content-type') || '';
+  const isJson = contentType.includes('application/json');
+  const payload = isJson ? await res.json().catch(() => null) : await res.text().catch(() => '');
 
-export function planMonthlyPaise(plan) {
-  const durations = plan?.durations || [];
-  const monthly = durations.find((d) => d.months === 1) || durations[0];
-  return monthly?.pricePaise ?? null;
-}
+  if (!res.ok) {
+    const message = (isJson && (payload?.message || payload?.error)) || res.statusText || 'Request failed';
+    const err = new Error(message);
+    err.status = res.status;
+    err.payload = payload;
+    throw err;
+  }
 
-export function todayLocalIST() {
-  const d = new Date();
-  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
-  const ist = new Date(utc + 5.5 * 60 * 60000);
-  return ist.toISOString().slice(0, 10);
+  return isJson ? payload?.data ?? payload : payload;
 }
 
 export const api = {
-  club: () => get('/api/public/club'),
-  sports: () => get('/api/public/sports'),
-  plans: () => get('/api/public/membership-plans'),
-  blogs: (limit = 12) => get(`/api/public/blogs?limit=${limit}`),
-  availability: (q) => {
-    const params = new URLSearchParams(
-      Object.fromEntries(Object.entries(q).filter(([, v]) => v != null && v !== '')),
-    ).toString();
-    return get(`/api/public/availability?${params}`);
+  // Public
+  club: () => request('/api/public/club'),
+  sports: () => request('/api/public/sports'),
+  plans: () => request('/api/public/membership-plans'),
+  availability: ({ localDate, days = 1, sportId } = {}) => {
+    const qs = new URLSearchParams();
+    if (localDate) qs.set('localDate', localDate);
+    if (days) qs.set('days', String(days));
+    if (sportId) qs.set('sportId', sportId);
+    return request(`/api/public/availability?${qs.toString()}`);
   },
-  enquiry: (body) => post('/api/public/enquiries', body),
-  trial: (body) => post('/api/public/trials', body),
+  cancellationPolicy: () => request('/api/public/cancellation-policy'),
+  enquiry: (payload) => request('/api/public/enquiry', { method: 'POST', body: payload }),
+  trial: (payload) => request('/api/public/trial', { method: 'POST', body: payload }),
+
+  // Auth
+  login: (payload) => request('/api/public/auth/login', { method: 'POST', body: payload }),
+  register: (payload) => request('/api/public/auth/register', { method: 'POST', body: payload }),
+  me: () => request('/api/public/auth/me', { auth: true }),
+
+  // Portal (User)
+  quoteSlot: ({ courtId, startUtc }) =>
+    request('/api/portal/quote-slot', { method: 'POST', auth: true, body: { courtId, startUtc } }),
+  bookSlot: (payload) =>
+    request('/api/portal/book-slot', { method: 'POST', auth: true, body: payload }),
+  myBookings: () =>
+    request('/api/portal/my-bookings', { auth: true }),
+  cancelBooking: (id, payload) =>
+    request(`/api/portal/my-bookings/${encodeURIComponent(id)}/cancel`, { method: 'POST', auth: true, body: payload }),
+  buyMembership: (payload) =>
+    request('/api/portal/buy-membership', { method: 'POST', auth: true, body: payload }),
 };
+
+export function formatPaise(paise) {
+  if (paise == null || isNaN(paise)) return '₹0';
+  const rupees = Number(paise) / 100;
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(rupees);
+}
+
+export function planMonthlyPaise(plan) {
+  if (!plan) return 0;
+  if (plan.pricePaise != null) return plan.pricePaise;
+  const d1 = plan.durations?.find((d) => Number(d.months) === 1);
+  if (d1?.pricePaise != null) return d1.pricePaise;
+  const anyD = plan.durations?.[0];
+  if (anyD && anyD.months) return Math.round(anyD.pricePaise / anyD.months);
+  return 0;
+}
+
+export function formatSlotTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+export function formatCalendarDate(iso, options = {}) {
+  if (!iso) return '—';
+  const d = iso.includes('T') ? new Date(iso) : new Date(`${iso}T00:00:00+05:30`);
+  return d.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    ...options,
+  });
+}
+
+export function todayLocalIST() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const y = parts.find((p) => p.type === 'year')?.value;
+  const m = parts.find((p) => p.type === 'month')?.value;
+  const d = parts.find((p) => p.type === 'day')?.value;
+  return `${y}-${m}-${d}`;
+}
+
+export function shiftDate(isoDate, offsetDays) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const base = new Date(Date.UTC(y, m - 1, d));
+  base.setUTCDate(base.getUTCDate() + offsetDays);
+  return base.toISOString().slice(0, 10);
+}

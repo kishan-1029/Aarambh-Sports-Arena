@@ -283,7 +283,7 @@ export async function create(input, ctx = {}) {
             holdExpiresAt,
             notes: input.notes || '',
             priceOverrideReason: input.priceOverrideReason || '',
-            idempotencyKey,
+            ...(idempotencyKey ? { idempotencyKey } : {}),
             isDemo: Boolean(input.isDemo),
           },
         ],
