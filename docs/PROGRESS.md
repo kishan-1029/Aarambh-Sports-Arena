@@ -1,12 +1,12 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 2
+Current phase: 3
 
 ## Phases
 
 - [x] Phase 0 — Codebase and reference audit
 - [x] Phase 1 — Foundation
-- [ ] Phase 2 — Authentication and RBAC
+- [x] Phase 2 — Authentication and RBAC
 - [ ] Phase 3 — Design system and admin shell
 - [ ] Phase 4 — Club setup, customers, finance core
 - [ ] Phase 5 — Members and membership
@@ -27,23 +27,22 @@ Current phase: 2
 
 ## Current phase tasks
 
-### Phase 2 — Authentication and RBAC
-- [ ] String permissions module + seed roles (owner/manager/front_desk/bar_staff/finance)
-- [ ] Extend session ctx with permission strings (keep cookie session — ADR-0002)
-- [ ] requirePermission middleware for new Arambh routes (extend checkPermission, don't duplicate auth)
-- [ ] Admin usePermission / Can helpers
-- [ ] Auth event audit; existing company login still works
+### Phase 3 — Design system and admin shell
+- [ ] Tokens / CSS variables; standard building blocks
+- [ ] Nav config with `perm` per item + Coming soon placeholders
+- [ ] AppLayout / router groups (extend existing shell)
 
 ## Decisions & deviations
 
 - Product brand **Arambh Sports Arena** (slug `arambh`); PS club name is scenario only.
 - Admin base branch is `feature/finalRBAC1` (Server is `feature/finalRBAC`) — [[docs/Audit/existing-project.md]].
 - ADR-0001 website Next.js — accepted.
-- ADR-0002 session auth for admin — accepted.
+- ADR-0002 session auth for admin — accepted (Phase 2: string perms on session, not JWT).
 - ADR-0003 DATABASE / MONGODB_URI alias — accepted.
 - ADR-0004 `{ isOk }` envelope — accepted.
 - ADR-0005 hybrid server layout — accepted.
 - ADR-0006 Bootstrap admin UI kit — accepted.
+- Phase 2: menu CRUD stays on `session.user.permissions`; Arambh strings on `stringPermissions` to avoid breaking MenuContext.
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -56,6 +55,6 @@ Current phase: 2
 
 ## Test status
 
-- Odoo.Server: `npm test` → 15/15 pass (MongoMemoryReplSet).
-- Odoo.Server: running on http://localhost:7002 against source DB (156 collections); `/api/health` + `/api/health/ready` OK.
-- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002).
+- Odoo.Server: `npm test` → 36/36 pass (MongoMemoryReplSet), including Phase 2 RBAC table-driven tests.
+- Odoo.Server: may be running on http://localhost:7002; restart after pull to load auth session changes.
+- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002); `usePermission` / `<Can>` available.

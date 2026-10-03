@@ -1,8 +1,10 @@
 /**
  * Authentication Middleware using Express Session
  * Uses in-memory session storage via express-session
+ * ADR-0002: cookie session — do not replace with JWT for admin.
  */
 import EmployeeRoles from "../models/EmployeeRoles.js";
+import { attachStringPermissions } from "../src/modules/auth/sessionPermissions.js";
 
 const refreshEmployeePermissions = async (sessionUser) => {
   if (sessionUser.role !== "EMPLOYEE" || !sessionUser.roleId) {
@@ -24,6 +26,7 @@ const refreshEmployeePermissions = async (sessionUser) => {
 
     if (dbUpdatedAt > sessionUpdatedAt) {
       return {
+        // Menu CRUD flags — keep shape for checkPermission / MenuContext
         permissions: employeeRole.roles.map((r) => ({
           menuId: r.menuId?.toString(),
           menuGroupId: r.menuGroupId?.toString(),
@@ -82,11 +85,19 @@ export const authMiddleware = (roles) => {
     }
 
     // Attach user data to request (compatible with existing code)
-    // ── AUTO-REFRESH PERMISSIONS FOR EMPLOYEE ──────────────────────
+    // ── AUTO-REFRESH MENU PERMISSIONS FOR EMPLOYEE ─────────────────
     const refreshData = await refreshEmployeePermissions(sessionUser);
     if (refreshData) {
       req.session.user.permissions = refreshData.permissions;
       req.session.user.permissionsUpdatedAt = refreshData.updatedAt;
+    }
+    // ── Ensure Arambh string permissions on session ────────────────
+    if (
+      !Array.isArray(req.session.user.stringPermissions) ||
+      (req.session.user.role === "ADMIN" &&
+        req.session.user.stringPermissions.length === 0)
+    ) {
+      await attachStringPermissions(req.session.user);
     }
     // ───────────────────────────────────────────────────────────────
     req.user = {
@@ -94,6 +105,18 @@ export const authMiddleware = (roles) => {
       role: sessionUser.role,
       email: sessionUser.email,
       name: sessionUser.name,
+      roleId: req.session.user.roleId || null,
+      arambhRoleKey: req.session.user.arambhRoleKey || null,
+      stringPermissions: req.session.user.stringPermissions || [],
+    };
+
+    // Service ctx for new Arambh modules (ADR-0002 session shape)
+    req.ctx = {
+      user: req.user,
+      permissions: new Set(req.user.stringPermissions || []),
+      requestId: req.requestId || req.id,
+      ip: req.ip,
+      source: "admin",
     };
 
     next();

@@ -662,7 +662,7 @@ const performResetPassword = ({
         });
 };
 
-const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate) => {
+const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey) => {
     const status = res.status || res.data?.status;
 
     if (status === 423 || status === 401) {
@@ -681,6 +681,12 @@ const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fet
         const sanitizedRole = (rawRole === "ADMIN" || rawRole === "EMPLOYEE") ? rawRole : "";
         localStorage.setItem("role", sanitizedRole);
         if (setRole) setRole(sanitizedRole);
+        if (setStringPermissions) {
+            setStringPermissions(Array.isArray(res.data.permissions) ? res.data.permissions : []);
+        }
+        if (setArambhRoleKey) {
+            setArambhRoleKey(res.data.arambhRoleKey || null);
+        }
         setAdminData({ ...res.data.data });
         fetchMenus();
         navigate("/dashboard", { replace: true });
@@ -699,7 +705,9 @@ const executeLogin = async ({
     fetchMenus,
     navigate,
     setIsLoginLoading,
-    fetchLoginStatus
+    fetchLoginStatus,
+    setStringPermissions,
+    setArambhRoleKey,
 }) => {
     setIsLoginLoading(true);
     try {
@@ -718,7 +726,7 @@ const executeLogin = async ({
             clientLongitude: userLocation.longitude,
         }, securityHeaders);
 
-        handleLoginResponse(res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate);
+        handleLoginResponse(res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey);
     } catch (error) {
         handleLoginError(error, updateFromResponse);
     } finally {
@@ -743,7 +751,9 @@ const performLogin = async (e, {
     fetchMenus,
     navigate,
     setIsLoginLoading,
-    fetchLoginStatus
+    fetchLoginStatus,
+    setStringPermissions,
+    setArambhRoleKey,
 }) => {
     if (e) {
         e.preventDefault();
@@ -785,13 +795,15 @@ Do you want to continue?`;
         fetchMenus,
         navigate,
         setIsLoginLoading,
-        fetchLoginStatus
+        fetchLoginStatus,
+        setStringPermissions,
+        setArambhRoleKey,
     });
 };
 
 const Login = () => {
     const { fetchMenus } = useContext(MenuContext);
-    const { setAdminData, setRole } = useContext(AuthContext);
+    const { setAdminData, setRole, setStringPermissions, setArambhRoleKey } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [publicCompany, setPublicCompany] = useState(null);
@@ -924,7 +936,9 @@ const Login = () => {
             fetchMenus,
             navigate,
             setIsLoginLoading,
-            fetchLoginStatus
+            fetchLoginStatus,
+            setStringPermissions,
+            setArambhRoleKey,
         });
     };
 

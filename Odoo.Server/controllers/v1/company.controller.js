@@ -9,6 +9,9 @@ import {
   getLoginAttemptStatus,
 } from "../../services/authService.js";
 import EmployeeRoles from "../../models/EmployeeRoles.js";
+import RoleMaster from "../../models/RoleMaster.js";
+import { attachStringPermissions } from "../../src/modules/auth/sessionPermissions.js";
+import { audit } from "../../src/modules/audit/audit.service.js";
 
 // ✅ Helper: validate consent
 const validateConsent = (locationConsent, ipConsent) => {
@@ -412,10 +415,19 @@ export const loginCompany = async (req, res) => {
 
     let permissions = [];
     let permissionsUpdatedAt = null;
+    let roleName = null;
 
     if (role === "EMPLOYEE") {
       ({ permissions, permissionsUpdatedAt } =
         await getEmployeePermissions(employee));
+      const roleId =
+        employee?.roleId?._id || employee?.roleId || null;
+      if (roleId) {
+        const roleDoc = await RoleMaster.findById(roleId)
+          .select("roleName")
+          .lean();
+        roleName = roleDoc?.roleName || null;
+      }
     }
 
     req.session.user = {
@@ -427,16 +439,45 @@ export const loginCompany = async (req, res) => {
         employee?.roleId?._id?.toString() ||
         employee?.roleId?.toString() ||
         null,
+      // Legacy menu CRUD flags — MenuContext / checkPermission
       permissions,
       permissionsUpdatedAt,
       isSuperAdmin: companyMaster ? companyMaster.isSuperAdmin : false,
     };
+
+    // Arambh string permissions (ADR-0002 session extension)
+    await attachStringPermissions(req.session.user, { roleName });
+
+    try {
+      await audit.record({
+        actor: {
+          type: role === "ADMIN" ? "staff" : "staff",
+          id: userId.toString(),
+          name: req.session.user.name,
+        },
+        source: "admin",
+        action: "auth.login.success",
+        entity: { type: "user", id: userId.toString(), label: req.session.user.email },
+        after: {
+          role,
+          arambhRoleKey: req.session.user.arambhRoleKey,
+        },
+        ip: ipAddress,
+        userAgent: req.headers["user-agent"],
+        requestId: req.requestId || req.id,
+      });
+    } catch (auditErr) {
+      console.error("audit login failed:", auditErr.message);
+    }
 
     return res.status(200).json({
       isOk: true,
       message: "Login successful",
       data: dataToSend,
       role,
+      // Surface string permissions for admin Can / usePermission
+      permissions: req.session.user.stringPermissions || [],
+      arambhRoleKey: req.session.user.arambhRoleKey || null,
     });
   } catch (error) {
     console.error("Error in loginCompany:", error);

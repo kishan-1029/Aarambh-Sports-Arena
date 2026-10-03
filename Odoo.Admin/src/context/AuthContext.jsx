@@ -13,6 +13,9 @@ const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true); // Start with loading true for session verification
     const [role, setRole] = useState(localStorage.getItem("role") || null);
     const [isSessionVerified, setIsSessionVerified] = useState(false);
+    // Arambh string permissions (booking.create, …) — parallel to MenuContext CRUD
+    const [stringPermissions, setStringPermissions] = useState([]);
+    const [arambhRoleKey, setArambhRoleKey] = useState(null);
 
     const navigate = useNavigate();
 
@@ -52,6 +55,11 @@ const AuthProvider = ({ children }) => {
                 const sanitizedRole = (rawRole === "ADMIN" || rawRole === "EMPLOYEE") ? rawRole : "";
                 setRole(sanitizedRole);
                 localStorage.setItem("role", sanitizedRole);
+                const perms = Array.isArray(res.data.data.permissions)
+                    ? res.data.data.permissions
+                    : [];
+                setStringPermissions(perms);
+                setArambhRoleKey(res.data.data.arambhRoleKey || null);
                 setIsSessionVerified(true);
                 // Fetch full user data
                 getAdmin();
@@ -62,6 +70,8 @@ const AuthProvider = ({ children }) => {
             localStorage.removeItem("role");
             setAdminData(null);
             setRole(null);
+            setStringPermissions([]);
+            setArambhRoleKey(null);
             setIsSessionVerified(true);
             setLoading(false);
             navigate("/");
@@ -81,8 +91,12 @@ const AuthProvider = ({ children }) => {
         setRole,
         loading,
         setLoading,
-        isSessionVerified
-    }), [adminData, getAdmin, role, loading, isSessionVerified]);
+        isSessionVerified,
+        stringPermissions,
+        setStringPermissions,
+        arambhRoleKey,
+        setArambhRoleKey,
+    }), [adminData, getAdmin, role, loading, isSessionVerified, stringPermissions, arambhRoleKey]);
 
     return (
         <AuthContext.Provider value={contextValue}>

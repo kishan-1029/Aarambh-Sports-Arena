@@ -6,3 +6,4 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-03 · Docs · Initial implementation specification (00–28).
 - 2026-10-03 · Phase 0 · Codebase/reference audit; bases synced to finalRBAC/finalRBAC1; ADRs 0001–0006; `.env.example` placeholders.
 - 2026-10-03 · Phase 1 · Foundation: config, db/withTransaction, money/time/clock/counters, middleware, audit/notifications, worker, seed, health, shared package, Jest+MongoMemoryReplSet tests (15 pass).
+- 2026-10-03 · Phase 2 · Auth/RBAC: string permissions (shared + server re-export), seeded arambhRoles, requirePermission middleware, session stringPermissions (keep menu CRUD), admin usePermission/Can, auth login/logout audit; 36 tests pass.

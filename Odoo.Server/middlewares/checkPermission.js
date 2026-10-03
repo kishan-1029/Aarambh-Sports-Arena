@@ -1,5 +1,10 @@
 import MenuMaster from "../models/MenuMaster.js";
 import EmployeeRoles from "../models/EmployeeRoles.js";
+// Arambh string-permission gates (new routes). Menu CRUD checks stay below.
+export {
+  requirePermission,
+  requireAllPermissions,
+} from "../src/modules/auth/rbac.middleware.js";
 
 /**
  * Check if session permissions are stale by comparing updatedAt timestamps

@@ -12,6 +12,8 @@ import {
 } from '../modules/notifications/notification.model.js';
 import { DEFAULT_TEMPLATES } from '../modules/notifications/notificationTemplates.js';
 import { audit } from '../modules/audit/audit.service.js';
+import { ArambhRole } from '../modules/auth/role.model.js';
+import { seedArambhRoles } from '../modules/auth/seedRoles.js';
 
 const clubSettingsSchema = new mongoose.Schema(
   {
@@ -34,6 +36,7 @@ async function resetDemo() {
     ClubSettings,
     Notification,
     NotificationTemplate,
+    ArambhRole,
   ];
 
   for (const Model of collections) {
@@ -79,13 +82,17 @@ async function main() {
 
   await seedClub();
   await seedTemplates();
+  await seedArambhRoles();
 
   await audit.record({
     actor: { type: 'system', name: 'seed' },
     source: 'system',
     action: 'seed.demo',
     entity: { type: 'clubSettings', id: 'default', label: 'Arambh Sports Arena' },
-    after: { clubName: 'Arambh Sports Arena' },
+    after: {
+      clubName: 'Arambh Sports Arena',
+      roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
+    },
   });
 
   logger.info('seed complete');

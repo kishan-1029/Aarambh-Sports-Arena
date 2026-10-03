@@ -3,6 +3,9 @@ import CompanyMaster from "../../models/CompanyMaster.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import authService from "../../services/authService.js";
+import RoleMaster from "../../models/RoleMaster.js";
+import { attachStringPermissions } from "../../src/modules/auth/sessionPermissions.js";
+import { audit } from "../../src/modules/audit/audit.service.js";
 
 // Helper: Escape regex special characters to prevent NoSQL injection
 const escapeRegex = (str = "") =>
@@ -494,18 +497,63 @@ export const loginEmployee = async (req, res) => {
     // Successful login - record it and reset attempt count
     await authService.recordSuccessfulLogin(employee._id, email);
 
+    const roleId =
+      employee.roleId?._id?.toString() ||
+      employee.roleId?.toString() ||
+      null;
+    let roleName = employee.roleId?.roleName || null;
+    if (!roleName && roleId) {
+      const roleDoc = await RoleMaster.findById(roleId)
+        .select("roleName")
+        .lean();
+      roleName = roleDoc?.roleName || null;
+    }
+
     // Store user data in express session (in-memory)
     req.session.user = {
       id: employee._id.toString(),
       role: "EMPLOYEE",
       email: employee.emailOffice,
       name: employee.employeeName,
+      roleId,
+      permissions: [],
+      permissionsUpdatedAt: null,
     };
+
+    await attachStringPermissions(req.session.user, { roleName });
+
+    try {
+      await audit.record({
+        actor: {
+          type: "staff",
+          id: employee._id.toString(),
+          name: employee.employeeName,
+        },
+        source: "admin",
+        action: "auth.login.success",
+        entity: {
+          type: "user",
+          id: employee._id.toString(),
+          label: employee.emailOffice,
+        },
+        after: {
+          role: "EMPLOYEE",
+          arambhRoleKey: req.session.user.arambhRoleKey,
+        },
+        ip: ipAddress,
+        userAgent: req.headers["user-agent"],
+        requestId: req.requestId || req.id,
+      });
+    } catch (auditErr) {
+      console.error("audit login failed:", auditErr.message);
+    }
 
     return res.status(200).json({
       isOk: true,
       message: "Login successful",
       data: employee,
+      permissions: req.session.user.stringPermissions || [],
+      arambhRoleKey: req.session.user.arambhRoleKey || null,
       status: 200,
     });
   } catch (error) {
@@ -584,6 +632,31 @@ export const getCurrentUser = async (req, res) => {
 };
 export const logoutUser = async (req, res) => {
   try {
+    const sessionUser = req.session?.user;
+    try {
+      if (sessionUser) {
+        await audit.record({
+          actor: {
+            type: "staff",
+            id: sessionUser.id,
+            name: sessionUser.name,
+          },
+          source: "admin",
+          action: "auth.logout",
+          entity: {
+            type: "user",
+            id: sessionUser.id,
+            label: sessionUser.email,
+          },
+          ip: req.ip,
+          userAgent: req.headers["user-agent"],
+          requestId: req.requestId || req.id,
+        });
+      }
+    } catch (auditErr) {
+      console.error("audit logout failed:", auditErr.message);
+    }
+
     // Destroy the express session
     req.session.destroy((err) => {
       if (err) {
@@ -616,13 +689,18 @@ export const logoutUser = async (req, res) => {
 
 /**
  * Verify session - lightweight endpoint to check if session is valid
- * Returns only the user role, no sensitive data
+ * Returns role + Arambh string permissions (menu CRUD stays in session.permissions)
  */
 export const verifySession = async (req, res) => {
   // If we reach here, authMiddleware has already validated the session
   return res.status(200).json({
     isOk: true,
-    data: { role: req.user.role },
+    data: {
+      role: req.user.role,
+      permissions: req.user.stringPermissions || req.session?.user?.stringPermissions || [],
+      arambhRoleKey:
+        req.user.arambhRoleKey || req.session?.user?.arambhRoleKey || null,
+    },
   });
 };
 

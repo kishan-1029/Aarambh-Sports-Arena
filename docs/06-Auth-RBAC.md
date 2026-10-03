@@ -120,3 +120,16 @@ Must be audited:
 | Settings | any change |
 
 Admin screen: Settings → Audit log, filter by actor, entity, action, source, date; row drawer shows before/after diff. Export CSV (`audit.export`).
+
+## Implementation notes (Phase 2)
+
+- **Admin auth stays express-session** ([[ADR/0002-session-auth-for-admin]]). JWT deferred to mobile/MCP.
+- **Permission strings** live in `packages/shared/permissions.js`; server re-exports via `Odoo.Server/src/modules/auth/permissions.js`.
+- **Session shape (extended, not replaced):**
+  - `session.user.permissions` — legacy menu CRUD flags for `checkPermission` / MenuContext (unchanged).
+  - `session.user.stringPermissions` — Arambh `resource.action` strings for new routes.
+  - `session.user.arambhRoleKey` — mapped role (`owner` | `manager` | `front_desk` | `bar_staff` | `finance`).
+- **`requirePermission(...perms)`** in `src/modules/auth/rbac.middleware.js` (also re-exported from `middlewares/checkPermission.js`). ADMIN bypasses. Any-of semantics.
+- **Seed:** `seed:demo` upserts `arambhRoles` with `isDemo: true`.
+- **Admin UI:** `usePermission` + `<Can perm="…">` read `AuthContext.stringPermissions` from verify-session / login. Menu RBAC untouched.
+- **Audit:** `auth.login.success` / `auth.logout` via `audit.record`.
