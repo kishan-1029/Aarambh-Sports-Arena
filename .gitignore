@@ -5,3 +5,6 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Jest MongoMemoryReplSet URI (ephemeral)
+Odoo.Server/test/.mongo-memory.json

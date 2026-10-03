@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 8 + Phase 14 partial (public website MVP)
+Current phase: 8 (catalogue) — Phase 6/7 done; Phase 14 React site live for demo
 
 ## Phases
 
@@ -28,11 +28,11 @@ Current phase: 8 + Phase 14 partial (public website MVP)
 ## Current phase tasks
 
 ### Phase 14 — Public website (partial / hackathon cut)
-- [x] `website/` Next.js App Router on port **3001** (admin stays on 3000) — ADR-0001
+- [x] `customer-site/` React + Vite on port **3001** (admin stays on 3000) — ADR-0001 amended
 - [x] `/api/public/*` — club, sports, membership-plans, availability (free/busy only), enquiries, trials
-- [x] Pages: `/`, `/availability`, `/membership`, `/sports`, `/trial`, `/contact`
+- [x] Pages: Home, Availability, Membership, Sports, Trial, Contact
 - [ ] Shop, member login, quote accept, AI chat widget (later)
-- **Demo URL (local):** http://localhost:3001 — API `NEXT_PUBLIC_API_URL=http://localhost:7002`
+- **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003` (7002 held by stale process)
 
 ### Phase 8 — Catalogue, inventory, purchasing
 - [ ] Products / variants / categories
@@ -43,7 +43,7 @@ Current phase: 8 + Phase 14 partial (public website MVP)
 
 - Product brand **Arambh Sports Arena** (slug `arambh`); PS club name is scenario only.
 - Admin base branch is `feature/finalRBAC1` (Server is `feature/finalRBAC`) — [[docs/Audit/existing-project.md]].
-- ADR-0001 website Next.js — accepted.
+- ADR-0001 website React + Vite (`customer-site/`) — accepted (amended; Next.js parked).
 - ADR-0002 session auth for admin — accepted (Phase 2: string perms on session, not JWT).
 - ADR-0003 DATABASE / MONGODB_URI alias — accepted.
 - ADR-0004 `{ isOk }` envelope — accepted.
@@ -55,7 +55,7 @@ Current phase: 8 + Phase 14 partial (public website MVP)
 - Phase 5: membership under `/api/admin/*`; plan versioning on price/entitlement edits; renewals use status `scheduled` until start; Member 360 MVP tabs only (overview / membership / timeline).
 - Phase 6: booking under `/api/admin/*`; money in paise; MongoMemoryReplSet concurrency suite (docs/08 §14).
 - Phase 7 MVP: Front Desk board + member search + quick-book drawer; POS/Sell/Bar/Enquiry buttons disabled until later phases.
-- Phase 14 (ahead of phase order for demo): Next.js public website before POS/mobile/MCP; full CRM pipeline UI remains Phase 11. Ignore stray `customer-site/` Vite experiment if present — canonical site is `website/`.
+- Phase 14 (ahead of phase order for demo): React + Vite public site before POS/mobile/MCP; full CRM pipeline UI remains Phase 11. Canonical site is `customer-site/`; Next.js `website*` trees are parked.
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -72,4 +72,4 @@ Current phase: 8 + Phase 14 partial (public website MVP)
 - Odoo.Server: Phase 6/7 booking + pricing + concurrency suite (docs/08 §14: 50 parallel → 1 booking).
 - Odoo.Admin: Front Desk `/front-desk`, Bookings `/courts/bookings`, Courts `/courts` live (Soon badges removed).
 - Seed: Tennis/Padel/Badminton/Cricket + courts + sample booking via `npm run seed:demo`.
-- Website: `website/` `npm run build` green; `/api/public/*` returns `{ isOk: true }` (restart server after pull to load routes).
+- Website: `customer-site/` Vite on :3001; `/api/public/*` on API :7003 returns `{ isOk: true }`.

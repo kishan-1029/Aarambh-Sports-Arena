@@ -16,35 +16,40 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // ============ RATE LIMITING CONFIGURATION ============
+const rateLimitRelaxed =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.RATE_LIMIT_RELAXED === '1' ||
+    process.env.RATE_LIMIT_RELAXED === 'true';
+
 export const rateLimitConfig = {
-    // General API rate limit
+    // General API rate limit (very high in non-production so demos never 429)
     general: {
         windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-        maxRequests: Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+        maxRequests: Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || (rateLimitRelaxed ? 1_000_000 : 100),
     },
 
-    // Authentication endpoints (stricter)
+    // Authentication endpoints (stricter in production only)
     auth: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        maxRequests: Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 5, // 5 attempts
+        maxRequests: Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX) || (rateLimitRelaxed ? 100_000 : 5),
     },
 
     // Password reset (very strict)
     passwordReset: {
         windowMs: 60 * 60 * 1000, // 1 hour
-        maxRequests: 3,
+        maxRequests: rateLimitRelaxed ? 10_000 : 3,
     },
 
     // Search/heavy operations
     search: {
         windowMs: 60 * 1000, // 1 minute
-        maxRequests: 30,
+        maxRequests: rateLimitRelaxed ? 100_000 : 30,
     },
 
     // File uploads
     upload: {
         windowMs: 60 * 60 * 1000, // 1 hour
-        maxRequests: 10,
+        maxRequests: rateLimitRelaxed ? 10_000 : 10,
     },
 };
 

@@ -31,8 +31,11 @@ const AuthProvider = ({ children }) => {
             })
             .catch((error) => {
                 console.log("error", error);
-                // Only navigate to login if we get an auth error
-                if (error.response?.status === 401 || error.response?.status === 403) {
+                const status = error.response?.status;
+                // Never treat rate-limit / network blips as logout
+                if (status === 429 || !error.response) return;
+                // Only hard-logout on clear unauthenticated session
+                if (status === 401) {
                     localStorage.removeItem("role");
                     setAdminData(null);
                     setRole(null);
@@ -66,6 +69,16 @@ const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             console.log("Session verification failed:", error);
+            const status = error.response?.status;
+            // Rate limit / transient network: keep local role, do not bounce to login
+            if (status === 429 || !error.response) {
+                setIsSessionVerified(true);
+                setLoading(false);
+                if (localStorage.getItem("role")) {
+                    getAdmin();
+                }
+                return;
+            }
             // Session is invalid, clear localStorage and redirect
             localStorage.removeItem("role");
             setAdminData(null);

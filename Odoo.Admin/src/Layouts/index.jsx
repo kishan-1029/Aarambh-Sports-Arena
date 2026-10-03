@@ -76,8 +76,8 @@ const Layout = (props) => {
             root.style.setProperty('--sidebar-link-icon-color', 'rgba(30, 41, 59, 0.7)');
             root.style.setProperty('--sidebar-link-hover-bg', 'rgba(0, 0, 0, 0.05)');
             root.style.setProperty('--sidebar-link-hover-color', '#1e293b');
-            root.style.setProperty('--sidebar-link-active-bg', 'rgba(35, 119, 241, 0.15)');
-            root.style.setProperty('--sidebar-link-active-color', '#224c99');
+            root.style.setProperty('--sidebar-link-active-bg', 'rgba(15, 122, 74, 0.15)');
+            root.style.setProperty('--sidebar-link-active-color', '#0f7a4a');
             root.style.setProperty('--sidebar-collapse-icon-color', 'rgba(30, 41, 59, 0.8)');
         } else {
             root.style.setProperty('--sidebar-menu-title-color', 'rgba(255, 255, 255, 0.45)');
@@ -85,7 +85,7 @@ const Layout = (props) => {
             root.style.setProperty('--sidebar-link-icon-color', 'rgba(255, 255, 255, 0.65)');
             root.style.setProperty('--sidebar-link-hover-bg', 'rgba(255, 255, 255, 0.08)');
             root.style.setProperty('--sidebar-link-hover-color', '#ffffff');
-            root.style.setProperty('--sidebar-link-active-bg', 'rgba(53, 119, 241, 0.25)');
+            root.style.setProperty('--sidebar-link-active-bg', 'rgba(15, 122, 74, 0.35)');
             root.style.setProperty('--sidebar-link-active-color', '#ffffff');
             root.style.setProperty('--sidebar-collapse-icon-color', 'rgba(255, 255, 255, 0.8)');
         }
@@ -411,7 +411,13 @@ const Layout = (props) => {
     // Set initial layout styles on load
     useEffect(() => {
         if (adminData) {
-            const savedBg = adminData.sidebarBgColor || "#224c99";
+            const rawBg = adminData.sidebarBgColor || "#0f7a4a";
+            // Migrate old Velzon navy defaults to Arambh green
+            const savedBg =
+                !rawBg ||
+                ["#224c99", "#405189", "#3577f1"].includes(String(rawBg).toLowerCase())
+                    ? "#0f7a4a"
+                    : rawBg;
             const savedAdd = adminData.addButtonColor || savedBg;
             const savedRemove = adminData.removeButtonColor || "#f06548";
             const savedAddText = adminData.addButtonTextColor || "";
@@ -428,7 +434,7 @@ const Layout = (props) => {
     // Handle closing Customizer drawer and restoring saved states
     const handleCloseSettings = () => {
         setShowSettings(false);
-        const savedBg = adminData?.sidebarBgColor || "#224c99";
+        const savedBg = adminData?.sidebarBgColor || "#0f7a4a";
         const savedAdd = adminData?.addButtonColor || savedBg;
         const savedRemove = adminData?.removeButtonColor || "#f06548";
         const savedAddText = adminData?.addButtonTextColor || "";
@@ -519,7 +525,7 @@ const Layout = (props) => {
                 {`
                     /* Dynamic Theme Overrides using CSS custom variables */
                     .minimal-sidebar {
-                        background: var(--sidebar-bg, #224c99) !important;
+                        background: var(--sidebar-bg, #0f7a4a) !important;
                     }
                     
                     /* Text & icon contrast sizing overrides */
@@ -541,7 +547,7 @@ const Layout = (props) => {
                     }
                     
                     .minimal-sidebar .navbar-nav .nav-link.active {
-                        background: var(--sidebar-link-active-bg, rgba(53, 119, 241, 0.25)) !important;
+                        background: var(--sidebar-link-active-bg, rgba(15, 122, 74, 0.35)) !important;
                         color: var(--sidebar-link-active-color, #ffffff) !important;
                         font-weight: 600;
                     }
@@ -574,9 +580,9 @@ const Layout = (props) => {
                     }
                     
                     .btn-primary {
-                        background: var(--btn-primary-bg, linear-gradient(135deg, #3577f1 0%, #224c99 100%)) !important;
+                        background: var(--btn-primary-bg, linear-gradient(135deg, #1a9b6a 0%, #0f7a4a 100%)) !important;
                         border-color: var(--btn-primary-border, transparent) !important;
-                        box-shadow: var(--btn-primary-shadow, 0 4px 12px rgba(53, 119, 241, 0.3)) !important;
+                        box-shadow: var(--btn-primary-shadow, 0 4px 12px rgba(15, 122, 74, 0.3)) !important;
                         color: var(--btn-primary-color, white) !important;
                         transform: var(--btn-transform, translateY(0)) !important;
                         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;

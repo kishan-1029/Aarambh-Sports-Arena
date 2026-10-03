@@ -14,6 +14,23 @@
 
 import rateLimit from 'express-rate-limit';
 
+/** Hackathon/demo: effectively disable throttling so UI never 429-logs users out */
+const isDevRelaxed =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.RATE_LIMIT_RELAXED === '1' ||
+  process.env.RATE_LIMIT_RELAXED === 'true';
+
+const GENERAL_MAX = isDevRelaxed
+  ? Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 1_000_000
+  : Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100;
+const AUTH_MAX = isDevRelaxed
+  ? Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 100_000
+  : Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 5;
+const USER_MAX = isDevRelaxed ? 1_000_000 : 200;
+const SEARCH_MAX = isDevRelaxed ? 100_000 : 30;
+const UPLOAD_MAX = isDevRelaxed ? 10_000 : 10;
+const PASSWORD_RESET_MAX = isDevRelaxed ? 10_000 : 3;
+
 /**
  * Get client IP address from request
  * Handles various proxy configurations
@@ -88,7 +105,7 @@ const skipIfHealthCheck = (req) => {
  */
 export const generalRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per window
+    max: GENERAL_MAX,
     message: 'Too many requests from this IP, please try again after 15 minutes',
     standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false, // Disable `X-RateLimit-*` headers (use standardHeaders instead)
@@ -100,11 +117,11 @@ export const generalRateLimiter = rateLimit({
 /**
  * Strict Auth Rate Limiter
  * Stricter limits for authentication endpoints to prevent brute force
- * Default: 5 login attempts per 15 minutes per IP
+ * Default: 5 login attempts per 15 minutes per IP (relaxed in non-production)
  */
 export const authRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Only 5 login attempts per window
+    max: AUTH_MAX,
     message: 'Too many login attempts from this IP, please try again after 15 minutes',
     standardHeaders: true,
     legacyHeaders: false,
@@ -138,7 +155,7 @@ export const authRateLimiter = rateLimit({
  */
 export const passwordResetRateLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 3, // Only 3 password reset attempts per hour
+    max: PASSWORD_RESET_MAX,
     message: 'Too many password reset requests from this IP, please try again after an hour',
     standardHeaders: true,
     legacyHeaders: false,
@@ -163,7 +180,7 @@ export const passwordResetRateLimiter = rateLimit({
  */
 export const userRateLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // 200 requests per window per user
+    max: USER_MAX,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: keyGenerator, // Uses IP:userId combination
@@ -177,7 +194,7 @@ export const userRateLimiter = rateLimit({
  */
 export const searchRateLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 30, // 30 requests per minute
+    max: SEARCH_MAX,
     message: 'Too many search requests, please slow down',
     standardHeaders: true,
     legacyHeaders: false,
@@ -192,7 +209,7 @@ export const searchRateLimiter = rateLimit({
  */
 export const uploadRateLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // 10 uploads per hour
+    max: UPLOAD_MAX,
     message: 'Too many file uploads, please try again later',
     standardHeaders: true,
     legacyHeaders: false,

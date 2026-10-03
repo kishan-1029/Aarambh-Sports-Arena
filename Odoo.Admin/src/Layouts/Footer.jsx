@@ -9,17 +9,8 @@ const Footer = () => {
                     <Col xs={12} sm={6} className="text-center text-sm-start">
                         {new Date().getFullYear()} © Arambh Sports Arena
                     </Col>
-                    <Col xs={12} sm={6}>
-                        <a
-                            href="https://barodaweb.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-center text-sm-end text-dark d-block"
-                            style={{ textDecoration: "none" }}
-                        >
-                            Powered by{" "}
-                            <b>BarodaWeb: The e-Catalogue Designer</b>
-                        </a>
+                    <Col xs={12} sm={6} className="text-center text-sm-end text-muted">
+                        Club operations · Courts · Membership
                     </Col>
                 </Row>
             </Container>

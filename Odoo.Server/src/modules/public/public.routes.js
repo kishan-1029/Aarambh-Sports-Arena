@@ -23,10 +23,10 @@ function ctxFrom(req) {
   };
 }
 
-/** Stricter limit for public form POSTs */
+/** Stricter limit for public form POSTs (relaxed for local demo) */
 const formRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === 'production' ? 20 : 50_000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -2,8 +2,7 @@ import React, { useContext, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
-import logo from "../assets/images/logo.png";
-import config from "../config";
+import leftLogo from "../assets/images/brand/left.jpg";
 
 //Import Components
 import VerticalLayout from "./VerticalLayouts";
@@ -13,11 +12,7 @@ import HorizontalLayout from "./HorizontalLayout";
 import { AuthContext } from "../context/AuthContext";
 
 const Sidebar = ({ layoutType }) => {
-    const { adminData } = useContext(AuthContext);
-
-    const logoSrc = adminData?.logo
-        ? (adminData.logo.startsWith("http") ? adminData.logo : `${config.api.API_URL}/${adminData.logo.replace(/^\/+/, "")}`)
-        : logo;
+    useContext(AuthContext);
 
     useEffect(() => {
         const verticalOverlay =
@@ -101,22 +96,30 @@ const Sidebar = ({ layoutType }) => {
                     }
                     
                     .minimal-logo-box {
-                        background: white;
-                        border-bottom: 2px solid #224c99;
+                        background: #ffffff;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        padding: 15px;
-                        height: 80px;
+                        padding: 14px 12px;
+                        height: 120px !important;
+                        min-height: 120px !important;
+                        overflow: hidden;
                     }
                     
-                    .minimal-logo-box img {
-                        max-height: 50px !important;
-                        max-width: 85% !important;
+                    .minimal-logo-box img,
+                    .minimal-logo-box .logo-lg img,
+                    .minimal-logo-box .logo-sm img {
+                        max-height: 96px !important;
+                        max-width: 92% !important;
                         width: auto !important;
+                        height: auto !important;
                         object-fit: contain !important;
                         display: block;
                         margin: 0 auto;
+                        background: transparent !important;
+                        padding: 0 !important;
+                        border-radius: 0 !important;
                     }
                     
                     /* Menu styling */
@@ -626,28 +629,13 @@ const Sidebar = ({ layoutType }) => {
                 `}
             </style>
             <div className="app-menu navbar-menu minimal-sidebar">
-                <div className="navbar-brand-box minimal-logo-box flex-column">
-                    <Link to="/dashboard" className="logo logo-dark text-center w-100">
+                <div className="navbar-brand-box minimal-logo-box">
+                    <Link to="/dashboard" className="logo logo-dark logo-light text-center w-100 d-block">
                         <span className="logo-sm">
-                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="34" style={{ objectFit: "contain" }} />
+                            <img src={leftLogo} alt="Arambh Sports Arena" />
                         </span>
-                        <span className="logo-lg d-flex flex-column align-items-center">
-                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="48" style={{ objectFit: "contain" }} />
-                            <span className="arambh-brand-text mt-1" style={{ fontSize: "0.7rem", color: "var(--arambh-brand)" }}>
-                                Arambh Sports Arena
-                            </span>
-                        </span>
-                    </Link>
-
-                    <Link to="/dashboard" className="logo logo-light text-center w-100">
-                        <span className="logo-sm">
-                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="34" style={{ objectFit: "contain" }} />
-                        </span>
-                        <span className="logo-lg d-flex flex-column align-items-center">
-                            <img src={logoSrc} alt={adminData?.companyName || "Arambh Sports Arena"} height="48" style={{ objectFit: "contain" }} />
-                            <span className="arambh-brand-text mt-1" style={{ fontSize: "0.7rem", color: "var(--arambh-brand)" }}>
-                                Arambh Sports Arena
-                            </span>
+                        <span className="logo-lg">
+                            <img src={leftLogo} alt="Arambh Sports Arena" />
                         </span>
                     </Link>
                     <button

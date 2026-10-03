@@ -34,10 +34,14 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        // Handle 401 Unauthorized - redirect to login
+        // 401: leave AuthContext to decide logout (avoid clearing role on every failed call)
         if (error.response?.status === 401) {
-            localStorage.removeItem("role");
-            
+            console.warn("Unauthorized API response", error.config?.url);
+        }
+
+        // 429: never clear session — page navigation was falsely logging users out
+        if (error.response?.status === 429) {
+            console.warn("Rate limited — request skipped logout", error.config?.url);
         }
 
         // Handle 403 Forbidden

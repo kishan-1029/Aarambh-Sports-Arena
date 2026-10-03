@@ -35,7 +35,17 @@ import { SlotLock } from '../modules/booking/slotLock.model.js';
 import { MemberDayCounter } from '../modules/booking/memberDayCounter.model.js';
 import { SocialSession } from '../modules/booking/socialSession.model.js';
 import { SocialParticipant } from '../modules/booking/socialParticipant.model.js';
-import { toLocalDate, localDateTimeToUtc } from '../lib/time.js';
+import { toLocalDate, localDateTimeToUtc, addMinutesUtc } from '../lib/time.js';
+import { create as createBooking } from '../modules/booking/booking.service.js';
+import { Lead } from '../modules/public/lead.model.js';
+import { seedMenus } from './seedMenus.js';
+import {
+  seedExtraMembers,
+  seedExtraCustomers,
+  seedExtraInvoices,
+  seedExtraBookings,
+  seedExtraLeads,
+} from './seedDemoVolume.js';
 
 const clubSettingsSchema = new mongoose.Schema(
   {
@@ -77,6 +87,7 @@ async function resetDemo() {
     MemberDayCounter,
     SocialSession,
     SocialParticipant,
+    Lead,
   ];
 
   for (const Model of collections) {
@@ -553,6 +564,79 @@ async function seedSportsAndCourts(location, taxes) {
   return { sports, courts };
 }
 
+async function seedSampleBooking(courts, members) {
+  const tennis = courts.find((c) => c.code === 'T1') || courts[0];
+  const member = members?.[0];
+  if (!tennis) return null;
+
+  const today = toLocalDate();
+  const existing = await Booking.findOne({
+    courtId: tennis._id,
+    localDate: today,
+    isDemo: true,
+    status: { $nin: ['cancelled'] },
+  });
+  if (existing) {
+    logger.info({ bookingNo: existing.bookingNo }, 'sample booking already present');
+    return existing;
+  }
+
+  // Book a mid-afternoon slot so the board has something visible
+  const startUtc = localDateTimeToUtc(today, '16:00');
+  // Skip if that slot already started more than 2h ago (avoid past-slot failures)
+  if (startUtc.getTime() < Date.now() - 2 * 60 * 60 * 1000) {
+    const tomorrow = toLocalDate(addMinutesUtc(localDateTimeToUtc(today, '12:00'), 24 * 60));
+    const startTomorrow = localDateTimeToUtc(tomorrow, '16:00');
+    try {
+      const booking = await createBooking(
+        {
+          courtId: String(tennis._id),
+          startUtc: startTomorrow,
+          type: member ? 'member' : 'walk_in',
+          memberId: member ? String(member._id) : undefined,
+          bookedByMemberId: member ? String(member._id) : undefined,
+          customer: member
+            ? undefined
+            : { name: 'Walk-in Demo', phone: '9999900001' },
+          channel: 'front_desk',
+          paymentMode: 'cash',
+          isDemo: true,
+        },
+        { user: { id: 'seed', name: 'seed' } },
+      );
+      logger.info({ bookingNo: booking.bookingNo }, 'seeded sample booking');
+      return booking;
+    } catch (err) {
+      logger.warn({ err: err?.message }, 'sample booking skipped');
+      return null;
+    }
+  }
+
+  try {
+    const booking = await createBooking(
+      {
+        courtId: String(tennis._id),
+        startUtc,
+        type: member ? 'member' : 'walk_in',
+        memberId: member ? String(member._id) : undefined,
+        bookedByMemberId: member ? String(member._id) : undefined,
+        customer: member
+          ? undefined
+          : { name: 'Walk-in Demo', phone: '9999900001' },
+        channel: 'front_desk',
+        paymentMode: 'cash',
+        isDemo: true,
+      },
+      { user: { id: 'seed', name: 'seed' } },
+    );
+    logger.info({ bookingNo: booking.bookingNo }, 'seeded sample booking');
+    return booking;
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'sample booking skipped');
+    return null;
+  }
+}
+
 async function seedTemplates() {
   for (const t of DEFAULT_TEMPLATES) {
     await NotificationTemplate.findOneAndUpdate(
@@ -578,8 +662,17 @@ async function main() {
   const customers = await seedCustomers();
   await seedSampleInvoice(customers, taxes, location);
   const plans = await seedMembershipPlans(taxes);
-  await seedMembersAndMemberships(plans);
-  await seedSportsAndCourts(location, taxes);
+  const members = await seedMembersAndMemberships(plans);
+  const extraMembers = await seedExtraMembers(plans);
+  const allMembers = [...members, ...extraMembers];
+  const extraCustomers = await seedExtraCustomers();
+  const allCustomers = [...customers, ...extraCustomers];
+  await seedExtraInvoices(allCustomers, taxes, location);
+  const { courts } = await seedSportsAndCourts(location, taxes);
+  await seedSampleBooking(courts, allMembers);
+  await seedExtraBookings(courts, allMembers);
+  await seedExtraLeads();
+  await seedMenus();
   await seedTemplates();
   await seedArambhRoles();
 
@@ -593,7 +686,10 @@ async function main() {
       roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
       phase4: ['location', 'taxes', 'customers', 'sampleInvoice'],
       phase5: ['plans', 'members', 'memberships'],
-      phase6: ['sports', 'courts'],
+      phase6: ['sports', 'courts', 'sampleBooking'],
+      phase7: ['frontDesk'],
+      menus: true,
+      volume: true,
     },
   });
 

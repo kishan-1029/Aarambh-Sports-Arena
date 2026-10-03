@@ -8,7 +8,7 @@
   --arambh-border: #e2e6e0;
   --arambh-text: #111714;
   --arambh-text-muted: #5b665f;
-  --arambh-brand: #0f7a4a;
+  --arambh-brand: #3eb474;
   --arambh-brand-fg: #ffffff;
   --arambh-accent: #d9622b;
   --arambh-success: #1a8f5a;
@@ -21,9 +21,17 @@
   --arambh-radius: 10px;
   --arambh-radius-sm: 6px;
 
-  // Map primary Bootstrap accent lightly toward court green (Velzon prefix: vz-)
-  --vz-primary: #0f7a4a;
-  --vz-primary-rgb: 15, 122, 74;
+  // Map primary Bootstrap / Velzon chrome to court green
+  --vz-primary: #3eb474;
+  --vz-primary-rgb: 62, 180, 116;
+  --vz-primary-text-emphasis: #1f6b42;
+  --vz-primary-bg-subtle: #e8f7ee;
+  --vz-primary-border-subtle: #a8dfc0;
+  --vz-link-color: #2f9a5c;
+  --vz-link-hover-color: #247a48;
+  --vz-vertical-menu-bg-dark: #0c3d28;
+  --vz-header-bg-dark: #3eb474;
+  --vz-topbar-user-bg-dark: #2a8f58;
 }
 
 [data-layout-mode="dark"] {

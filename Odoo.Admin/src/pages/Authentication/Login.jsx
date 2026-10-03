@@ -15,9 +15,9 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { AuthContext } from "../../context/AuthContext";
-import bgImage from "../../assets/images/login.png";
 import { MenuContext } from "../../context/MenuContext";
-import logo from "../../assets/images/logo.png";
+import leftLogo from "../../assets/images/brand/left.jpg";
+import rightLogo from "../../assets/images/brand/right.jpg";
 import { getPublicCompanyDetails } from "../../api/companies.api";
 import config from "../../config";
 import {
@@ -808,13 +808,7 @@ const Login = () => {
 
     const [publicCompany, setPublicCompany] = useState(null);
 
-    const logoSrc = publicCompany?.logo
-        ? (publicCompany.logo.startsWith("http") ? publicCompany.logo : `${config.api.API_URL}/${publicCompany.logo.replace(/^\/+/, "")}`)
-        : logo;
-
-    const sideLogoSrc = publicCompany?.loginBanner
-        ? (publicCompany.loginBanner.startsWith("http") ? publicCompany.loginBanner : `${config.api.API_URL}/${publicCompany.loginBanner.replace(/^\/+/, "")}`)
-        : bgImage;
+    void publicCompany;
 
     const loadBranding = (emailVal = "") => {
         getPublicCompanyDetails(emailVal)
@@ -1042,28 +1036,79 @@ const Login = () => {
                             width: 50% !important;
                         }
                     }
+                    .arambh-login-input {
+                        border: 1.5px solid #d5e6db !important;
+                        border-radius: 10px !important;
+                        background: #fff !important;
+                        box-shadow: none !important;
+                    }
+                    .arambh-login-input:focus {
+                        border-color: #3eb474 !important;
+                        box-shadow: 0 0 0 3px rgba(62, 180, 116, 0.18) !important;
+                    }
+                    .arambh-login-input:-webkit-autofill,
+                    .arambh-login-input:-webkit-autofill:hover,
+                    .arambh-login-input:-webkit-autofill:focus {
+                        -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+                        -webkit-text-fill-color: #111 !important;
+                        caret-color: #111;
+                        transition: background-color 9999s ease-in-out 0s;
+                    }
+                    .arambh-login-btn {
+                        background: linear-gradient(135deg, #3eb474, #2f9a5c) !important;
+                        border: none !important;
+                        color: #fff !important;
+                        border-radius: 10px !important;
+                        font-weight: 700 !important;
+                        padding: 0.75rem 1rem !important;
+                        box-shadow: 0 8px 20px rgba(62, 180, 116, 0.28);
+                    }
+                    .arambh-login-btn:hover:not(:disabled),
+                    .arambh-login-btn:focus:not(:disabled) {
+                        background: linear-gradient(135deg, #35a868, #278552) !important;
+                        color: #fff !important;
+                        box-shadow: 0 10px 24px rgba(62, 180, 116, 0.35);
+                    }
+                    .arambh-login-btn:disabled {
+                        opacity: 0.65;
+                    }
+                    .form-check-input:checked {
+                        background-color: #3eb474 !important;
+                        border-color: #3eb474 !important;
+                    }
                 `}
             </style>
-            <div className="auth-wrapper d-flex" style={{ height: "100vh" }}>
+            <div className="auth-wrapper d-flex" style={{ height: "100vh", background: "#f4faf6" }}>
                 <div
-                    className="left-panel d-flex align-items-center justify-content-center"
+                    className="left-panel d-none d-lg-flex align-items-center justify-content-center"
                     style={{
-                        backgroundColor: "#e7f3ff",
-                        width: "70%",
+                        background: "linear-gradient(165deg, #ffffff 0%, #eef8f1 100%)",
+                        width: "52%",
                         height: "100vh",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
+                        padding: "3rem",
+                        borderRight: "1px solid #dceee3",
                     }}
                 >
-                    <img src={sideLogoSrc} alt="Background" style={{ height: "300px", maxWidth: "80%", objectFit: "contain" }} />
+                    <img
+                        src={leftLogo}
+                        alt="Arambh Sports Arena"
+                        style={{
+                            width: "min(380px, 78%)",
+                            height: "auto",
+                            maxHeight: "68vh",
+                            objectFit: "contain",
+                        }}
+                    />
                 </div>
                 <div
                     className="right-panel d-flex align-items-center justify-content-center"
                     style={{
-                        width: "30%",
-                        backgroundColor: "white",
+                        width: "100%",
+                        maxWidth: "100%",
+                        flex: 1,
+                        backgroundColor: "#f4faf6",
                         height: "100vh",
+                        overflowY: "auto",
                     }}
                 >
                     <Container>
@@ -1072,11 +1117,14 @@ const Login = () => {
                                 <Card
                                     style={{
                                         border: "none",
-                                        boxShadow: "0 4px 24px rgba(0,0,0,0)",
+                                        background: "transparent",
+                                        boxShadow: "none",
                                         borderRadius: "12px",
+                                        maxWidth: 420,
+                                        margin: "0 auto",
                                     }}
                                 >
-                                    <CardBody className="p-5 mobile-card-body">
+                                    <CardBody className="p-4 p-md-5 mobile-card-body">
                                          {forgotPasswordMode ? (
                                              <ForgotPasswordForm
                                                  forgotPasswordStep={forgotPasswordStep}
@@ -1104,37 +1152,19 @@ const Login = () => {
                                          ) : (
                                             <>
                                                 <div className="text-center mb-4">
-                                                    <div className="d-flex justify-content-center mb-4">
-                                                        <img
-                                                            src={logoSrc}
-                                                            alt="Logo"
-                                                            style={{
-                                                                width: "100px",
-                                                                height: "100px",
-                                                                objectFit: "contain",
-                                                            }}
-                                                            className="mobile-logo"
-                                                        />
-                                                    </div>
-                                                    <h2
-                                                        className="mobile-heading arambh-brand-text"
+                                                    <img
+                                                        src={rightLogo}
+                                                        alt="Arambh Sports Arena"
                                                         style={{
-                                                            color: "var(--arambh-brand, #0f7a4a)",
-                                                            fontWeight: "700",
-                                                            letterSpacing:
-                                                                "0.02em",
-                                                            fontSize: "1.35rem",
+                                                            width: "100%",
+                                                            maxWidth: 260,
+                                                            height: "auto",
+                                                            objectFit: "contain",
+                                                            marginBottom: "0.85rem",
                                                         }}
-                                                    >
-                                                        Arambh Sports Arena
-                                                    </h2>
-                                                    <p
-                                                        className="text-muted"
-                                                        style={{
-                                                            fontSize: "0.9rem",
-                                                        }}
-                                                    >
-                                                        Sign in to the club admin panel.
+                                                    />
+                                                    <p className="text-muted mb-0" style={{ fontSize: "0.95rem" }}>
+                                                        Sign in to the club admin panel
                                                     </p>
                                                 </div>
                                                 <Form>
@@ -1218,8 +1248,8 @@ const Login = () => {
                                                                 className={
                                                                     errEmail &&
                                                                         isSubmit
-                                                                        ? "form-control is-invalid"
-                                                                        : "form-control"
+                                                                        ? "form-control is-invalid arambh-login-input"
+                                                                        : "form-control arambh-login-input"
                                                                 }
                                                                 placeholder="Enter email"
                                                                 type="email"
@@ -1229,12 +1259,6 @@ const Login = () => {
                                                                 value={
                                                                     values.email
                                                                 }
-                                                                style={{
-                                                                    borderRadius:
-                                                                        "8px",
-                                                                    padding:
-                                                                        "0.65rem 1rem",
-                                                                }}
                                                             />
                                                             {isSubmit &&
                                                                 formErrors.email && (
@@ -1271,8 +1295,8 @@ const Login = () => {
                                                                     className={
                                                                         errPassword &&
                                                                             isSubmit
-                                                                            ? "form-control is-invalid"
-                                                                            : "form-control pe-5"
+                                                                            ? "form-control is-invalid arambh-login-input pe-5"
+                                                                            : "form-control arambh-login-input pe-5"
                                                                     }
                                                                     placeholder="Enter Password"
                                                                     onChange={
@@ -1281,12 +1305,6 @@ const Login = () => {
                                                                     value={
                                                                         values.password
                                                                     }
-                                                                    style={{
-                                                                        borderRadius:
-                                                                            "8px",
-                                                                        padding:
-                                                                            "0.65rem 1rem",
-                                                                    }}
                                                                 />
                                                                 <button
                                                                     className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
@@ -1317,9 +1335,9 @@ const Login = () => {
                                                         <div
                                                             className="consent-section mb-3 p-3"
                                                             style={{
-                                                                backgroundColor: "#f8f9fa",
-                                                                borderRadius: "8px",
-                                                                border: "1px solid #e9ecef",
+                                                                backgroundColor: "#e8f5ee",
+                                                                borderRadius: "10px",
+                                                                border: "1px solid #cfe8d8",
                                                             }}
                                                         >
                                                             <p
@@ -1354,7 +1372,7 @@ const Login = () => {
                                                                         marginLeft: "4px"
                                                                     }}
                                                                 >
-                                                                    <i className="ri-map-pin-line me-1" style={{ color: "#0d6efd" }}></i> I consent to location tracking for security purposes
+                                                                    <i className="ri-map-pin-line me-1" style={{ color: "#3eb474" }}></i> I consent to location tracking for security purposes
                                                                     {isSubmit && !locationConsent && (
                                                                         <span className="text-danger ms-1" style={{ fontSize: "0.8rem" }}>*Required</span>
                                                                     )}
@@ -1382,7 +1400,7 @@ const Login = () => {
                                                                         marginLeft: "4px"
                                                                     }}
                                                                 >
-                                                                    <i className="ri-global-line me-1" style={{ color: "#0d6efd" }}></i> I consent to IP address tracking for security purposes
+                                                                    <i className="ri-global-line me-1" style={{ color: "#3eb474" }}></i> I consent to IP address tracking for security purposes
                                                                     {isSubmit && !ipConsent && (
                                                                         <span className="text-danger ms-1" style={{ fontSize: "0.8rem" }}>*Required</span>
                                                                     )}
@@ -1392,47 +1410,11 @@ const Login = () => {
                                                         <div className="mt-4">
                                                             <Button
                                                                 type="button"
-                                                                className="w-100"
+                                                                className="w-100 arambh-login-btn"
                                                                 onClick={login}
                                                                 disabled={
                                                                     isLoginLoading || isLocked
                                                                 }
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        "#0d6efd",
-                                                                    borderColor:
-                                                                        "#0d6efd",
-                                                                    padding:
-                                                                        "0.65rem 1rem",
-                                                                    borderRadius:
-                                                                        "8px",
-                                                                    fontWeight:
-                                                                        "600",
-                                                                    letterSpacing:
-                                                                        "0.5px",
-                                                                    transition:
-                                                                        "all 0.3s ease",
-                                                                }}
-                                                                onMouseEnter={(
-                                                                    e
-                                                                ) => {
-                                                                    if (
-                                                                        !isLoginLoading
-                                                                    ) {
-                                                                        e.target.style.backgroundColor =
-                                                                            "#0b5ed7";
-                                                                        e.target.style.boxShadow =
-                                                                            "0 4px 12px rgba(13,110,253,0.3)";
-                                                                    }
-                                                                }}
-                                                                onMouseLeave={(
-                                                                    e
-                                                                ) => {
-                                                                    e.target.style.backgroundColor =
-                                                                        "#0d6efd";
-                                                                    e.target.style.boxShadow =
-                                                                        "none";
-                                                                }}
                                                             >
                                                                 {isLoginLoading ? (
                                                                     <>

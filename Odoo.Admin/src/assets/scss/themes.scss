@@ -111,7 +111,24 @@ body {
 }
 
 .rangeslider-horizontal .rangeslider__fill {
-  background-color: #405189 !important;
+  background-color: #0f7a4a !important;
+}
+
+// Force green chrome even when CSS variables lag after HMR
+.app-menu,
+.navbar-menu {
+  --vz-vertical-menu-bg-dark: #0c3d28;
+}
+
+.btn-primary,
+.bg-primary {
+  --vz-btn-bg: #0f7a4a;
+  --vz-btn-border-color: #0f7a4a;
+}
+
+a {
+  --vz-link-color: #0f7a4a;
+  --vz-link-hover-color: #0c5f39;
 }
 
 

@@ -40,6 +40,7 @@ import MembershipPlans from "../pages/Arambh/MembershipPlans";
 import Memberships from "../pages/Arambh/Memberships";
 import Courts from "../pages/Arambh/Courts";
 import Bookings from "../pages/Arambh/Bookings";
+import FrontDesk from "../pages/Arambh/FrontDesk";
 
 
 const authProtectedRoutes = [
@@ -70,7 +71,7 @@ const authProtectedRoutes = [
     { path: "/login-attempt-logs", component: <LoginAttemptLogs /> },
 
     // Arambh module placeholders + sample list (Phase 3)
-    { path: "/front-desk", component: <ComingSoon /> },
+    { path: "/front-desk", component: <FrontDesk /> },
     { path: "/courts", component: <Courts /> },
     { path: "/courts/bookings", component: <Bookings /> },
     { path: "/members", component: <Members /> },
