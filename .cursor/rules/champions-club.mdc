@@ -1,0 +1,16 @@
+---
+description: Champions Club sports club platform — always-on project rules
+alwaysApply: true
+---
+
+- The spec lives in `docs/`. Before any task, read `docs/00-Cursor-Execution-Guide.md` and the phase in `docs/26-Implementation-Phases.md`.
+- If `docs/Audit/` is empty, do Phase 0 (`docs/03-Phase0-Codebase-Audit.md`) first. Write notes, not code.
+- Extend existing code. Never create a second auth middleware, API client, error class, table, toast or DB connection.
+- `Reference Project/**` is read-only. Copy patterns, never import from it.
+- Money is integer paise. Time is UTC `Date` + IST `localDate`. Use `lib/money.js` and `lib/time.js`.
+- Business rules live in services. Multi-document writes use `withTransaction()`. Events and side effects run after commit.
+- Bookings only through `BookingService`; stock only through `InventoryService.move()`; money only through finance services.
+- Every route: `requireAuth` + `requirePermission` + zod `validate`. Every important write: `audit.record()`.
+- Never write secrets into code, docs or logs. The MongoDB URI comes from `MONGODB_URI` in `.env` only.
+- When the spec is wrong, write an ADR in `docs/ADR/` instead of silently deviating.
+- Finish each phase with the checklist in `docs/00-Cursor-Execution-Guide.md` §6 and a `docs/Changelog.md` line.

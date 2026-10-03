@@ -1,11 +1,11 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 1
+Current phase: 2
 
 ## Phases
 
 - [x] Phase 0 — Codebase and reference audit
-- [ ] Phase 1 — Foundation
+- [x] Phase 1 — Foundation
 - [ ] Phase 2 — Authentication and RBAC
 - [ ] Phase 3 — Design system and admin shell
 - [ ] Phase 4 — Club setup, customers, finance core
@@ -27,17 +27,12 @@ Current phase: 1
 
 ## Current phase tasks
 
-### Phase 1 — Foundation
-- [ ] Config (zod env; DATABASE/MONGODB_URI alias)
-- [ ] lib: db/withTransaction, errors, money, time, clock, counters, listQuery
-- [ ] middleware: validate, idempotency, rateLimit, errorHandler, requestId
-- [ ] events bus + socket bootstrap
-- [ ] audit + notifications modules
-- [ ] worker.js + jobLocks
-- [ ] seed runner + health routes
-- [ ] packages/shared stubs
-- [ ] test helpers (MongoMemoryReplSet) + foundation unit tests
-- [ ] lint/test green; Changelog + API notes
+### Phase 2 — Authentication and RBAC
+- [ ] String permissions module + seed roles (owner/manager/front_desk/bar_staff/finance)
+- [ ] Extend session ctx with permission strings (keep cookie session — ADR-0002)
+- [ ] requirePermission middleware for new Arambh routes (extend checkPermission, don't duplicate auth)
+- [ ] Admin usePermission / Can helpers
+- [ ] Auth event audit; existing company login still works
 
 ## Decisions & deviations
 
@@ -53,11 +48,14 @@ Current phase: 1
 
 ## Blockers / needs human
 
-- **Atlas IP whitelist:** server boots but cannot select MongoDB primary from this machine until the current IP is allowed in Atlas Network Access (or `0.0.0.0/0` for demo). Tests will use MongoMemoryReplSet and do not need Atlas.
-- **Security:** a MongoDB Atlas password was pasted in chat earlier — rotate that Atlas DB user password when convenient (URI never logged here).
+- **DB migrate to odoo2026 cluster blocked:** `mongodump` of source DB `test` succeeded locally (156 collections). `mongorestore` into destination cluster **fails** — this machine’s public IP `42.105.173.16` is not on that Atlas Network Access list (TLS / ReplicaSetNoPrimary).  
+  **Do this in Atlas (destination cluster):** Network Access → Add IP `42.105.173.16` (or `0.0.0.0/0` for demo) → then run `Odoo.Server/scripts/restore-dump-when-ready.ps1`. Dump kept at `d:\odoo2026\_mongo_migrate\dump`.  
+  **Interim:** app `.env` points at the **reachable source** cluster so existing data (156 collections) works for the evaluator now.
+- **Security:** DB passwords were pasted in chat — rotate those Atlas users when convenient (values never logged here).
 - `gh` CLI not authenticated — cannot push/PR until `gh auth login`.
 
 ## Test status
 
-- Odoo.Server: `npm install` OK; `node server.js` listens on configured PORT; Atlas connection failed (IP whitelist).
-- Odoo.Admin: `npm install` OK; `npm run build` (vite) OK.
+- Odoo.Server: `npm test` → 15/15 pass (MongoMemoryReplSet).
+- Odoo.Server: running on http://localhost:7002 against source DB (156 collections); `/api/health` + `/api/health/ready` OK.
+- Odoo.Admin: Vite on http://localhost:3000/ (API → :7002).

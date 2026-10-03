@@ -5,11 +5,19 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import fs from "node:fs";
 import path from "node:path";
+import http from "node:http";
 import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
 import hpp from "hpp";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import { setupSwagger } from "./config/swagger.js";
+import { config } from "./src/config/index.js";
+import { connectDb } from "./src/lib/db.js";
+import { requestId } from "./src/middleware/requestId.js";
+import { errorHandler } from "./src/middleware/errorHandler.js";
+import { initSocket } from "./src/realtime/socket.js";
+import healthRoutes from "./src/routes/health.routes.js";
+import { logger } from "./src/lib/logger.js";
 
 // ============ SECURITY IMPORTS ============
 // OWASP-compliant security middleware
@@ -29,8 +37,6 @@ import {
 // ES6 module equivalent of __dirname and __filename
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-dotenv.config();
 
 globalThis.__basedir = __dirname;
 
@@ -80,9 +86,12 @@ function logError(error) {
 }
 
 const app = express();
+const httpServer = http.createServer(app);
 let databasestatus = "In-Progress";
 
 // ============ SECURITY MIDDLEWARE (Apply FIRST) ============
+app.use(requestId);
+
 // 1. Security Headers (Helmet + custom headers)
 app.use(securityHeaders);
 app.use(additionalSecurityHeaders);
@@ -128,22 +137,20 @@ app.use(express.static("files"));
 app.use("/", express.static(path.join(__dirname, "/out/admin")));
 // NOTE: Removed /log static serving for security - logs should not be publicly accessible
 
-// 7. Express Session - MongoDB Session Storage (persistent)
-import MongoStore from "connect-mongo";
-
+// 7. Express Session - MongoDB Session Storage (persistent) — ADR-0002
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-in-production',
+  secret: config.sessionSecret,
   resave: false,
   saveUninitialized: false,
   name: 'sessionId',
   store: MongoStore.create({
-    mongoUrl: process.env.DATABASE,
+    mongoUrl: config.mongoUri,
     collectionName: 'sessions',
     ttl: 24 * 60 * 60, // 24 hours in seconds
     autoRemove: 'native', // Use MongoDB TTL index for cleanup
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    secure: config.isProd, // HTTPS only in production
     httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax' // CSRF protection
@@ -153,9 +160,9 @@ app.use(session({
 console.log("✅ Express session middleware configured (MongoDB storage)");
 
 mongoose.set("strictQuery", false);
-mongoose.set("debug", true);
-
-const dbURI = process.env.DATABASE;
+if (config.nodeEnv === "development") {
+  mongoose.set("debug", true);
+}
 
 import MenuGroupMaster from "./models/MenuGroupMaster.js";
 import MenuMaster from "./models/MenuMaster.js";
@@ -292,17 +299,13 @@ const seedHelpAndGuideMenus = async () => {
 };
 
 try {
-  await mongoose.connect(dbURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 10000,
-  });
+  await connectDb();
   console.log("✅ DB connected");
   databasestatus = "Connected";
   await seedFaqMenus();
   await seedHelpAndGuideMenus();
 } catch (err) {
-  console.error("❌ DB Connection Error =>", err);
+  console.error("❌ DB Connection Error =>", err?.message || err);
   if (err instanceof mongoose.Error.MongooseServerSelectionError) {
     console.error(
       "Server selection failed. Check network, URI, and Atlas IP whitelist.",
@@ -364,6 +367,9 @@ app.use("/api/v1", guideRoutes);
 
 console.log("✅ V1 API routes loaded");
 
+// Arambh health (before SPA catch-all)
+app.use("/api", healthRoutes);
+
 app.get("/api", (req, res) => {
   res.json({
     status: "ok",
@@ -373,28 +379,25 @@ app.get("/api", (req, res) => {
   });
 });
 
-
-
 app.get("/*", async (req, res) => {
   res.sendFile(path.join(__dirname, "/out/admin", "index.html"));
 });
 
 // ============ ERROR HANDLING ============
-// Use the secure error sanitizer (prevents information leakage)
+// AppError → isOk envelope (new code); then legacy sanitizer
+app.use(errorHandler);
 app.use(sanitizeErrors);
 
 // Fallback error handler that logs errors but doesn't expose details
 // eslint-disable-next-line no-unused-vars
 app.use(async (err, req, res, _next) => {
-  // Log error to file for debugging
   const errorData = {
     datetime: new Date().toISOString(),
     message: err?.message,
     path: req?.path,
     method: req?.method,
     ip: req?.ip,
-    // Don't log full stack trace to file in production
-    stack: process.env.NODE_ENV === 'development' ? err?.stack : undefined,
+    stack: config.nodeEnv === 'development' ? err?.stack : undefined,
   };
 
   try {
@@ -410,7 +413,6 @@ app.use(async (err, req, res, _next) => {
       }
     }
 
-    // Keep only last 100 errors to prevent log file from growing too large
     if (writecontent.length > 100) {
       writecontent = writecontent.slice(-100);
     }
@@ -421,19 +423,21 @@ app.use(async (err, req, res, _next) => {
     console.error("Error logging to file:", logErr);
   }
 
-  // SECURITY: Don't expose internal error details to users
-  const isProduction = process.env.NODE_ENV === 'production';
   return res.status(500).json({
     isOk: false,
     status: 500,
     error: 'Internal Server Error',
-    message: isProduction ? 'An unexpected error occurred' : err?.message,
+    message: config.isProd ? 'An unexpected error occurred' : err?.message,
+    ...(req.requestId ? { requestId: req.requestId } : {}),
   });
 });
 
-const port = process.env.PORT || 8000;
+const port = config.port;
 
-app.listen(port, () => {
+initSocket(httpServer);
+
+httpServer.listen(port, () => {
+  logger.info({ port }, "Server listening");
   console.log(`✅ Server is running on port ${port}`);
   console.log(`🔒 Security middleware enabled: Helmet, Rate Limiting, Input Validation, CSRF Protection`);
 });

@@ -73,7 +73,10 @@ const rateLimitHandler = (req, res) => {
  */
 const skipIfHealthCheck = (req) => {
     // Skip rate limiting for health check endpoints
-    return req.path === '/api' || req.path === '/health';
+    return req.path === '/api'
+        || req.path === '/health'
+        || req.path === '/api/health'
+        || req.path === '/api/health/ready';
 };
 
 // ============ RATE LIMITERS ============

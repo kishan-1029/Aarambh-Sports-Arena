@@ -1,0 +1,15 @@
+{
+  "name": "@arambh/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./permissions.js": "./permissions.js",
+    "./enums.js": "./enums.js",
+    "./money.js": "./money.js",
+    "./time.js": "./time.js",
+    "./tokens.js": "./tokens.js"
+  }
+}
