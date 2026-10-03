@@ -140,6 +140,7 @@ export const getCorsConfig = (allowedOrigins = []) => {
             'Content-Type',
             'Accept',
             'Authorization',
+            'Idempotency-Key',
             'X-Client-IP',
             'X-Client-Latitude',
             'X-Client-Longitude',

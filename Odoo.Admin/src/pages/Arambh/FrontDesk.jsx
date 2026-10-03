@@ -48,10 +48,63 @@ function nowLabel() {
 
 /** IST wall-clock → UTC ISO for booking create */
 function istSlotToUtcIso(localDate, hhmm) {
-  const [y, m, d] = localDate.split("-").map(Number);
-  const [hh, mm] = hhmm.split(":").map(Number);
+  const [y, m, d] = String(localDate || "").split("-").map(Number);
+  const [hh, mm] = String(hhmm || "").split(":").map(Number);
+  if (![y, m, d, hh, mm].every((n) => Number.isFinite(n))) return null;
   const utcMs = Date.UTC(y, m - 1, d, hh, mm) - 5.5 * 60 * 60 * 1000;
-  return new Date(utcMs).toISOString();
+  const iso = new Date(utcMs).toISOString();
+  return Number.isNaN(Date.parse(iso)) ? null : iso;
+}
+
+function slotLabel(start) {
+  const t = new Date(start);
+  if (Number.isNaN(t.getTime())) return "";
+  return t.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kolkata",
+  });
+}
+
+/** Map every confirm-booking failure onto a message the form can show. */
+export function confirmBookingError(err) {
+  if (!err?.response) {
+    if (err?.code === "ECONNABORTED") {
+      return "The server took too long to confirm this booking. Refresh the board before trying the same slot again.";
+    }
+    return "Cannot reach the server, so this booking was not confirmed. Check that the API is running and try again.";
+  }
+
+  const status = err.response.status;
+  if (status === 401) {
+    return "Your session expired. Sign in again, then confirm the booking.";
+  }
+
+  const data = err.response.data || {};
+  const details = data?.error?.details;
+  const issues = Array.isArray(details) ? details : null;
+  let msg = data.message || "Booking failed";
+  if (issues?.length) {
+    const text = issues.map((i) => i.message).filter(Boolean).join(". ");
+    if (text) msg = text;
+  }
+
+  const alts =
+    (details && !Array.isArray(details) && details.alternatives) ||
+    data?.data?.alternatives ||
+    data?.alternatives ||
+    [];
+  if (Array.isArray(alts) && alts.length) {
+    const labels = alts.slice(0, 3).map((a) => {
+      const time = a.start ? slotLabel(a.start) : "";
+      if (a.courtName && time) return `${a.courtName} ${time}`;
+      if (time) return a.sameCourt === false ? time : `same court ${time}`;
+      return a.courtName || "another slot";
+    });
+    msg += `. Try: ${labels.join(", ")}`;
+  }
+  return msg;
 }
 
 const TIER_COLOUR = {
@@ -255,12 +308,17 @@ const FrontDesk = () => {
       setFormError("Walk-in needs name and phone.");
       return;
     }
+    const startUtc = istSlotToUtcIso(date, slot.hhmm);
+    if (!startUtc) {
+      setFormError("Pick a valid date and start time.");
+      return;
+    }
     setSubmitting(true);
     setFormError(null);
     try {
       const body = {
         courtId: String(slot.court._id),
-        startUtc: istSlotToUtcIso(date, slot.hhmm),
+        startUtc,
         type: isMember ? "member" : "walk_in",
         channel: "front_desk",
         paymentMode: payMode,
@@ -272,9 +330,8 @@ const FrontDesk = () => {
       } else {
         body.customer = { name: walkName.trim(), phone: walkPhone.trim() };
       }
-      const res = await createBooking(body, {
-        "Idempotency-Key": `fd-${slot.court._id}-${slot.hhmm}-${Date.now()}`,
-      });
+      body.idempotencyKey = `fd-${slot.court._id}-${date}-${slot.hhmm}-${walkPhone.trim() || member?._id || "guest"}`;
+      const res = await createBooking(body);
       const booking = res?.data?.data;
       setToast(
         booking
@@ -284,16 +341,7 @@ const FrontDesk = () => {
       setDrawer(false);
       await loadBoard();
     } catch (err) {
-      const data = err?.response?.data;
-      const alts = data?.data?.alternatives || data?.alternatives;
-      let msg = data?.message || err?.message || "Booking failed";
-      if (Array.isArray(alts) && alts.length) {
-        msg += ` · Try: ${alts
-          .slice(0, 3)
-          .map((a) => a.label || a.courtName || a.start)
-          .join(", ")}`;
-      }
-      setFormError(msg);
+      setFormError(confirmBookingError(err));
     } finally {
       setSubmitting(false);
     }
