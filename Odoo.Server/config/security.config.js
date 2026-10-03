@@ -63,8 +63,12 @@ export const corsConfig = {
         'http://127.0.0.1:3000',
         'http://127.0.0.1:3001',
         'http://localhost:7002',
-        ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
-        ...(process.env.CORS_ORIGINS?.split(',') || []),
+        'https://sportsarena.aarambhevents.in',
+        'http://sportsarena.aarambhevents.in',
+        // RunPod demo (also allowlisted dynamically in getCorsConfig)
+        'https://fwps7t0eq1x9jv-8888.proxy.runpod.net',
+        ...(process.env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
+        ...(process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
     ].filter(Boolean),
 
     // Allowed methods

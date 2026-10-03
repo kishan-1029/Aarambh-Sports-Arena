@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+    // Single-domain prod: VITE_BASE=/admin/  (see deploy/build-frontends.sh)
+    base: process.env.VITE_BASE || '/',
     plugins: [react()],
     resolve: {
         alias: {

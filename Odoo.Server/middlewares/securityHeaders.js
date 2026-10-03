@@ -109,6 +109,10 @@ export const getCorsConfig = (allowedOrigins = []) => {
         'http://127.0.0.1:3001',
         'http://localhost:7002',
         'https://demo-test.barodaweb.net.in',
+        'https://sportsarena.aarambhevents.in',
+        'http://sportsarena.aarambhevents.in',
+        'https://aarambhevents.in',
+        'https://www.aarambhevents.in',
         ...(process.env.ALLOWED_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
         ...(process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) || []),
     ];
@@ -121,6 +125,14 @@ export const getCorsConfig = (allowedOrigins = []) => {
             if (!origin) return callback(null, true);
 
             if (origins.has(origin)) {
+                return callback(null, true);
+            }
+
+            // RunPod HTTP proxy (https://<id>-<port>.proxy.runpod.net)
+            if (
+                /^https:\/\/[a-z0-9-]+\.proxy\.runpod\.net$/i.test(origin) ||
+                /^https:\/\/[a-z0-9-]+\.runpod\.net$/i.test(origin)
+            ) {
                 return callback(null, true);
             }
 

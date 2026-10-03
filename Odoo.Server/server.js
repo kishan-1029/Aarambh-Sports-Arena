@@ -102,6 +102,9 @@ const httpServer = http.createServer(app);
 let databasestatus = "In-Progress";
 
 // ============ SECURITY MIDDLEWARE (Apply FIRST) ============
+// Behind nginx / single-domain TLS terminator
+app.set("trust proxy", 1);
+
 app.use(requestId);
 
 // 1. Security Headers (Helmet + custom headers)
@@ -162,11 +165,20 @@ app.use(session({
     autoRemove: 'native', // Use MongoDB TTL index for cleanup
   }),
   cookie: {
-    secure: config.isProd, // HTTPS only in production
-    httpOnly: true, // Prevents XSS attacks
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax' // CSRF protection
-  }
+    // Behind RunPod/nginx TLS is terminated upstream. `auto` uses req.secure
+    // (trust proxy + X-Forwarded-Proto). Override with COOKIE_SECURE=true|false.
+    secure:
+      process.env.COOKIE_SECURE === 'true'
+        ? true
+        : process.env.COOKIE_SECURE === 'false'
+          ? false
+          : 'auto',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax',
+    path: '/',
+  },
+  proxy: true,
 }));
 
 console.log("✅ Express session middleware configured (MongoDB storage)");

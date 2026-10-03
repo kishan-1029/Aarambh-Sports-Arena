@@ -20,3 +20,4 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-03 · Dashboard · Daily revenue KPI + 7-day revenue chart; all KPI tiles clickable to related screens.
 - 2026-10-03 · Admin dynamic · Pie charts on dashboard; Membership Plans + Courts CRUD/toggles/search; Bookings search+actions; Front Desk date picker; Club settings one-click public site flags; blog seed + public /blogs; customer-site skeletons.
 - 2026-10-03 · Phase 17 MCP · `mcp/` host (HTTP+stdio) from project360 patterns; `/api/mcp/*` + API keys (ADR-0007); admin Settings → MCP access; CONNECT.md for Claude/ChatGPT/Cursor.
+- 2026-10-03 · Deploy · Single-domain nginx+PM2 (`deploy/`): `/` site, `/admin` panel, `/api` backend, `/mcp` MCP; same-origin frontends.

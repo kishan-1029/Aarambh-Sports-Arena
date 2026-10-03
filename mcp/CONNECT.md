@@ -56,12 +56,21 @@ Restart Claude Desktop. Ask: *How much did Arambh earn today?*
 
 Add an MCP server entry pointing at the same `stdio.js` + env, or HTTP URL `http://localhost:7337/mcp` with header `Authorization: Bearer ck_live_…` if your Cursor build supports remote MCP headers.
 
-## 5. ChatGPT
+## 5. ChatGPT (single-domain)
 
-1. Deploy MCP on **public HTTPS** (tunnel ok for demo: `cloudflared tunnel` / ngrok → port 7337).
-2. ChatGPT → Settings → **Apps & Connectors** / Developer mode → **Add connector**.
-3. URL: `https://YOUR_HOST/mcp`
-4. The host uses `ARAMBH_MCP_API_KEY` from its environment (server-side). For multi-user OAuth (project360-style), see follow-up — v1 is single-club key on the host.
+Preferred prod layout (see `deploy/README.md`):
+
+| URL | What |
+|-----|------|
+| `https://sportsarena.aarambhevents.in/` | Customer site |
+| `https://sportsarena.aarambhevents.in/admin/` | Admin |
+| `https://sportsarena.aarambhevents.in/api/` | API |
+| `https://sportsarena.aarambhevents.in/mcp` | **ChatGPT connector** |
+
+1. Deploy with nginx + PM2 per `deploy/README.md` (or temporary tunnel to port 7337).
+2. ChatGPT → Developer mode → **Add connector**.
+3. URL: `https://sportsarena.aarambhevents.in/mcp`
+4. MCP host uses `ARAMBH_MCP_API_KEY` from env; API is loopback `http://127.0.0.1:7002`.
 
 Smoke questions from [[20-MCP-Server#Conversation flows]]:
 - How much did the club earn today?

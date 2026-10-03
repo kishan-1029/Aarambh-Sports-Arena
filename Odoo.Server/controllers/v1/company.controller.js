@@ -206,7 +206,7 @@ export const createCompanyMaster = async (req, res) => {
       cityId: cityId || superAdmin?.cityId,
       address: address || superAdmin?.address || "Address",
       pincode: pincode || superAdmin?.pincode || "390001",
-      website: website || superAdmin?.website || "www.arambhsportsarena.com",
+      website: website || superAdmin?.website || "sportsarena.aarambhevents.in",
       isActive: isActive !== undefined ? isActive : true,
       addButtonTextColor: addButtonTextColor || superAdmin?.addButtonTextColor || "",
       removeButtonTextColor: removeButtonTextColor || superAdmin?.removeButtonTextColor || "",

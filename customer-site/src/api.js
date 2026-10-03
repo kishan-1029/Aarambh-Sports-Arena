@@ -1,10 +1,16 @@
-const API = import.meta.env.VITE_API_URL || 'http://localhost:7002';
+// Prod single-domain: VITE_API_URL="" → same origin (/api/...)
+const API =
+  import.meta.env.VITE_API_URL !== undefined && import.meta.env.VITE_API_URL !== ''
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : import.meta.env.PROD
+      ? ''
+      : 'http://localhost:7003';
 
 export function mediaUrl(path) {
   if (!path) return '';
   if (/^https?:\/\//i.test(path)) return path;
   const clean = String(path).replace(/^\/+/, '');
-  return `${API}/${clean}`;
+  return API ? `${API}/${clean}` : `/${clean}`;
 }
 
 async function get(path) {
