@@ -35,7 +35,7 @@ import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 const initialState = {
   countryName: "",
   countryCode:"",
-  isActive: false,
+  isActive: true,
 };
 
 const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
@@ -263,10 +263,10 @@ const Country = () => {
   const validate = (values) => {
     const errors = {};
 
-    if (values.countryName === "") {
+    if (!String(values.countryName || "").trim()) {
       errors.countryName = "Country Name is required!";
     }
-    if(values.countryCode === "") {
+    if (!String(values.countryCode || "").trim()) {
       errors.countryCode = "Country Code is required!";
     }
 
@@ -448,7 +448,7 @@ const Country = () => {
                 type="checkbox"
                 className="form-check-input"
                 name="isActive"
-                value={values.isActive}
+                checked={values.isActive}
                 onChange={handleCheck}
               />
               <Label className="form-check-label ms-1">Is Active</Label>
