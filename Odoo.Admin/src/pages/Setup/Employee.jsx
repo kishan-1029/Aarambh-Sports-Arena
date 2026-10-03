@@ -1340,7 +1340,7 @@ const Employee = () => {
       <style>
         {`
           .custom-tab-btn {
-              background-color: #ffffff !important;
+              background-color: var(--vz-input-bg, #ffffff) !important;
               color: var(--vz-success, #0ab39c) !important;
               border: 1px solid var(--vz-success, #0ab39c) !important;
               transition: all 0.2s ease-in-out;

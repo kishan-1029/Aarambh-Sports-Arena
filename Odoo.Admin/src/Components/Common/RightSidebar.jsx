@@ -274,10 +274,7 @@ const RightSidebar = (props) => {
                                     </div>
                                 </div>
 
-                                <h6 className="mt-4 mb-0 fw-semibold text-uppercase">Color Scheme</h6>
-                                <p className="text-muted">Choose Light or Dark Scheme.</p>
-
-                                <div className="colorscheme-cardradio">
+                                <div className="colorscheme-cardradio d-none">
                                     <div className="row">
                                         <div className="col-4">
                                             <div className="form-check card-radio">

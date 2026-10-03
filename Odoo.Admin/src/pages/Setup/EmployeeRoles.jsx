@@ -1295,7 +1295,8 @@ const EmployeeRoles = () => {
               }}
             >
               <div style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--vz-card-bg, #fff)',
+                color: 'var(--vz-body-color, #212529)',
                 borderRadius: '8px',
                 padding: '24px',
                 maxWidth: '500px',

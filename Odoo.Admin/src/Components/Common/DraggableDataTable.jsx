@@ -229,13 +229,13 @@ const DraggableDataTable = ({
                         style: {
                             minHeight: "45px",
                             "&:hover": {
-                                backgroundColor: "#f8f9fa",
+                                backgroundColor: "var(--vz-light, #f8f9fa)",
                             },
                         },
                     },
                     headRow: {
                         style: {
-                            backgroundColor: "#f8f9fa",
+                            backgroundColor: "var(--vz-light, #f8f9fa)",
                             fontWeight: "bold",
                         },
                     },
@@ -246,13 +246,13 @@ const DraggableDataTable = ({
                         when: (row) => row[idFieldName] === draggedRowId,
                         style: {
                             opacity: "0.5",
-                            backgroundColor: "#e3f2fd",
+                            backgroundColor: "var(--vz-light, #e3f2fd)",
                         },
                     },
                     {
                         when: (row) => row[idFieldName] === dragOverRowId,
                         style: {
-                            backgroundColor: "#f8f9fa",
+                            backgroundColor: "var(--vz-light, #f8f9fa)",
                             borderLeft: "3px solid #007bff",
                         },
                     },
@@ -280,7 +280,7 @@ const DraggableDataTable = ({
                     opacity: 0.5;
                 }
                 .draggable-data-table .drag-over {
-                    background-color: #f8f9fa !important;
+                    background-color: var(--vz-light, #f8f9fa) !important;
                     border-left: 3px solid #007bff;
                 }
             ` }} />
