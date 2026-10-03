@@ -15,11 +15,13 @@ import {
 } from "reactstrap";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
+import Skeleton from "../../Components/Common/Skeleton";
 import Money from "../../Components/Common/Money";
 import StatusChip from "../../Components/Common/StatusChip";
 import { Can } from "../../Components/Common/Can";
 import { searchMembers } from "../../api/arambhMembership.api";
 import {
+  checkInBooking,
   createBooking,
   getBookingCalendar,
   listBookings,
@@ -64,7 +66,7 @@ const FrontDesk = () => {
   const searchRef = useRef(null);
   const abortRef = useRef(null);
 
-  const [date] = useState(todayLocal());
+  const [date, setDate] = useState(todayLocal());
   const [clock, setClock] = useState(nowLabel());
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState([]);
@@ -85,6 +87,7 @@ const FrontDesk = () => {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
   const [toast, setToast] = useState(null);
+  const [busyId, setBusyId] = useState(null);
 
   const loadBoard = useCallback(async () => {
     setLoading(true);
@@ -107,6 +110,23 @@ const FrontDesk = () => {
       setLoading(false);
     }
   }, [date]);
+
+  const onCheckIn = useCallback(
+    async (bookingId) => {
+      if (!bookingId) return;
+      setBusyId(bookingId);
+      try {
+        await checkInBooking(bookingId);
+        setToast("Checked in");
+        await loadBoard();
+      } catch (err) {
+        setToast(err?.response?.data?.message || err?.message || "Check-in failed");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [loadBoard],
+  );
 
   useEffect(() => {
     loadBoard();
@@ -333,8 +353,15 @@ const FrontDesk = () => {
               </div>
             )}
           </div>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            style={{ maxWidth: 160 }}
+            bsSize="sm"
+          />
           <div className="text-muted small ms-auto">{clock}</div>
-          <Button color="soft-secondary" size="sm" onClick={loadBoard}>
+          <Button color="success" size="sm" outline onClick={loadBoard}>
             Refresh
           </Button>
         </div>
@@ -353,11 +380,7 @@ const FrontDesk = () => {
                 <h5 className="mb-0">Court board · {date}</h5>
                 <span className="text-muted small">now → +4h · click free cell to book</span>
               </div>
-              {loading && (
-                <div className="text-center py-5">
-                  <Spinner />
-                </div>
-              )}
+              {loading && <Skeleton rows={8} height={18} />}
               {!loading && error && <ErrorState {...error} onRetry={loadBoard} />}
               {!loading && !error && !courtCols.length && (
                 <EmptyState title="No courts" description="Run seed:demo for sports & courts." />
@@ -445,12 +468,23 @@ const FrontDesk = () => {
                             })}{" "}
                             · {b.courtId?.name || b.courtId?.code || "Court"}
                           </div>
-                          <div>
-                            {b.bookedByMemberId
-                              ? `${b.bookedByMemberId.firstName} ${b.bookedByMemberId.lastName || ""}`
-                              : b.customer?.name || "Guest"}
-                            {" "}
-                            <StatusChip status={b.status} />
+                          <div className="d-flex align-items-center justify-content-between gap-2">
+                            <span>
+                              {b.bookedByMemberId
+                                ? `${b.bookedByMemberId.firstName} ${b.bookedByMemberId.lastName || ""}`
+                                : b.customer?.name || "Guest"}{" "}
+                              <StatusChip status={b.status} />
+                            </span>
+                            {["held", "confirmed"].includes(b.status) && (
+                              <Button
+                                size="sm"
+                                color="success"
+                                disabled={busyId === b._id}
+                                onClick={() => onCheckIn(b._id)}
+                              >
+                                Check-in
+                              </Button>
+                            )}
                           </div>
                         </li>
                       ))}
@@ -513,13 +547,25 @@ const FrontDesk = () => {
                           String(member._id),
                       )
                       .map((b) => (
-                        <li key={b._id} className="mb-1">
-                          {new Date(b.start).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "Asia/Kolkata",
-                          })}{" "}
-                          · {b.courtId?.name || "—"} · <StatusChip status={b.status} />
+                        <li key={b._id} className="mb-2 d-flex align-items-center justify-content-between gap-2">
+                          <span>
+                            {new Date(b.start).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZone: "Asia/Kolkata",
+                            })}{" "}
+                            · {b.courtId?.name || "—"} · <StatusChip status={b.status} />
+                          </span>
+                          {["held", "confirmed"].includes(b.status) && (
+                            <Button
+                              size="sm"
+                              color="success"
+                              disabled={busyId === b._id}
+                              onClick={() => onCheckIn(b._id)}
+                            >
+                              Check-in
+                            </Button>
+                          )}
                         </li>
                       ))}
                   </ul>

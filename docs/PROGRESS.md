@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 8 (catalogue) — Phase 6/7 done; Phase 14 React site live for demo
+Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Phase 14 site live
 
 ## Phases
 
@@ -21,7 +21,7 @@ Current phase: 8 (catalogue) — Phase 6/7 done; Phase 14 React site live for de
 - [ ] Phase 14 — Public website *(MVP partial)*
 - [ ] Phase 15 — Member mobile app
 - [ ] Phase 16 — AI assistant
-- [ ] Phase 17 — Management MCP for ChatGPT
+- [x] Phase 17 — Management MCP for ChatGPT *(MVP: API keys + slim tools; OAuth multi-user follow-up)*
 - [ ] Phase 18 — Hardening
 - [ ] Phase 19 — Deploy and demo
 

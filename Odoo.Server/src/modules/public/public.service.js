@@ -9,7 +9,30 @@ import * as BookingService from '../booking/booking.service.js';
 import { nextNumber } from '../../lib/counters.js';
 import { toLocalDate } from '../../lib/time.js';
 import { audit } from '../audit/audit.service.js';
-import { Validation } from '../../lib/errors.js';
+import { AppError, Validation } from '../../lib/errors.js';
+
+async function getPublicSettings() {
+  let settings = await Settings.findOne({ locationId: null }).lean();
+  if (!settings) {
+    settings = (
+      await Settings.create({
+        locationId: null,
+        clubName: 'Arambh Sports Arena',
+        currency: 'INR',
+      })
+    ).toObject();
+  }
+  return settings;
+}
+
+function assertPublicFeature(settings, flag, label) {
+  if (settings.publicSiteEnabled === false) {
+    throw new AppError('SITE_DISABLED', 'Public website is temporarily disabled', 403);
+  }
+  if (flag && settings[flag] === false) {
+    throw new AppError('FEATURE_DISABLED', `${label} is not available`, 403);
+  }
+}
 
 const PUBLIC_SLOT_STATUS = new Set([
   'available',
@@ -40,16 +63,7 @@ function normalizeInterest(interest) {
  * Public club profile — settings + primary location (no secrets).
  */
 export async function getClub() {
-  let settings = await Settings.findOne({ locationId: null }).lean();
-  if (!settings) {
-    settings = (
-      await Settings.create({
-        locationId: null,
-        clubName: 'Arambh Sports Arena',
-        currency: 'INR',
-      })
-    ).toObject();
-  }
+  const settings = await getPublicSettings();
 
   const location =
     (await Location.findOne({ code: 'MAIN', archivedAt: null }).lean()) ||
@@ -60,6 +74,15 @@ export async function getClub() {
     currency: settings.currency || 'INR',
     trialPricePaise: settings.trialPricePaise ?? 0,
     maxAdvanceDays: settings.maxAdvanceDays ?? 14,
+    features: {
+      publicSiteEnabled: settings.publicSiteEnabled !== false,
+      showMembershipPlans: settings.showMembershipPlans !== false,
+      showSports: settings.showSports !== false,
+      showAvailability: settings.showAvailability !== false,
+      showBlogs: settings.showBlogs !== false,
+      showTrial: settings.showTrial !== false,
+      showContact: settings.showContact !== false,
+    },
     location: location
       ? {
           name: location.name,
@@ -77,6 +100,8 @@ export async function getClub() {
  * Active sports with court counts (no pricing internals).
  */
 export async function listSportsPublic() {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showSports', 'Sports');
   const sports = await Sport.find({ active: true }).sort({ name: 1 }).lean();
   const courtCounts = await Court.aggregate([
     { $match: { status: 'active' } },
@@ -101,6 +126,8 @@ export async function listSportsPublic() {
  * Public membership plan cards (latest active version per key).
  */
 export async function listMembershipPlansPublic() {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showMembershipPlans', 'Membership plans');
   const plans = await MembershipPlan.find({
     active: true,
     archivedAt: null,
@@ -147,6 +174,8 @@ export async function listMembershipPlansPublic() {
  * Free/busy only — never member names or booking PII.
  */
 export async function getPublicAvailability({ localDate, sportId, days = 1 }) {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showAvailability', 'Availability');
   const dayCount = Math.min(Math.max(Number(days) || 1, 1), 14);
   const dates = [];
   const base = new Date(`${localDate}T12:00:00.000Z`);
@@ -256,6 +285,8 @@ async function createLeadDoc(
  * Contact / general enquiry → lead.
  */
 export async function createEnquiry(input, ctx = {}) {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showContact', 'Contact');
   if (input.website) {
     throw Validation([{ path: 'website', message: 'Invalid submission' }]);
   }
@@ -287,6 +318,8 @@ export async function createEnquiry(input, ctx = {}) {
  * Trial request → lead (+ optional BookingService trial booking).
  */
 export async function createTrial(input, ctx = {}) {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showTrial', 'Trial booking');
   if (input.website) {
     throw Validation([{ path: 'website', message: 'Invalid submission' }]);
   }
@@ -387,8 +420,47 @@ export async function createTrial(input, ctx = {}) {
   };
 }
 
+/**
+ * Published blogs for the public site (active + Published only).
+ */
+export async function listBlogsPublic({ limit = 12 } = {}) {
+  const settings = await getPublicSettings();
+  assertPublicFeature(settings, 'showBlogs', 'Blogs');
+
+  let BlogMaster;
+  try {
+    BlogMaster = (await import('../../../models/BlogMaster.js')).default;
+  } catch {
+    return [];
+  }
+
+  const rows = await BlogMaster.find({
+    isActive: true,
+    status: 'Published',
+  })
+    .sort({ publishDate: -1, createdAt: -1 })
+    .limit(Math.min(Number(limit) || 12, 50))
+    .lean();
+
+  return rows.map((b) => ({
+    id: String(b._id),
+    title: b.title,
+    slug: b.slug,
+    excerpt: b.excerpt || '',
+    featuredImage: b.featuredImage || '',
+    featuredImageAlt: b.featuredImageAlt || b.title,
+    category: b.category || '',
+    tags: b.tags || [],
+    author: b.author || 'Arambh',
+    publishDate: b.publishDate,
+    readingTime: b.readingTime || 3,
+    isFeatured: Boolean(b.isFeatured),
+  }));
+}
+
 export default {
   getClub,
+  listBlogsPublic,
   listSportsPublic,
   listMembershipPlansPublic,
   getPublicAvailability,

@@ -64,6 +64,17 @@ router.get('/membership-plans', async (req, res, next) => {
   }
 });
 
+router.get('/blogs', async (req, res, next) => {
+  try {
+    const data = await publicService.listBlogsPublic({
+      limit: req.query.limit,
+    });
+    return ok(res, data);
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get(
   '/availability',
   validate({ query: availabilityQuerySchema }),

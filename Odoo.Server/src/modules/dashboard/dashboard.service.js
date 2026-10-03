@@ -32,10 +32,13 @@ function lastNLocalDates(n) {
 export async function getDashboardSummary() {
   const today = toLocalDate();
   const todayStart = startOfLocalDay(today);
-  const tomorrowStart = startOfLocalDay(addDaysLocal(today, 1));
   const weekAhead = startOfLocalDay(addDaysLocal(today, 8));
   const monthStartLocal = `${today.slice(0, 8)}01`;
-  const monthStart = startOfLocalDay(monthStartLocal);
+  const weekStartLocal = addDaysLocal(today, -6);
+  const invoicePostedMatch = {
+    status: { $in: ['posted', 'partially_paid', 'paid'] },
+    kind: { $ne: 'credit_note' },
+  };
 
   const [
     membersActive,
@@ -47,9 +50,12 @@ export async function getDashboardSummary() {
     courtsActive,
     customersTotal,
     leadsOpen,
+    revenueTodayAgg,
+    collectionsTodayAgg,
     revenueMonthAgg,
     collectionsMonthAgg,
     bookingsByStatus,
+    bookingsByDayRaw,
     revenueByDayRaw,
     bookingsBySport,
     recentBookings,
@@ -78,9 +84,8 @@ export async function getDashboardSummary() {
     Invoice.aggregate([
       {
         $match: {
-          status: { $in: ['posted', 'partially_paid', 'paid'] },
-          kind: { $ne: 'credit_note' },
-          createdAt: { $gte: monthStart },
+          ...invoicePostedMatch,
+          localDate: today,
         },
       },
       { $group: { _id: null, total: { $sum: '$totals.totalPaise' } } },
@@ -89,7 +94,25 @@ export async function getDashboardSummary() {
       {
         $match: {
           status: 'captured',
-          createdAt: { $gte: monthStart },
+          localDate: today,
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amountPaise' } } },
+    ]),
+    Invoice.aggregate([
+      {
+        $match: {
+          ...invoicePostedMatch,
+          localDate: { $gte: monthStartLocal, $lte: today },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$totals.totalPaise' } } },
+    ]),
+    Payment.aggregate([
+      {
+        $match: {
+          status: 'captured',
+          localDate: { $gte: monthStartLocal, $lte: today },
         },
       },
       { $group: { _id: null, total: { $sum: '$amountPaise' } } },
@@ -101,11 +124,21 @@ export async function getDashboardSummary() {
     Booking.aggregate([
       {
         $match: {
-          localDate: { $gte: addDaysLocal(today, -6), $lte: today },
+          localDate: { $gte: weekStartLocal, $lte: today },
           status: { $nin: ['cancelled'] },
         },
       },
       { $group: { _id: '$localDate', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Invoice.aggregate([
+      {
+        $match: {
+          ...invoicePostedMatch,
+          localDate: { $gte: weekStartLocal, $lte: today },
+        },
+      },
+      { $group: { _id: '$localDate', totalPaise: { $sum: '$totals.totalPaise' } } },
       { $sort: { _id: 1 } },
     ]),
     Booking.aggregate([
@@ -159,11 +192,19 @@ export async function getDashboardSummary() {
   ]);
 
   const days = lastNLocalDates(7);
-  const byDayMap = Object.fromEntries((revenueByDayRaw || []).map((r) => [r._id, r.count]));
+  const bookingsByDayMap = Object.fromEntries((bookingsByDayRaw || []).map((r) => [r._id, r.count]));
+  const revenueByDayMap = Object.fromEntries(
+    (revenueByDayRaw || []).map((r) => [r._id, r.totalPaise || 0]),
+  );
   const bookingsTrend = days.map((d) => ({
     date: d,
     label: d.slice(5),
-    bookings: byDayMap[d] || 0,
+    bookings: bookingsByDayMap[d] || 0,
+  }));
+  const revenueTrend = days.map((d) => ({
+    date: d,
+    label: d.slice(5),
+    revenuePaise: revenueByDayMap[d] || 0,
   }));
 
   const statusMap = Object.fromEntries((bookingsByStatus || []).map((r) => [r._id, r.count]));
@@ -171,6 +212,8 @@ export async function getDashboardSummary() {
   return {
     period: { today, monthStart: monthStartLocal },
     kpis: {
+      revenueTodayPaise: revenueTodayAgg[0]?.total || 0,
+      collectionsTodayPaise: collectionsTodayAgg[0]?.total || 0,
       revenueMonthPaise: revenueMonthAgg[0]?.total || 0,
       collectionsMonthPaise: collectionsMonthAgg[0]?.total || 0,
       membersActive,
@@ -189,6 +232,7 @@ export async function getDashboardSummary() {
     },
     charts: {
       bookingsTrend,
+      revenueTrend,
       bookingsByStatus: Object.entries(statusMap).map(([status, count]) => ({
         status,
         count,
