@@ -27,6 +27,14 @@ import { Membership } from '../modules/membership/membership.model.js';
 import { ActivityEvent } from '../modules/membership/activity.model.js';
 import { register as registerMember } from '../modules/members/member.service.js';
 import { purchase as purchaseMembership } from '../modules/membership/membership.service.js';
+import { Sport } from '../modules/facilities/sport.model.js';
+import { Court } from '../modules/facilities/court.model.js';
+import { CourtBlock } from '../modules/facilities/courtBlock.model.js';
+import { Booking } from '../modules/booking/booking.model.js';
+import { SlotLock } from '../modules/booking/slotLock.model.js';
+import { MemberDayCounter } from '../modules/booking/memberDayCounter.model.js';
+import { SocialSession } from '../modules/booking/socialSession.model.js';
+import { SocialParticipant } from '../modules/booking/socialParticipant.model.js';
 import { toLocalDate, localDateTimeToUtc } from '../lib/time.js';
 
 const clubSettingsSchema = new mongoose.Schema(
@@ -61,6 +69,14 @@ async function resetDemo() {
     MembershipPlan,
     Membership,
     ActivityEvent,
+    Sport,
+    Court,
+    CourtBlock,
+    Booking,
+    SlotLock,
+    MemberDayCounter,
+    SocialSession,
+    SocialParticipant,
   ];
 
   for (const Model of collections) {
@@ -116,6 +132,10 @@ async function seedClub() {
       bookingCancelFreeHours: 4,
       holdMinutes: 10,
       maxAdvanceDays: 14,
+      minLeadMinutes: 30,
+      trialPricePaise: 0,
+      socialCountsTowardLimit: false,
+      walkInMaxPerPhonePerDay: 4,
       walkInRequiresPhone: true,
       lowStockDefault: 5,
       invoicePrefix: 'INV',
@@ -460,6 +480,79 @@ async function seedMembersAndMemberships(plans) {
   return members;
 }
 
+async function seedSportsAndCourts(location, taxes) {
+  const tax18 = taxes.find((t) => t.ratePct === 18) || taxes[0];
+  const sportSpecs = [
+    { key: 'tennis', name: 'Tennis', icon: 'ri-tennis-ball-line' },
+    { key: 'padel', name: 'Padel', icon: 'ri-ping-pong-line' },
+    { key: 'badminton', name: 'Badminton', icon: 'ri-football-line' },
+    { key: 'cricket', name: 'Cricket nets', icon: 'ri-baseball-line' },
+  ];
+
+  const sports = [];
+  for (const s of sportSpecs) {
+    const doc = await Sport.findOneAndUpdate(
+      { key: s.key, isDemo: true },
+      {
+        ...s,
+        sessionMinutes: 60,
+        slotStepMinutes: 30,
+        active: true,
+        isDemo: true,
+      },
+      { upsert: true, new: true },
+    );
+    sports.push(doc);
+  }
+
+  const peakWindows = [{ dow: [1, 2, 3, 4, 5], from: '17:00', to: '22:00' }];
+  const courtSpecs = [
+    { sportKey: 'tennis', name: 'Tennis Court 1', code: 'T1', walkPeak: 120000, walkOff: 80000 },
+    { sportKey: 'tennis', name: 'Tennis Court 2', code: 'T2', walkPeak: 120000, walkOff: 80000 },
+    { sportKey: 'padel', name: 'Padel Court 1', code: 'P1', walkPeak: 140000, walkOff: 90000 },
+    { sportKey: 'padel', name: 'Padel Court 2', code: 'P2', walkPeak: 140000, walkOff: 90000 },
+    { sportKey: 'badminton', name: 'Badminton Court 1', code: 'B1', walkPeak: 80000, walkOff: 50000 },
+    { sportKey: 'badminton', name: 'Badminton Court 2', code: 'B2', walkPeak: 80000, walkOff: 50000 },
+    { sportKey: 'cricket', name: 'Cricket Net 1', code: 'C1', walkPeak: 100000, walkOff: 70000 },
+  ];
+
+  const courts = [];
+  for (const c of courtSpecs) {
+    const sport = sports.find((s) => s.key === c.sportKey);
+    const doc = await Court.findOneAndUpdate(
+      { code: c.code, isDemo: true },
+      {
+        sportId: sport._id,
+        locationId: location._id,
+        name: c.name,
+        code: c.code,
+        surface: 'synthetic',
+        indoor: c.sportKey !== 'tennis',
+        floodlit: true,
+        status: 'active',
+        operatingHours: [],
+        pricing: {
+          walkInPaise: { peak: c.walkPeak, offPeak: c.walkOff },
+          memberBasePaise: {
+            peak: Math.round(c.walkPeak * 0.8),
+            offPeak: Math.round(c.walkOff * 0.8),
+          },
+          peakWindows,
+        },
+        taxId: tax18?._id || null,
+        allowSocialPlay: true,
+        capacity: c.sportKey === 'padel' ? 4 : 4,
+        isDemo: true,
+      },
+      { upsert: true, new: true },
+    );
+    courts.push(doc);
+  }
+
+  logger.info({ sports: sports.length, courts: courts.length }, 'seeded sports + courts');
+  return { sports, courts };
+}
+
 async function seedTemplates() {
   for (const t of DEFAULT_TEMPLATES) {
     await NotificationTemplate.findOneAndUpdate(
@@ -486,6 +579,7 @@ async function main() {
   await seedSampleInvoice(customers, taxes, location);
   const plans = await seedMembershipPlans(taxes);
   await seedMembersAndMemberships(plans);
+  await seedSportsAndCourts(location, taxes);
   await seedTemplates();
   await seedArambhRoles();
 
@@ -499,6 +593,7 @@ async function main() {
       roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
       phase4: ['location', 'taxes', 'customers', 'sampleInvoice'],
       phase5: ['plans', 'members', 'memberships'],
+      phase6: ['sports', 'courts'],
     },
   });
 

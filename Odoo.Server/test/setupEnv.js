@@ -20,7 +20,12 @@ const mongoRoot = fs.existsSync('D:\\')
   : path.join(os.tmpdir(), 'arambh-mongoms');
 fs.mkdirSync(path.join(mongoRoot, 'binaries'), { recursive: true });
 fs.mkdirSync(path.join(mongoRoot, 'tmp'), { recursive: true });
+const mongoTmp = path.join(mongoRoot, 'tmp');
 process.env.MONGOMS_DOWNLOAD_DIR = path.join(mongoRoot, 'binaries');
-process.env.MONGOMS_TMPDIR = path.join(mongoRoot, 'tmp');
+process.env.MONGOMS_TMPDIR = mongoTmp;
+// Force OS temp off C: (often ENOSPC) so mongod dbPath lands on D:.
+process.env.TEMP = mongoTmp;
+process.env.TMP = mongoTmp;
+process.env.TMPDIR = mongoTmp;
 
 

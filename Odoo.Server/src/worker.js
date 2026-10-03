@@ -5,6 +5,7 @@ import { config } from './config/index.js';
 import { acquireJobLock, releaseJobLock } from './modules/jobs/jobLock.model.js';
 import { notificationService } from './modules/notifications/notification.service.js';
 import { expireDue, sendReminders } from './modules/membership/membership.service.js';
+import { expireHolds, completeDue } from './modules/booking/booking.service.js';
 
 const workerId = `worker-${process.pid}`;
 
@@ -32,7 +33,7 @@ const jobs = [
     name: 'holds.expire',
     schedule: '* * * * *',
     ttlMs: 50_000,
-    run: async () => ({ tick: true, note: 'placeholder' }),
+    run: async () => expireHolds(),
   },
   {
     name: 'orders.releaseUnpaid',
@@ -44,7 +45,7 @@ const jobs = [
     name: 'bookings.complete',
     schedule: '*/15 * * * *',
     ttlMs: 600_000,
-    run: async () => ({ tick: true, note: 'placeholder' }),
+    run: async () => completeDue(),
   },
   {
     name: 'leads.sla',

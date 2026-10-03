@@ -10,7 +10,7 @@
     "worker:dev": "nodemon src/worker.js",
     "worker": "node src/worker.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
-    "test:concurrency": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:concurrency": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --testPathPattern=concurrency",
     "seed:demo": "node src/seed/index.js",
     "seed:demo:reset": "node src/seed/index.js --reset",
     "db:indexes": "node scripts/db-indexes.js",

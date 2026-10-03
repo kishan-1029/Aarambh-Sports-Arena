@@ -23,6 +23,8 @@ import financeRoutes from "./src/modules/finance/finance.routes.js";
 import webhookRoutes from "./src/modules/finance/webhook.routes.js";
 import memberRoutes from "./src/modules/members/member.routes.js";
 import membershipRoutes from "./src/modules/membership/membership.routes.js";
+import facilitiesRoutes from "./src/modules/facilities/facilities.routes.js";
+import bookingRoutes from "./src/modules/booking/booking.routes.js";
 import { logger } from "./src/lib/logger.js";
 
 // ============ SECURITY IMPORTS ============
@@ -373,13 +375,15 @@ app.use("/api/v1", guideRoutes);
 
 console.log("✅ V1 API routes loaded");
 
-// Arambh health + Phase 4–5 modules (before SPA catch-all)
+// Arambh health + Phase 4–6 modules (before SPA catch-all)
 app.use("/api", healthRoutes);
 app.use("/api/admin", settingsRoutes);
 app.use("/api/admin", customerRoutes);
 app.use("/api/admin", financeRoutes);
 app.use("/api/admin", memberRoutes);
 app.use("/api/admin", membershipRoutes);
+app.use("/api/admin", facilitiesRoutes);
+app.use("/api/admin", bookingRoutes);
 app.use("/api", webhookRoutes);
 
 app.get("/api", (req, res) => {

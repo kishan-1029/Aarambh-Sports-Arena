@@ -37,8 +37,8 @@ export const ARAMBH_ROUTES = [
   { label: "Blog Master", path: "/blog-master", icon: "ri-article-line" },
   { label: "FAQ", path: "/faq", icon: "ri-question-answer-line" },
   { label: "Front Desk", path: "/front-desk", perm: "booking.view", icon: "ri-flashlight-line", comingSoon: true },
-  { label: "Bookings", path: "/courts/bookings", perm: "booking.view", icon: "ri-calendar-check-line", comingSoon: true },
-  { label: "Courts", path: "/courts", perm: "court.view", icon: "ri-layout-grid-line", comingSoon: true },
+  { label: "Bookings", path: "/courts/bookings", perm: "booking.view", icon: "ri-calendar-check-line" },
+  { label: "Courts", path: "/courts", perm: "court.view", icon: "ri-layout-grid-line" },
   { label: "Members", path: "/members", perm: "member.view", icon: "ri-group-line" },
   { label: "Membership Plans", path: "/membership-plans", perm: "membership_plan.view", icon: "ri-vip-crown-line" },
   { label: "Memberships", path: "/memberships", perm: "membership.view", icon: "ri-id-card-line" },
@@ -114,8 +114,8 @@ export function buildArambhNavGroups() {
   return [
     group("arambh-front-desk", "Front Desk & Courts", "ri-flashlight-line", [
       { name: "Front Desk", url: "/front-desk", icon: "ri-flashlight-line", perm: "booking.view", comingSoon: true },
-      { name: "Bookings", url: "/courts/bookings", icon: "ri-calendar-check-line", perm: "booking.view", comingSoon: true },
-      { name: "Courts", url: "/courts", icon: "ri-layout-grid-line", perm: "court.view", comingSoon: true },
+      { name: "Bookings", url: "/courts/bookings", icon: "ri-calendar-check-line", perm: "booking.view" },
+      { name: "Courts", url: "/courts", icon: "ri-layout-grid-line", perm: "court.view" },
     ]),
     group("arambh-members", "Members", "ri-group-line", [
       { name: "Members", url: "/members", icon: "ri-group-line", perm: "member.view" },

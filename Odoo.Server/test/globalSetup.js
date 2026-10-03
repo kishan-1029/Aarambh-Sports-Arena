@@ -7,13 +7,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const stateFile = path.join(__dirname, '.mongo-memory.json');
 
 function ensureSafeMongoPaths() {
+  // C: is often nearly full on this machine; keep mongod dbPath + binaries on D:.
   const root = fs.existsSync('D:\\')
     ? 'D:\\odoo2026\\tmp\\arambh-mongoms'
     : path.join(process.env.TEMP || '/tmp', 'arambh-mongoms');
-  fs.mkdirSync(path.join(root, 'binaries'), { recursive: true });
-  fs.mkdirSync(path.join(root, 'tmp'), { recursive: true });
-  process.env.MONGOMS_DOWNLOAD_DIR = path.join(root, 'binaries');
-  process.env.MONGOMS_TMPDIR = path.join(root, 'tmp');
+  const tmp = path.join(root, 'tmp');
+  const binaries = path.join(root, 'binaries');
+  fs.mkdirSync(binaries, { recursive: true });
+  fs.mkdirSync(tmp, { recursive: true });
+  process.env.MONGOMS_DOWNLOAD_DIR = binaries;
+  process.env.MONGOMS_TMPDIR = tmp;
+  // mongodb-memory-server falls back to OS TEMP for dbPath; force off C:.
+  process.env.TEMP = tmp;
+  process.env.TMP = tmp;
+  process.env.TMPDIR = tmp;
 }
 
 export default async function globalSetup() {

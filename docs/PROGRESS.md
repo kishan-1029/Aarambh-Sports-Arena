@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 6
+Current phase: 7
 
 ## Phases
 
@@ -10,7 +10,7 @@ Current phase: 6
 - [x] Phase 3 — Design system and admin shell
 - [x] Phase 4 — Club setup, customers, finance core
 - [x] Phase 5 — Members and membership
-- [ ] Phase 6 — Courts and booking engine
+- [x] Phase 6 — Courts and booking engine
 - [ ] Phase 7 — Front desk
 - [ ] Phase 8 — Catalogue, inventory, purchasing
 - [ ] Phase 9 — POS, bar, café, KDS
@@ -27,11 +27,10 @@ Current phase: 6
 
 ## Current phase tasks
 
-### Phase 6 — Courts and booking engine
-- [ ] Sports / courts / court blocks
-- [ ] Slot locks + BookingService
-- [ ] Admin calendar + bookings list
-- [ ] Concurrency tests
+### Phase 7 — Front desk
+- [ ] Front desk search + court board
+- [ ] Quick-book drawer
+- [ ] Member context panel / hotkeys
 
 ## Decisions & deviations
 
@@ -47,6 +46,7 @@ Current phase: 6
 - Phase 3: Arambh nav merged after API menus (static `arambhNav.js`); command palette is custom modal (no `cmdk`); building blocks on Bootstrap/Reactstrap.
 - Phase 4: finance under `/api/admin/*`; `customer.*` permissions added; webhook event idempotency is process-local Set (durable store later); receivables/payables UI deferred to Phase 13.
 - Phase 5: membership under `/api/admin/*`; plan versioning on price/entitlement edits; renewals use status `scheduled` until start; Member 360 MVP tabs only (overview / membership / timeline).
+- Phase 6: admin booking calendar is CSS grid (no heavy calendar lib); member self-serve `/api/bookings` + public availability deferred to website/mobile phases; socket live calendar deferred to Phase 7.
 - Reference repos without `production` audited on best available branch (noted in each `ref-*.md`).
 
 ## Blockers / needs human
@@ -59,6 +59,6 @@ Current phase: 6
 
 ## Test status
 
-- Odoo.Server: `npm test` → **49/49 pass** (MongoMemoryReplSet), including Phase 5 membership (junior age, concurrent purchase, renew, plan version, expire + reminder idempotency).
-- Odoo.Server: restart after pull to load `/api/admin` member/membership mounts (port 7002).
-- Odoo.Admin: Members / Member 360 / Plans / Memberships live (Soon badges removed).
+- Odoo.Server: `npm test` → **62/62 pass** (MongoMemoryReplSet), including Phase 6 concurrency suite (docs/08 §14, 10 cases) + pricing matrix; concurrency suite run **3×** green.
+- Odoo.Server: `npm run test:concurrency` targets `test/concurrency/`.
+- Odoo.Admin: Courts (sports/blocks/social) + Bookings calendar/list live (Soon badges removed).

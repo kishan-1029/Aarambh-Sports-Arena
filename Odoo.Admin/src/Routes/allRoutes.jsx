@@ -38,6 +38,8 @@ import Members from "../pages/Arambh/Members";
 import MemberDetail from "../pages/Arambh/MemberDetail";
 import MembershipPlans from "../pages/Arambh/MembershipPlans";
 import Memberships from "../pages/Arambh/Memberships";
+import Courts from "../pages/Arambh/Courts";
+import Bookings from "../pages/Arambh/Bookings";
 
 
 const authProtectedRoutes = [
@@ -69,8 +71,8 @@ const authProtectedRoutes = [
 
     // Arambh module placeholders + sample list (Phase 3)
     { path: "/front-desk", component: <ComingSoon /> },
-    { path: "/courts", component: <ComingSoon /> },
-    { path: "/courts/bookings", component: <ComingSoon /> },
+    { path: "/courts", component: <Courts /> },
+    { path: "/courts/bookings", component: <Bookings /> },
     { path: "/members", component: <Members /> },
     { path: "/members/:id", component: <MemberDetail /> },
     { path: "/membership-plans", component: <MembershipPlans /> },

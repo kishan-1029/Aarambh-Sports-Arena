@@ -37,13 +37,15 @@ Each module doc lists its own request/response details; this is the full invento
 ## Public
 | Method | Path |
 |---|---|
-| GET | `/api/public/club` · `/api/public/sports` · `/api/public/sports/:key` |
+| GET | `/api/public/club` · `/api/public/sports` · `/api/public/sports/:key` *(key detail: later)* |
 | GET | `/api/public/membership-plans` |
-| GET | `/api/public/availability?sport=&date=&days=` |
-| GET | `/api/public/products?category=&q=&minPrice=&maxPrice=&size=` · `/api/public/products/:slug` · `/api/public/categories` |
-| GET | `/api/public/menu` |
-| POST | `/api/public/enquiries` · `/api/public/trials` |
-| GET/POST | `/api/public/quotes/:token` · `/api/public/quotes/:token/accept` |
+| GET | `/api/public/availability?localDate=&sportId=&days=` — free/busy only, no PII |
+| GET | `/api/public/products?category=&q=&minPrice=&maxPrice=&size=` · `/api/public/products/:slug` · `/api/public/categories` *(Phase 8/10)* |
+| GET | `/api/public/menu` *(Phase 9)* |
+| POST | `/api/public/enquiries` · `/api/public/trials` — create `leads`; trial may call BookingService `type:trial` |
+| GET/POST | `/api/public/quotes/:token` · `/api/public/quotes/:token/accept` *(Phase 11)* |
+
+> **Implemented (Phase 14 MVP):** `GET club|sports|membership-plans|availability`, `POST enquiries|trials`. No staff session auth; rate-limited. Website: http://localhost:3001 → `NEXT_PUBLIC_API_URL` (default http://localhost:7002).
 
 ## Member (`/api/me`, `/api/bookings`, `/api/orders`, `/api/ai`)
 | Method | Path |
@@ -72,9 +74,9 @@ Each module doc lists its own request/response details; this is the full invento
 | Members | GET `/members` · `/members/search?q=` · `/members/:id` · `/members/:id/timeline` · `/members/:id/qr` · `/members/by-qr/:token` · POST `/members` · PATCH `/members/:id` · POST `/members/:id/archive` [member.*] — **Phase 5** |
 | Memberships | GET `/memberships` · POST `/memberships` (purchase) · `/:id/renew` · `/:id/upgrade` · `/:id/cancel` · POST `/memberships/reminders` · `/memberships/expire-due` [membership.*] — **Phase 5** |
 | Plans | GET/POST `/membership-plans` · GET/PATCH `/membership-plans/:id` (edit with active memberships versions the plan) [membership_plan.*] — **Phase 5** |
-| Facilities | CRUD `/sports`, `/courts`, `/court-blocks` [court.*] |
-| Bookings | GET `/bookings` · `/bookings/calendar` · POST `/bookings` · PATCH `/bookings/:id` · POST `/bookings/:id/{cancel,reschedule,check-in,no-show,refund}` · POST `/bookings/bulk-cancel` [booking.*] |
-| Social | CRUD `/social-sessions` · POST `/social-sessions/:id/participants` [social_session.*] |
+| Facilities | GET/POST `/sports` · PATCH `/sports/:id` · GET/POST `/courts` · GET/PATCH `/courts/:id` · GET/POST `/court-blocks` · DELETE `/court-blocks/:id` [court.*, court_block.create] — **Phase 6** |
+| Bookings | GET `/availability` · `/bookings` · `/bookings/calendar` · GET `/bookings/:id` · POST `/bookings` · POST `/bookings/:id/{cancel,reschedule,check-in,no-show,confirm-payment}` [booking.*] — **Phase 6** |
+| Social | GET/POST `/social-sessions` · GET `/social-sessions/:id` · POST `/social-sessions/:id/{join,cancel}` [social_session.*] — **Phase 6** |
 | Catalogue | CRUD `/categories`, `/products`, `/products/:id/variants` · POST `/uploads` [product.*] |
 | Inventory | GET `/inventory` · `/inventory/low-stock` · `/stock-moves` · POST `/inventory/adjust` · `/inventory/receive` [inventory.*] |
 | Purchasing | CRUD `/purchase-orders` · POST `/purchase-orders/:id/{send,receive,cancel}` · POST `/purchase-orders/from-low-stock` [purchase_order.*] |

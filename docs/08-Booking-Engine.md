@@ -204,3 +204,14 @@ Inject time via `lib/clock.js` (`clock.now()`), never `new Date()` directly in s
 - Click empty cell → quick-book drawer (member search or walk-in, price preview, payment). Drag a card → reschedule (confirm dialog). Right-click → cancel / check in / view member.
 - Date navigator, sport tabs, "Now" line, live updates via socket.
 - Library: build with CSS grid (simpler and faster than a heavy calendar lib for fixed 30-min resource grids). If the existing admin already includes a resource calendar, reuse it (VERIFY).
+
+## Implementation notes (Phase 6)
+
+- **Server paths:** `Odoo.Server/src/modules/facilities/*`, `Odoo.Server/src/modules/booking/*` (ADR-0005 hybrid). Admin mounts under `/api/admin` (sports, courts, court-blocks, availability, bookings, social-sessions).
+- **Concurrency:** unique `slotLocks{courtId,slotStart}`; `BookingService.create` only path that inserts booking + locks; E11000 → `SLOT_UNAVAILABLE` via `conflictGuard.js`; daily limit via `memberDayCounters` guarded `$inc` inside `withTransaction`.
+- **Clock:** services use `lib/clock.js` (`now()`); hold expiry + tests inject time.
+- **Workers:** `holds.expire` → `expireHolds()`; `bookings.complete` → `completeDue()` (complete checked-in + no-show after 15 min grace).
+- **Settings added:** `minLeadMinutes`, `trialPricePaise`, `socialCountsTowardLimit`, `walkInMaxPerPhonePerDay`.
+- **Admin:** `/courts` (sports/courts/blocks/social tabs), `/courts/bookings` (CSS-grid calendar + list). Quick-book drawer / live sockets deferred to Phase 7 front desk.
+- **Tests:** `test/concurrency/booking.test.js` (docs/08 §14, all 10 cases) + `test/booking.pricing.test.js`. Run `npm run test:concurrency`.
+- **Seed:** tennis/padel/badminton/cricket sports + 7 courts (`isDemo: true`).
