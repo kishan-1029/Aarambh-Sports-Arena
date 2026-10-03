@@ -226,12 +226,12 @@ const Members = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                  <h5 className="mb-0">Members ({rows.length})</h5>
-                  <div className="d-flex flex-wrap gap-2">
+                <CardHeader className="d-flex flex-nowrap gap-3 justify-content-between align-items-center">
+                  <h5 className="mb-0 text-nowrap">Members ({rows.length})</h5>
+                  <div className="d-flex flex-nowrap gap-2 align-items-center">
                     <Input
                       type="select"
-                      style={{ maxWidth: 140 }}
+                      style={{ width: 140, flex: "0 0 auto" }}
                       value={tier}
                       onChange={(e) => setTier(e.target.value)}
                     >
@@ -243,7 +243,7 @@ const Members = () => {
                     </Input>
                     <Input
                       type="select"
-                      style={{ maxWidth: 140 }}
+                      style={{ width: 140, flex: "0 0 auto" }}
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
                     >
@@ -254,13 +254,13 @@ const Members = () => {
                       <option value="suspended">Suspended</option>
                     </Input>
                     <Input
-                      style={{ maxWidth: 220 }}
+                      style={{ width: 220, flex: "0 0 auto" }}
                       placeholder="Search…"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                     <Can anyOf={["member.create"]}>
-                      <Button color="success" onClick={() => setModal(true)}>
+                      <Button color="success" className="text-nowrap flex-shrink-0" onClick={() => setModal(true)}>
                         <i className="ri-user-add-line me-1" />
                         Add member
                       </Button>

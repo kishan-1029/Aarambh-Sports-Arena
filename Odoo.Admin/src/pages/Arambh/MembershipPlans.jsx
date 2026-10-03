@@ -31,6 +31,23 @@ import {
   archivePlan,
 } from "../../api/arambhMembership.api";
 
+const PLAN_COLOUR = {
+  gold: "warning",
+  silver: "secondary",
+  junior: "success",
+};
+
+const PLAN_HEX = {
+  gold: "#d4a017",
+  silver: "#8a8a8a",
+  junior: "#2e7d32",
+};
+
+function planAccent(plan) {
+  if (plan.colour && plan.colour.toLowerCase() !== "#0d6efd") return plan.colour;
+  return PLAN_HEX[plan.key] || plan.colour || "#0d6efd";
+}
+
 const EMPTY_FORM = {
   key: "",
   name: "",
@@ -383,11 +400,13 @@ const MembershipPlans = () => {
                   <Card className="h-100">
                     <CardHeader
                       className="d-flex justify-content-between align-items-start gap-2"
-                      style={{ borderTop: `4px solid ${p.colour || "#0d6efd"}` }}
+                      style={{ borderTop: `4px solid ${planAccent(p)}` }}
                     >
                       <div>
                         <h5 className="mb-1">{p.name}</h5>
-                        <span className="text-muted small">{p.key}</span>
+                        <Badge color={PLAN_COLOUR[p.key] || "primary"} pill>
+                          {(p.key || "plan").toUpperCase()}
+                        </Badge>
                       </div>
                       <div className="d-flex flex-column align-items-end gap-1">
                         <Badge color={p.active ? "success" : "secondary"} pill>

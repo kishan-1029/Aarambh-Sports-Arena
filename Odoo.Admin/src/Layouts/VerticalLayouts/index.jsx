@@ -12,53 +12,6 @@ import {
 } from "../../config/arambhNav";
 import { usePermission } from "../../hooks/usePermission";
 
-const activateParentDropdown = (item) => {
-    item.classList.add("active");
-    let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
-
-    if (parentCollapseDiv) {
-        // to set aria expand true remaining
-        parentCollapseDiv.classList.add("show");
-        parentCollapseDiv.parentElement.children[0].classList.add("active");
-        parentCollapseDiv.parentElement.children[0].setAttribute(
-            "aria-expanded",
-            "true"
-        );
-        if (
-            parentCollapseDiv.parentElement.closest(
-                ".collapse.menu-dropdown"
-            )
-        ) {
-            parentCollapseDiv.parentElement
-                .closest(".collapse")
-                .classList.add("show");
-            if (
-                parentCollapseDiv.parentElement.closest(".collapse")
-                    .previousElementSibling
-            )
-                parentCollapseDiv.parentElement
-                    .closest(".collapse")
-                    .previousElementSibling.classList.add("active");
-            if (
-                parentCollapseDiv.parentElement
-                    .closest(".collapse")
-                    .previousElementSibling.closest(".collapse")
-            ) {
-                parentCollapseDiv.parentElement
-                    .closest(".collapse")
-                    .previousElementSibling.closest(".collapse")
-                    .classList.add("show");
-                parentCollapseDiv.parentElement
-                    .closest(".collapse")
-                    .previousElementSibling.closest(".collapse")
-                    .previousElementSibling.classList.add("active");
-            }
-        }
-        return false;
-    }
-    return false;
-};
-
 const VerticalLayout = (props) => {
     const { menuData, loading, updateCurrentPagePermissions } =
         useContext(MenuContext);
@@ -67,6 +20,21 @@ const VerticalLayout = (props) => {
     const [expandedItems, setExpandedItems] = useState({});
 
     const path = props.router.location.pathname;
+
+    const pathActive = (url) => {
+        if (!url || url === "#") return false;
+        const current = String(path || "").split("?")[0].replace(/\/+$/, "") || "/";
+        const target = String(url).split("?")[0].replace(/\/+$/, "") || "/";
+        return current === target;
+    };
+
+    const treeHasActive = (nodes) =>
+        (nodes || []).some(
+            (node) =>
+                pathActive(node?.url) ||
+                treeHasActive(node?.children) ||
+                treeHasActive(node?.menus)
+        );
 
     const arambhGroups = useMemo(() => {
         return buildArambhNavGroups()
@@ -120,22 +88,6 @@ const VerticalLayout = (props) => {
             }
         }
 
-        const initMenu = () => {
-            const pathName = path;
-            const ul = document.getElementById("navbar-nav");
-            const items = ul.getElementsByTagName("a");
-            let itemsArray = [...items];
-            removeActivation(itemsArray);
-            let matchingMenuItem = itemsArray.find((x) => {
-                return x.pathname === pathName;
-            });
-            if (matchingMenuItem) {
-                activateParentDropdown(matchingMenuItem);
-            }
-        };
-        if (props.layoutType === "vertical") {
-            initMenu();
-        }
     }, [path, props.layoutType, menuData]);
 
     // Toggle expanded state for any menu item (accordion behavior - only one open at a time per level)
@@ -162,28 +114,6 @@ const VerticalLayout = (props) => {
                 newState[itemId] = true;
                 return newState;
             }
-        });
-    };
-
-    const removeActivation = (items) => {
-        let actiItems = items.filter((x) => x.classList.contains("active"));
-
-        actiItems.forEach((item) => {
-            if (item.classList.contains("menu-link")) {
-                if (!item.classList.contains("active")) {
-                    item.setAttribute("aria-expanded", false);
-                }
-                if (item.nextElementSibling) {
-                    item.nextElementSibling.classList.remove("show");
-                }
-            }
-            if (item.classList.contains("nav-link")) {
-                if (item.nextElementSibling) {
-                    item.nextElementSibling.classList.remove("show");
-                }
-                item.setAttribute("aria-expanded", false);
-            }
-            item.classList.remove("active");
         });
     };
 
@@ -220,6 +150,8 @@ const VerticalLayout = (props) => {
                 )
                 .map((child) => child.id);
 
+            const childActive = treeHasActive(item.children);
+            const open = Boolean(expandedItems[item.id]) || childActive;
             return (
                 <li className="nav-item" key={item.id}>
                     <Link
@@ -228,15 +160,13 @@ const VerticalLayout = (props) => {
                         data-bs-toggle="collapse"
                         onClick={() => toggleItem(item.id, siblingIds)}
                         style={{ justifyContent: " !important" }}
-                        aria-expanded={
-                            expandedItems[item.id] ? "true" : "false"
-                        }
+                        aria-expanded={open ? "true" : "false"}
                     >
                         {iconClass ? <i className={iconClass}></i> : null}
                         <span data-key="t-apps">{item.name}</span>
                     </Link>
                     <div
-                        className={`menu-dropdown ${expandedItems[item.id] ? "menu-dropdown-open" : ""}`}
+                        className={`menu-dropdown ${open ? "menu-dropdown-open" : ""}`}
                         data-group-name={item.name}
                     >
                         <ul className="nav nav-sm flex-column">
@@ -250,11 +180,13 @@ const VerticalLayout = (props) => {
         }
         // Otherwise, render a regular link
         else {
+            const active = pathActive(item.url);
             return (
                 <li className="nav-item" key={item.id}>
                     <Link
-                        className="nav-link"
+                        className={`nav-link${active ? " active" : ""}`}
                         to={item.url}
+                        aria-current={active ? "page" : undefined}
                         onClick={() => handleMenuItemClick(item.id)}
                     >
                         {iconClass ? <i className={iconClass}></i> : null}
@@ -277,11 +209,13 @@ const VerticalLayout = (props) => {
             return null;
         }
 
+        const active = pathActive(group.url);
         return (
             <li className="nav-item" key={group.groupId}>
                 <Link
-                    className="nav-link menu-link"
+                    className={`nav-link menu-link${active ? " active" : ""}`}
                     to={group.url}
+                    aria-current={active ? "page" : undefined}
                     onClick={() => handleMenuItemClick(group.groupId)}
                 >
                     {group.icon ? <i className={group.icon}></i> : null}
@@ -312,6 +246,8 @@ const VerticalLayout = (props) => {
             )
             .map((menu) => menu.id);
 
+        const childActive = treeHasActive(group.menus);
+        const open = Boolean(expandedItems[group.groupId]) || childActive;
         return (
             <li className="nav-item" key={group.groupId}>
                 <Link
@@ -319,16 +255,14 @@ const VerticalLayout = (props) => {
                     to="#"
                     data-bs-toggle="collapse"
                     onClick={() => toggleItem(group.groupId, siblingGroupIds)}
-                    aria-expanded={
-                        expandedItems[group.groupId] ? "true" : "false"
-                    }
+                    aria-expanded={open ? "true" : "false"}
                 >
                     {group.icon ? <i className={group.icon}></i> : null}
                     <span data-key="t-apps">{group.groupName}</span>
                 </Link>
 
                 <div
-                    className={`menu-dropdown ${expandedItems[group.groupId] ? "menu-dropdown-open" : ""}`}
+                    className={`menu-dropdown ${open ? "menu-dropdown-open" : ""}`}
                     data-group-name={group.groupName}
                 >
                     <ul className="nav nav-sm flex-column">

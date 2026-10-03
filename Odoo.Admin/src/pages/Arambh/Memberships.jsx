@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  Badge,
   Card,
   CardBody,
   CardHeader,
@@ -18,6 +19,12 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { listMemberships } from "../../api/arambhMembership.api";
+
+const PLAN_COLOUR = {
+  gold: "warning",
+  silver: "secondary",
+  junior: "success",
+};
 
 const Memberships = () => {
   document.title = "Memberships | Arambh Sports Arena";
@@ -66,8 +73,12 @@ const Memberships = () => {
     },
     {
       name: "Plan",
-      selector: (r) => r.planKey,
-      width: "100px",
+      cell: (r) => (
+        <Badge color={PLAN_COLOUR[r.planKey] || "light"} pill>
+          {(r.planKey || "—").toUpperCase()}
+        </Badge>
+      ),
+      width: "110px",
     },
     {
       name: "Status",

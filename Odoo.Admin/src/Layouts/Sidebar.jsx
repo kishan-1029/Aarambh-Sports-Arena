@@ -153,9 +153,8 @@ const Sidebar = ({ layoutType }) => {
                     }
                     
                     .navbar-nav .nav-link.active {
-                        background: rgba(53, 119, 241, 0.15);
+                        background: rgba(255, 255, 255, 0.12);
                         color: #ffffff !important;
-                        font-weight: 500;
                     }
                     
                     .navbar-nav .menu-link {

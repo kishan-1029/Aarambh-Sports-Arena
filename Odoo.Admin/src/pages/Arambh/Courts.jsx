@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
-  ButtonGroup,
   Card,
   CardBody,
   CardHeader,
@@ -253,9 +252,9 @@ const Courts = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <CardHeader className="d-flex justify-content-between align-items-center flex-nowrap gap-3">
                   <h5 className="mb-0">Facilities</h5>
-                  <ButtonGroup size="sm">
+                  <div className="d-flex flex-nowrap align-items-center gap-2">
                     {[
                       ["courts", "Courts"],
                       ["sports", "Sports"],
@@ -264,13 +263,15 @@ const Courts = () => {
                     ].map(([id, label]) => (
                       <Button
                         key={id}
+                        size="sm"
+                        className="text-nowrap"
                         color={tab === id ? "success" : "light"}
                         onClick={() => setTab(id)}
                       >
                         {label}
                       </Button>
                     ))}
-                  </ButtonGroup>
+                  </div>
                 </CardHeader>
                 <CardBody>
                   {loading && <Skeleton rows={6} />}
@@ -284,28 +285,31 @@ const Courts = () => {
 
                   {!loading && !error && tab === "courts" && (
                     <>
-                      <div className="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-                        <div className="d-flex flex-wrap gap-2">
-                          <Input
-                            style={{ maxWidth: 220 }}
-                            placeholder="Search courts…"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                          />
-                          <Input
-                            type="select"
-                            style={{ maxWidth: 160 }}
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                          >
-                            <option value="">All status</option>
-                            <option value="active">Active</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="archived">Archived</option>
-                          </Input>
-                        </div>
+                      <div className="d-flex flex-nowrap gap-2 align-items-center justify-content-end mb-3">
+                        <Input
+                          style={{ width: 220, flex: "0 0 auto" }}
+                          placeholder="Search courts…"
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                        />
+                        <Input
+                          type="select"
+                          style={{ width: 160, flex: "0 0 auto" }}
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                          <option value="">All status</option>
+                          <option value="active">Active</option>
+                          <option value="maintenance">Maintenance</option>
+                          <option value="archived">Archived</option>
+                        </Input>
                         <Can anyOf={["court.manage"]}>
-                          <Button color="success" size="sm" onClick={openCourtModal}>
+                          <Button
+                            color="success"
+                            className="text-nowrap flex-shrink-0"
+                            style={{ height: 38 }}
+                            onClick={openCourtModal}
+                          >
                             <i className="ri-add-line me-1" />
                             Add court
                           </Button>
@@ -382,7 +386,12 @@ const Courts = () => {
                     <>
                       <div className="d-flex justify-content-end mb-3">
                         <Can anyOf={["court.manage"]}>
-                          <Button color="success" size="sm" onClick={openSportModal}>
+                          <Button
+                            color="success"
+                            className="text-nowrap flex-shrink-0"
+                            style={{ height: 38 }}
+                            onClick={openSportModal}
+                          >
                             <i className="ri-add-line me-1" />
                             Add sport
                           </Button>
