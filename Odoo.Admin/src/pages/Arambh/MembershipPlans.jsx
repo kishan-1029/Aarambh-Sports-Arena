@@ -30,6 +30,7 @@ import {
   updatePlan,
   archivePlan,
 } from "../../api/arambhMembership.api";
+import { listTaxes } from "../../api/arambhFinance.api";
 
 const PLAN_COLOUR = {
   gold: "warning",
@@ -61,6 +62,7 @@ const EMPTY_FORM = {
   shopDiscountPct: "0",
   barDiscountPct: "0",
   benefits: "",
+  taxId: "",
 };
 
 function linesToPerks(text) {
@@ -125,6 +127,7 @@ function planToForm(p) {
     price1: d0.pricePaise != null ? String(d0.pricePaise / 100) : "",
     months2: d1.months != null ? String(d1.months) : "",
     price2: d1.pricePaise != null ? String(d1.pricePaise / 100) : "",
+    taxId: p.taxId ? String(p.taxId._id || p.taxId) : "",
     shopDiscountPct: String(p.entitlements?.shopDiscountPct ?? 0),
     barDiscountPct: String(p.entitlements?.barDiscountPct ?? 0),
     benefits: perksToLines(p.entitlements?.perks),
@@ -142,6 +145,7 @@ function matchesSearch(p, q) {
 const MembershipPlans = () => {
   document.title = "Membership Plans | Arambh Sports Arena";
   const [plans, setPlans] = useState([]);
+  const [taxes, setTaxes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
@@ -159,11 +163,15 @@ const MembershipPlans = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listPlans({
-        pageSize: 100,
-        q: query.trim() || undefined,
-      });
+      const [res, taxRes] = await Promise.all([
+        listPlans({
+          pageSize: 100,
+          q: query.trim() || undefined,
+        }),
+        listTaxes({ pageSize: 100, active: "true" }).catch(() => ({ data: { data: [] } })),
+      ]);
       setPlans(Array.isArray(res?.data?.data) ? res.data.data : []);
+      setTaxes(Array.isArray(taxRes?.data?.data) ? taxRes.data.data : []);
     } catch (err) {
       setError({
         message:
@@ -227,6 +235,7 @@ const MembershipPlans = () => {
           active: form.active,
           durations,
           entitlements,
+          taxId: form.taxId || null,
         });
       } else {
         await createPlan({
@@ -237,6 +246,7 @@ const MembershipPlans = () => {
           active: form.active,
           durations,
           entitlements,
+          taxId: form.taxId || null,
         });
       }
       closeModal();
@@ -597,6 +607,24 @@ const MembershipPlans = () => {
                   <Label check for="plan-active">
                     Active
                   </Label>
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Tax</Label>
+                  <Input
+                    type="select"
+                    name="taxId"
+                    value={form.taxId}
+                    onChange={onFormChange}
+                  >
+                    <option value="">No tax</option>
+                    {taxes.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} ({t.ratePct}%)
+                      </option>
+                    ))}
+                  </Input>
                 </FormGroup>
               </Col>
               <Col md={12}>

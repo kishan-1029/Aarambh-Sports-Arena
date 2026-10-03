@@ -1,4 +1,9 @@
 import FaqCategory from "../../models/FaqCategory.js";
+import Faq from "../../models/Faq.js";
+import {
+  getReferencingCounts,
+  formatReferenceMessage,
+} from "../../utils/referenceHelper.js";
 
 const escapeRegex = (str = "") =>
   str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
@@ -112,6 +117,24 @@ export const deleteFaqCategory = async (req, res) => {
         isOk: false,
         status: 404,
         message: "FAQ Category not found",
+      });
+    }
+
+    const referenceInfo = await getReferencingCounts("FaqCategory", id);
+    const faqCount = await Faq.countDocuments({ category: category._id });
+    const details = [...referenceInfo.details];
+    if (faqCount > 0 && !details.some((d) => d.model === "Faq" && d.path === "category")) {
+      details.push({ model: "Faq", path: "category", count: faqCount });
+    }
+    const totalReferences = details.reduce((sum, d) => sum + d.count, 0);
+    if (totalReferences > 0) {
+      return res.status(409).json({
+        isOk: false,
+        status: 409,
+        message: "Cannot delete FAQ category. It is being used by other records.",
+        totalReferences,
+        references: details,
+        formattedMessage: formatReferenceMessage(details),
       });
     }
 

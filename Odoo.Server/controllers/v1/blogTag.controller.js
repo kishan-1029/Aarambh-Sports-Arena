@@ -1,4 +1,6 @@
 import BlogTag from "../../models/BlogTag.js";
+import BlogMaster from "../../models/BlogMaster.js";
+import { formatReferenceMessage } from "../../utils/referenceHelper.js";
 
 const escapeRegex = (str = "") =>
   str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
@@ -118,6 +120,24 @@ export const deleteBlogTag = async (req, res) => {
         isOk: false,
         status: 404,
         message: "Blog Tag not found",
+      });
+    }
+
+    const blogCount = await BlogMaster.countDocuments({
+      $or: [
+        { tags: { $regex: `^${escapeRegex(tag.tagName)}$`, $options: "i" } },
+        { tags: { $regex: `^${escapeRegex(tag.slug)}$`, $options: "i" } },
+      ],
+    });
+    if (blogCount > 0) {
+      const details = [{ model: "BlogMaster", path: "tags", count: blogCount }];
+      return res.status(409).json({
+        isOk: false,
+        status: 409,
+        message: "Cannot delete blog tag. It is being used by other records.",
+        totalReferences: blogCount,
+        references: details,
+        formattedMessage: formatReferenceMessage(details),
       });
     }
 

@@ -34,6 +34,7 @@ import {
   createSport,
   updateSport,
 } from "../../api/arambhBooking.api";
+import { listTaxes } from "../../api/arambhFinance.api";
 
 const EMPTY_COURT_FORM = {
   sportId: "",
@@ -41,6 +42,7 @@ const EMPTY_COURT_FORM = {
   code: "",
   walkInPeak: "",
   walkInOffPeak: "",
+  taxId: "",
   status: "active",
 };
 
@@ -65,6 +67,7 @@ const Courts = () => {
   document.title = "Courts | Arambh Sports Arena";
   const [tab, setTab] = useState("courts");
   const [sports, setSports] = useState([]);
+  const [taxes, setTaxes] = useState([]);
   const [courts, setCourts] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [social, setSocial] = useState([]);
@@ -89,13 +92,15 @@ const Courts = () => {
         q: query.trim() || undefined,
         status: statusFilter || undefined,
       };
-      const [s, c, b, soc] = await Promise.all([
+      const [s, c, b, soc, taxRes] = await Promise.all([
         listSports({ pageSize: 50 }),
         listCourts(courtParams),
         listCourtBlocks({ pageSize: 50 }),
         listSocialSessions({ pageSize: 50 }),
+        listTaxes({ pageSize: 100, active: "true" }).catch(() => ({ data: { data: [] } })),
       ]);
       setSports(Array.isArray(s?.data?.data) ? s.data.data : []);
+      setTaxes(Array.isArray(taxRes?.data?.data) ? taxRes.data.data : []);
       setCourts(Array.isArray(c?.data?.data) ? c.data.data : []);
       setBlocks(Array.isArray(b?.data?.data) ? b.data.data : []);
       setSocial(Array.isArray(soc?.data?.data) ? soc.data.data : []);
@@ -162,6 +167,7 @@ const Courts = () => {
         name: courtForm.name.trim(),
         code: courtForm.code.trim(),
         status: courtForm.status,
+        taxId: courtForm.taxId || null,
         pricing: {
           walkInPaise,
           memberBasePaise: { ...walkInPaise },
@@ -604,6 +610,24 @@ const Courts = () => {
                     value={courtForm.walkInOffPeak}
                     onChange={onCourtFormChange}
                   />
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Tax</Label>
+                  <Input
+                    type="select"
+                    name="taxId"
+                    value={courtForm.taxId}
+                    onChange={onCourtFormChange}
+                  >
+                    <option value="">No tax</option>
+                    {taxes.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} ({t.ratePct}%)
+                      </option>
+                    ))}
+                  </Input>
                 </FormGroup>
               </Col>
               <Col md={6}>

@@ -16,6 +16,7 @@ import {
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -61,6 +62,8 @@ const BlogTag = () => {
   const [modal_list, setmodal_list] = useState(false);
   const [modal_edit, setmodal_edit] = useState(false);
   const [modal_delete, setmodal_delete] = useState(false);
+  const [referenceModal, setReferenceModal] = useState(false);
+  const [referenceData, setReferenceData] = useState(null);
 
   const tog_list = () => {
     setmodal_list(!modal_list);
@@ -172,7 +175,13 @@ const BlogTag = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while deleting tag");
+      setmodal_delete(false);
+      if (error.response?.status === 409) {
+        setReferenceData(error.response.data);
+        setReferenceModal(true);
+      } else {
+        toast.error(error.response?.data?.message || "An error occurred while deleting tag");
+      }
     } finally {
       setIsDeleteLoading(false);
     }
@@ -419,6 +428,12 @@ const BlogTag = () => {
         toggle={() => setmodal_delete(false)}
         setmodal_delete={setmodal_delete}
         disabled={isDeleteLoading}
+      />
+      <ReferenceErrorModal
+        isOpen={referenceModal}
+        toggle={() => setReferenceModal(false)}
+        title="Cannot Delete Blog Tag"
+        referenceData={referenceData}
       />
     </React.Fragment>
   );

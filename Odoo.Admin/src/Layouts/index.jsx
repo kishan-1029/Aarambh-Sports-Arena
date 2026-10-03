@@ -527,6 +527,12 @@ const Layout = (props) => {
                     .minimal-sidebar {
                         background: var(--sidebar-bg, #0f7a4a) !important;
                     }
+
+                    .minimal-sidebar .navbar-brand-box,
+                    .navbar-menu .navbar-brand-box,
+                    .minimal-logo-box {
+                        background: #ffffff !important;
+                    }
                     
                     /* Text & icon contrast sizing overrides */
                     .minimal-sidebar .menu-title {
