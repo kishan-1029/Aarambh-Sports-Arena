@@ -1,0 +1,100 @@
+{
+    "name": "barodaweb-demo-admin-panel",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@react-jvectormap/core": "^1.0.4",
+        "@react-jvectormap/world": "^1.1.2",
+        "axios": "^0.26.0",
+        "bootstrap": "5.2.3",
+        "date-fns": "^4.1.0",
+        "formik": "^2.2.9",
+        "jodit-react": "^5.2.6",
+        "moment-timezone": "^0.5.43",
+        "react": "^18.2.0",
+        "react-data-table-component": "^7.5.2",
+        "react-dom": "^18.0.0",
+        "react-icons": "^5.5.0",
+        "react-router-dom": "^6.4.1",
+        "react-scripts": "5.0.1",
+        "react-select": "^5.2.2",
+        "react-simple-maps": "^3.0.0",
+        "react-toastify": "^8.2.0",
+        "react-tooltip": "^5.30.0",
+        "reactstrap": "^9.0.1",
+        "recharts": "^3.6.0",
+        "sass": "^1.77.8",
+        "simplebar-react": "^2.3.6",
+        "styled-components": "^6.1.19",
+        "web-vitals": "^2.1.4",
+        "yup": "^0.32.11"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build --max_old_space_size=8000 build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject",
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix .",
+        "format": "prettier --write \"**/*.{js,jsx,json,md,html,css,less,scss}\""
+    },
+    "eslintConfig": {
+        "extends": [
+            "eslint:recommended",
+            "plugin:react/recommended",
+            "react-app"
+        ],
+        "parser": "@babel/eslint-parser",
+        "parserOptions": {
+            "requireConfigFile": false,
+            "ecmaVersion": 2020,
+            "sourceType": "module",
+            "ecmaFeatures": {
+                "jsx": true
+            }
+        },
+        "env": {
+            "browser": true,
+            "es6": true
+        },
+        "globals": {
+            "$": true
+        },
+        "settings": {
+            "react": {
+                "version": "^17.0.1"
+            }
+        },
+        "rules": {
+            "semi": 0,
+            "react/no-unescaped-entities": 0,
+            "react/react-in-jsx-scope": "off",
+            "react/prop-types": "off",
+            "no-unused-vars": "off",
+            "no-extra-boolean-cast": 0,
+            "react/no-unknown-property": "off"
+        }
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "resolutions": {
+        "moment": "2.29.1",
+        "autoprefixer": "10.4.5"
+    },
+    "devDependencies": {
+        "ajv": "^7.2.4"
+    }
+}
