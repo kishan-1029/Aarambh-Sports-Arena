@@ -97,8 +97,8 @@ const Sidebar = ({ layoutType }) => {
                     }
                     
                     .minimal-logo-box {
-                        background: transparent !important;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+                        background: #ffffff !important;
+                        border-bottom: 1px solid #e5e7eb;
                         display: flex;
                         align-items: center;
                         justify-content: center;

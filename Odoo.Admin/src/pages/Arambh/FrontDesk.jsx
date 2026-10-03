@@ -360,23 +360,36 @@ const FrontDesk = () => {
         </div>
       }
     >
-      <div className="page-content" style={{ paddingTop: "1rem" }}>
-        <div className="d-flex flex-wrap align-items-center gap-2 mb-3 px-2">
-          <div className="flex-grow-1 position-relative" style={{ maxWidth: 480 }}>
+      <div className="page-content">
+        <div className="d-flex flex-wrap align-items-end gap-2 mb-3 px-2">
+          <div className="flex-grow-1 position-relative" style={{ maxWidth: 520, zIndex: 30 }}>
+            <label className="form-label mb-1" htmlFor="front-desk-search">
+              Search member
+            </label>
             <Input
+              id="front-desk-search"
               innerRef={searchRef}
-              placeholder="Search member / phone / code  (/)"
+              placeholder="Name, phone, or member code"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoComplete="off"
+              style={{ background: "#fff", color: "#212529" }}
             />
             {searching && (
               <Spinner size="sm" className="position-absolute end-0 top-50 translate-middle-y me-2" />
             )}
+            {query.trim().length >= 2 && !searching && hits.length === 0 && (
+              <div
+                className="border bg-white shadow-sm position-absolute w-100 mt-1 px-3 py-2 small text-muted"
+                style={{ zIndex: 40 }}
+              >
+                No members match that search.
+              </div>
+            )}
             {hits.length > 0 && query.trim().length >= 2 && (
               <div
                 className="border bg-white shadow-sm position-absolute w-100 mt-1"
-                style={{ zIndex: 20, maxHeight: 240, overflowY: "auto" }}
+                style={{ zIndex: 40, maxHeight: 240, overflowY: "auto" }}
               >
                 {hits.map((m) => (
                   <button

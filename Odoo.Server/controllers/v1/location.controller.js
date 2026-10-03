@@ -420,6 +420,19 @@ export const deleteState = async (req, res) => {
       });
     }
 
+    const referenceInfo = await getReferencingCounts("State", stateId);
+
+    if (referenceInfo.totalReferences > 0) {
+      return res.status(409).json({
+        message: "Cannot delete state. It is being used by other records.",
+        isOk: false,
+        status: 409,
+        totalReferences: referenceInfo.totalReferences,
+        references: referenceInfo.details,
+        formattedMessage: formatReferenceMessage(referenceInfo.details),
+      });
+    }
+
     await StateModels.deleteOne({ _id: stateId });
 
     return res.status(200).json({
@@ -729,6 +742,19 @@ export const deleteCity = async (req, res) => {
         isOk: false,
         message: "City not found",
         status: 404,
+      });
+    }
+
+    const referenceInfo = await getReferencingCounts("City", cityId);
+
+    if (referenceInfo.totalReferences > 0) {
+      return res.status(409).json({
+        message: "Cannot delete city. It is being used by other records.",
+        isOk: false,
+        status: 409,
+        totalReferences: referenceInfo.totalReferences,
+        references: referenceInfo.details,
+        formattedMessage: formatReferenceMessage(referenceInfo.details),
       });
     }
 
