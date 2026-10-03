@@ -1,4 +1,7 @@
 import CompanyMasterModels from "../../models/CompanyMaster.js";
+import CountryModels from "../../models/Country.js";
+import StateModels from "../../models/State.js";
+import CityModels from "../../models/City.js";
 import EmployeeModels from "../../models/Employee.js";
 import bcrypt from "bcrypt";
 import fs from "node:fs";
@@ -171,6 +174,33 @@ const buildInvalidLoginResponse = (attemptResult) => {
   };
 };
 
+async function resolveDefaultLocation() {
+  const country =
+    (await CountryModels.findOne({ isActive: true, countryName: "India" })) ||
+    (await CountryModels.findOne({ isActive: true, countryName: { $regex: /\S/ } }));
+  if (!country) return null;
+
+  const state =
+    (await StateModels.findOne({ countryId: country._id, isActive: true, stateCode: "GJ" })) ||
+    (await StateModels.findOne({
+      countryId: country._id,
+      isActive: true,
+      stateName: { $regex: /\S/ },
+    }));
+  if (!state) return null;
+
+  const city =
+    (await CityModels.findOne({ stateId: state._id, isActive: true, cityName: "Vadodara" })) ||
+    (await CityModels.findOne({
+      stateId: state._id,
+      isActive: true,
+      cityName: { $regex: /\S/ },
+    }));
+  if (!city) return null;
+
+  return { countryId: country._id, stateId: state._id, cityId: city._id };
+}
+
 export const createCompanyMaster = async (req, res) => {
   try {
     const {
@@ -193,20 +223,54 @@ export const createCompanyMaster = async (req, res) => {
     const superAdmin = await CompanyMasterModels.findOne({ isSuperAdmin: true }) ||
                        await CompanyMasterModels.findOne({ isSuperAdmin: false });
 
+    const safeMobile = typeof mobileNumber === "string" ? mobileNumber.trim() : "";
+    const safeGst = typeof gstNumber === "string" ? gstNumber.trim() : "";
+    const safeWebsite = typeof website === "string" ? website.trim() : "";
+    if (!safeMobile || !safeGst || !safeWebsite) {
+      return res.status(400).json({
+        isOk: false,
+        message: "Phone, GST number, and website are required",
+        status: 400,
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    const inheritedLocation =
+      superAdmin?.countryId && superAdmin?.stateId && superAdmin?.cityId
+        ? {
+            countryId: superAdmin.countryId,
+            stateId: superAdmin.stateId,
+            cityId: superAdmin.cityId,
+          }
+        : null;
+    const location =
+      (countryId && stateId && cityId
+        ? { countryId, stateId, cityId }
+        : null) ||
+      inheritedLocation ||
+      (await resolveDefaultLocation());
+
+    if (!location) {
+      return res.status(400).json({
+        isOk: false,
+        message: "Add an active country, state, and city before onboarding a company.",
+        status: 400,
+      });
+    }
 
     const companyMaster = new CompanyMasterModels({
       companyName,
       email,
       password: hashedPassword,
-      mobileNumber: mobileNumber || superAdmin?.mobileNumber || "0000000000",
-      gstNumber: gstNumber || superAdmin?.gstNumber || "24ACQFS6351L2AI",
-      countryId: countryId || superAdmin?.countryId,
-      stateId: stateId || superAdmin?.stateId,
-      cityId: cityId || superAdmin?.cityId,
+      mobileNumber: safeMobile,
+      gstNumber: safeGst,
+      countryId: location.countryId,
+      stateId: location.stateId,
+      cityId: location.cityId,
       address: address || superAdmin?.address || "Address",
       pincode: pincode || superAdmin?.pincode || "390001",
-      website: website || superAdmin?.website || "www.arambhsportsarena.com",
+      website: safeWebsite,
       isActive: isActive !== undefined ? isActive : true,
       addButtonTextColor: addButtonTextColor || superAdmin?.addButtonTextColor || "",
       removeButtonTextColor: removeButtonTextColor || superAdmin?.removeButtonTextColor || "",

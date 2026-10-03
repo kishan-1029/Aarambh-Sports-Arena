@@ -40,6 +40,7 @@ import { toLocalDate, localDateTimeToUtc, addMinutesUtc } from '../lib/time.js';
 import { create as createBooking } from '../modules/booking/booking.service.js';
 import { Lead } from '../modules/public/lead.model.js';
 import { seedMenus } from './seedMenus.js';
+import { seedMasterLocations } from './seedMasterLocations.js';
 import { seedBlogs } from './seedBlogs.js';
 import {
   seedExtraMembers,
@@ -663,6 +664,7 @@ async function main() {
   }
 
   await seedClub();
+  await seedMasterLocations();
   const location = await Location.findOne({ code: 'MAIN' });
   const taxes = await seedTaxes();
   const customers = await seedCustomers();
