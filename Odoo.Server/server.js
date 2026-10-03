@@ -27,6 +27,8 @@ import facilitiesRoutes from "./src/modules/facilities/facilities.routes.js";
 import bookingRoutes from "./src/modules/booking/booking.routes.js";
 import publicRoutes from "./src/modules/public/public.routes.js";
 import dashboardRoutes from "./src/modules/dashboard/dashboard.routes.js";
+import mcpRoutes from "./src/modules/mcp/mcp.routes.js";
+import mcpKeysRoutes from "./src/modules/mcp/mcpKeys.routes.js";
 import { logger } from "./src/lib/logger.js";
 
 // ============ SECURITY IMPORTS ============
@@ -387,6 +389,8 @@ app.use("/api/admin", membershipRoutes);
 app.use("/api/admin", facilitiesRoutes);
 app.use("/api/admin", bookingRoutes);
 app.use("/api/admin", dashboardRoutes);
+app.use("/api/admin", mcpKeysRoutes);
+app.use("/api/mcp", mcpRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api", webhookRoutes);
 

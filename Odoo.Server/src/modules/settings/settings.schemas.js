@@ -36,6 +36,13 @@ export const settingsPatchSchema = z.object({
   receiptFooter: z.string().optional(),
   paymentsProvider: z.enum(['mock', 'razorpay']).optional(),
   posInvoiceMode: z.enum(['per_order', 'per_session']).optional(),
+  publicSiteEnabled: z.boolean().optional(),
+  showMembershipPlans: z.boolean().optional(),
+  showSports: z.boolean().optional(),
+  showAvailability: z.boolean().optional(),
+  showBlogs: z.boolean().optional(),
+  showTrial: z.boolean().optional(),
+  showContact: z.boolean().optional(),
 });
 
 export const taxCreateSchema = z.object({

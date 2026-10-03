@@ -17,7 +17,13 @@ import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
-import { getBookingCalendar, listBookings, listCourts } from "../../api/arambhBooking.api";
+import {
+  cancelBooking,
+  checkInBooking,
+  getBookingCalendar,
+  listBookings,
+  listCourts,
+} from "../../api/arambhBooking.api";
 
 function todayLocal() {
   const d = new Date();
@@ -39,11 +45,14 @@ const Bookings = () => {
   document.title = "Bookings | Arambh Sports Arena";
   const [date, setDate] = useState(todayLocal());
   const [view, setView] = useState("calendar");
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("");
   const [calendar, setCalendar] = useState(null);
   const [rows, setRows] = useState([]);
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,7 +66,13 @@ const Bookings = () => {
         setCalendar(cal?.data?.data || null);
         setCourts(Array.isArray(c?.data?.data) ? c.data.data : []);
       } else {
-        const res = await listBookings({ localDate: date, pageSize: 100, sort: "start" });
+        const res = await listBookings({
+          localDate: date,
+          pageSize: 100,
+          sort: "start",
+          q: q.trim() || undefined,
+          status: status || undefined,
+        });
         setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
       }
     } catch (err) {
@@ -68,7 +83,23 @@ const Bookings = () => {
     } finally {
       setLoading(false);
     }
-  }, [date, view]);
+  }, [date, view, q, status]);
+
+  const runAction = async (id, action) => {
+    setBusyId(id);
+    try {
+      if (action === "checkin") await checkInBooking(id);
+      if (action === "cancel") await cancelBooking(id, { reason: "Cancelled from bookings list" });
+      await load();
+    } catch (err) {
+      setError({
+        message: err?.response?.data?.message || err?.message || "Action failed",
+        requestId: err?.response?.data?.requestId,
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   useEffect(() => {
     load();
@@ -100,26 +131,56 @@ const Bookings = () => {
       <Container fluid>
         <BreadCrumb title="Bookings" pageTitle="Front Desk" />
         <Row className="mb-3 g-2 align-items-end">
-          <Col md={3}>
+          <Col md={2}>
             <label className="form-label">Date</label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Col>
-          <Col md={4}>
+          <Col md={3}>
+            <label className="form-label">Search</label>
+            <Input
+              placeholder="Booking no, name, phone…"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setView("list");
+              }}
+            />
+          </Col>
+          <Col md={2}>
+            <label className="form-label">Status</label>
+            <Input
+              type="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setView("list");
+              }}
+            >
+              <option value="">All</option>
+              <option value="held">held</option>
+              <option value="confirmed">confirmed</option>
+              <option value="checked_in">checked_in</option>
+              <option value="completed">completed</option>
+              <option value="cancelled">cancelled</option>
+              <option value="no_show">no_show</option>
+            </Input>
+          </Col>
+          <Col md={3}>
             <Button
-              color={view === "calendar" ? "primary" : "light"}
+              color={view === "calendar" ? "success" : "light"}
               className="me-2"
               onClick={() => setView("calendar")}
             >
               Calendar
             </Button>
             <Button
-              color={view === "list" ? "primary" : "light"}
+              color={view === "list" ? "success" : "light"}
               onClick={() => setView("list")}
             >
               List
             </Button>
           </Col>
-          <Col md={5} className="text-end">
+          <Col md={2} className="text-end">
             <Button color="soft-secondary" onClick={load}>
               Refresh
             </Button>
@@ -150,6 +211,7 @@ const Bookings = () => {
                         <th>Type</th>
                         <th>Status</th>
                         <th>Price</th>
+                        <th style={{ width: 160 }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -171,6 +233,30 @@ const Bookings = () => {
                           </td>
                           <td>
                             <Money paise={r.price?.totalPaise ?? 0} />
+                          </td>
+                          <td>
+                            {["held", "confirmed"].includes(r.status) && (
+                              <Button
+                                size="sm"
+                                color="success"
+                                className="me-1"
+                                disabled={busyId === r._id}
+                                onClick={() => runAction(r._id, "checkin")}
+                              >
+                                Check-in
+                              </Button>
+                            )}
+                            {!["cancelled", "completed"].includes(r.status) && (
+                              <Button
+                                size="sm"
+                                color="danger"
+                                outline
+                                disabled={busyId === r._id}
+                                onClick={() => runAction(r._id, "cancel")}
+                              >
+                                Cancel
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -220,7 +306,7 @@ const Bookings = () => {
                               <div
                                 key={`${c._id}-${hhmm}`}
                                 className="border-top p-1"
-                                style={{ minHeight: 28, background: hit ? "rgba(13,110,253,0.12)" : undefined }}
+                                style={{ minHeight: 28, background: hit ? "rgba(62,180,116,0.16)" : undefined }}
                               >
                                 {hit && (
                                   <div className="small">

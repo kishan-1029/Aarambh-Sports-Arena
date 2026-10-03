@@ -24,6 +24,16 @@ import {
   listLocations,
 } from "../../api/arambhFinance.api";
 
+const FEATURE_FLAGS = [
+  { key: "publicSiteEnabled", label: "Public website enabled" },
+  { key: "showMembershipPlans", label: "Show membership plans" },
+  { key: "showSports", label: "Show sports" },
+  { key: "showAvailability", label: "Show availability" },
+  { key: "showBlogs", label: "Show blogs" },
+  { key: "showTrial", label: "Show trial booking" },
+  { key: "showContact", label: "Show contact / enquiry" },
+];
+
 const SettingsClub = () => {
   document.title = "Club & locations | Arambh Sports Arena";
 
@@ -31,6 +41,7 @@ const SettingsClub = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState("");
   const [error, setError] = useState(null);
   const [clubName, setClubName] = useState("");
   const [receiptFooter, setReceiptFooter] = useState("");
@@ -83,6 +94,23 @@ const SettingsClub = () => {
     }
   };
 
+  const toggleFlag = async (key) => {
+    const next = !(settings?.[key] !== false);
+    setToggling(key);
+    setError(null);
+    try {
+      const res = await patchSettings({ [key]: next });
+      setSettings(res?.data?.data);
+    } catch (err) {
+      setError({
+        message: err?.response?.data?.message || err?.message || "Toggle failed",
+        requestId: err?.response?.data?.requestId,
+      });
+    } finally {
+      setToggling("");
+    }
+  };
+
   return (
     <Can
       perm="settings.manage"
@@ -105,11 +133,11 @@ const SettingsClub = () => {
             <ErrorState message={error.message} requestId={error.requestId} onRetry={load} />
           )}
           {loading ? (
-            <Skeleton rows={6} />
+            <Skeleton rows={8} />
           ) : (
             <Row>
               <Col lg={6}>
-                <Card>
+                <Card className="mb-3">
                   <CardHeader>
                     <h5 className="mb-0">Club</h5>
                   </CardHeader>
@@ -143,7 +171,7 @@ const SettingsClub = () => {
                           <option value="razorpay">razorpay</option>
                         </Input>
                       </FormGroup>
-                      <Button color="primary" type="submit" disabled={saving}>
+                      <Button color="success" type="submit" disabled={saving}>
                         {saving ? "Saving…" : "Save"}
                       </Button>
                       {settings?.currency && (
@@ -152,6 +180,40 @@ const SettingsClub = () => {
                         </span>
                       )}
                     </Form>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <h5 className="mb-0">Public website · one-click controls</h5>
+                  </CardHeader>
+                  <CardBody>
+                    <p className="text-muted small">
+                      Turn pages on/off for the customer site. Inactive membership plans and
+                      courts still follow their own Active/Status toggles on those screens.
+                    </p>
+                    {FEATURE_FLAGS.map((f) => {
+                      const on = settings?.[f.key] !== false;
+                      return (
+                        <div
+                          key={f.key}
+                          className="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
+                        >
+                          <div>
+                            <div className="fw-semibold">{f.label}</div>
+                            <div className="small text-muted">{f.key}</div>
+                          </div>
+                          <div className="form-check form-switch m-0">
+                            <Input
+                              type="switch"
+                              checked={on}
+                              disabled={toggling === f.key}
+                              onChange={() => toggleFlag(f.key)}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </CardBody>
                 </Card>
               </Col>

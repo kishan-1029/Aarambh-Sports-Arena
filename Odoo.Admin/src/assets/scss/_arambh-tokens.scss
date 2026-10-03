@@ -58,6 +58,16 @@
   letter-spacing: 0.02em;
 }
 
+.arambh-kpi-tile--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.25rem rgba(12, 61, 40, 0.12) !important;
+}
+
+.arambh-kpi-tile--clickable:focus-visible {
+  outline: 2px solid var(--arambh-brand);
+  outline-offset: 2px;
+}
+
 .arambh-kpi-value {
   font-variant-numeric: tabular-nums;
   font-size: 1.75rem;

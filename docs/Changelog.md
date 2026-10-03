@@ -17,3 +17,6 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-03 · Demo UI · Rebuilt `customer-site` (full-bleed hero, Syne/Manrope, live sports/plans/availability/trial/contact); seeded sports+courts; API default :7003.
 - 2026-10-03 · Admin demo · Seeded 10 menu groups / 40 menus, ~30 members, bookings/invoices/leads; live dashboard KPIs+charts; Members Add/Archive; Arambh logos on login, sidebar, header, customer site.
 - 2026-10-03 · Brand fix · Login left=left.jpg / right=right.jpg once each; larger sidebar left logo; dashboard KPIs restored (no giant logo); remove Barodaweb from footer/titles; customer site uses AS symbol crop.
+- 2026-10-03 · Dashboard · Daily revenue KPI + 7-day revenue chart; all KPI tiles clickable to related screens.
+- 2026-10-03 · Admin dynamic · Pie charts on dashboard; Membership Plans + Courts CRUD/toggles/search; Bookings search+actions; Front Desk date picker; Club settings one-click public site flags; blog seed + public /blogs; customer-site skeletons.
+- 2026-10-03 · Phase 17 MCP · `mcp/` host (HTTP+stdio) from project360 patterns; `/api/mcp/*` + API keys (ADR-0007); admin Settings → MCP access; CONNECT.md for Claude/ChatGPT/Cursor.

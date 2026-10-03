@@ -1,29 +1,40 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, formatPaise, planMonthlyPaise } from '../api';
+import Skeleton from '../components/Skeleton.jsx';
 import heroImg from '../assets/hero.png';
 import leftLogo from '../assets/brand/left.jpg';
-
-const FALLBACK_SPORTS = [
-  { key: 'tennis', name: 'Tennis', courtCount: 2 },
-  { key: 'padel', name: 'Padel', courtCount: 2 },
-  { key: 'badminton', name: 'Badminton', courtCount: 2 },
-  { key: 'cricket', name: 'Cricket', courtCount: 1 },
-];
 
 export default function Home() {
   const [club, setClub] = useState(null);
   const [plans, setPlans] = useState([]);
   const [sports, setSports] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const features = club?.features || {};
 
   useEffect(() => {
-    Promise.all([api.club(), api.plans(), api.sports()])
-      .then(([c, p, s]) => {
+    let alive = true;
+    setLoading(true);
+    Promise.all([
+      api.club().catch(() => null),
+      api.plans().catch(() => []),
+      api.sports().catch(() => []),
+      api.blogs(3).catch(() => []),
+    ])
+      .then(([c, p, s, b]) => {
+        if (!alive) return;
         setClub(c);
         setPlans(Array.isArray(p) ? p.slice(0, 3) : []);
-        setSports(Array.isArray(s) && s.length ? s.slice(0, 4) : FALLBACK_SPORTS);
+        setSports(Array.isArray(s) ? s.slice(0, 4) : []);
+        setBlogs(Array.isArray(b) ? b.slice(0, 3) : []);
       })
-      .catch(() => setSports(FALLBACK_SPORTS));
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const loc = club?.location;
@@ -53,37 +64,48 @@ export default function Home() {
             you can book without the WhatsApp maze.
           </p>
           <div className="hero-actions">
-            <Link className="btn btn-primary" to="/trial">
-              Book a trial
-            </Link>
-            <Link className="btn btn-ghost" to="/availability">
-              See availability
-            </Link>
+            {features.showTrial !== false && (
+              <Link className="btn btn-primary" to="/trial">
+                Book a trial
+              </Link>
+            )}
+            {features.showAvailability !== false && (
+              <Link className="btn btn-ghost" to="/availability">
+                See availability
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
-      <section className="band">
-        <div className="section">
-          <div className="section-head">
-            <h2>Courts built for busy evenings</h2>
-            <p>Four sports. Real surfaces. Book what is free — not a spreadsheet screenshot.</p>
+      {features.showSports !== false && (
+        <section className="band">
+          <div className="section">
+            <div className="section-head">
+              <h2>Courts built for busy evenings</h2>
+              <p>Live sports and court counts from the admin facilities module.</p>
+            </div>
+            {loading ? (
+              <Skeleton rows={4} height={48} />
+            ) : (
+              <div className="sport-rail">
+                {sports.map((s) => (
+                  <Link className="sport-tile" key={s.id || s.key || s.name} to="/sports">
+                    <div className="code">{s.key || 'sport'}</div>
+                    <h3>{s.name}</h3>
+                    <p>
+                      {s.courtCount != null
+                        ? `${s.courtCount} court${s.courtCount === 1 ? '' : 's'} · ${s.sessionMinutes || 60} min sessions`
+                        : 'Open for members and trials'}
+                    </p>
+                  </Link>
+                ))}
+                {!sports.length && <p className="text-muted">No active sports yet — enable them in admin Courts.</p>}
+              </div>
+            )}
           </div>
-          <div className="sport-rail">
-            {sports.map((s) => (
-              <Link className="sport-tile" key={s.id || s.key || s.name} to="/sports">
-                <div className="code">{s.key || 'sport'}</div>
-                <h3>{s.name}</h3>
-                <p>
-                  {s.courtCount != null
-                    ? `${s.courtCount} court${s.courtCount === 1 ? '' : 's'} · ${s.sessionMinutes || 60} min sessions`
-                    : 'Open for members and trials'}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="section">
         <div className="section-head">
@@ -94,7 +116,7 @@ export default function Home() {
           <div className="step">
             <div className="n">01</div>
             <h3>Pick a sport</h3>
-            <p>Tennis, padel, badminton or cricket nets — choose how you want to play.</p>
+            <p>Choose from the sports published in the admin panel.</p>
           </div>
           <div className="step">
             <div className="n">02</div>
@@ -109,47 +131,71 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="section-head">
-          <h2>Membership that matches how often you play</h2>
-          <p>Gold, Silver and Junior — prices in ₹, entitlements you can read in one glance.</p>
-        </div>
-        <div className="plan-grid">
-          {(plans.length
-            ? plans
-            : [
-                { key: 'gold', name: 'Gold', description: 'Premium full-access' },
-                { key: 'silver', name: 'Silver', description: 'Balanced mid-tier' },
-                { key: 'junior', name: 'Junior', description: 'Under-18 play' },
-              ]
-          ).map((p, idx) => (
-            <div className={`plan ${idx === 0 ? 'featured' : ''}`} key={p.id || p.key || p.name}>
-              <span className="tag">{p.key || 'plan'}</span>
-              <h3>{p.name}</h3>
-              <p>{p.description || 'Club membership with court benefits.'}</p>
-              <div className="price">
-                {formatPaise(planMonthlyPaise(p))}
-                <small>from / month</small>
-              </div>
-              <ul className="perk-list">
-                {(p.entitlements?.perks?.length
-                  ? p.entitlements.perks
-                  : ['Court access', 'Guest passes', 'Member rates']
-                )
-                  .slice(0, 4)
-                  .map((perk) => (
-                    <li className="perk" key={perk}>
-                      {perk}
-                    </li>
-                  ))}
-              </ul>
-              <Link className={`btn ${idx === 0 ? 'btn-primary' : 'btn-outline'}`} to="/membership">
-                Compare plans
-              </Link>
+      {features.showMembershipPlans !== false && (
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="section-head">
+            <h2>Membership that matches how often you play</h2>
+            <p>Plans and prices come live from admin Membership Plans (inactive plans stay hidden).</p>
+          </div>
+          {loading ? (
+            <Skeleton rows={5} height={24} />
+          ) : (
+            <div className="plan-grid">
+              {plans.map((p, idx) => (
+                <div className={`plan ${idx === 0 ? 'featured' : ''}`} key={p.id || p.key || p.name}>
+                  <span className="tag">{p.key || 'plan'}</span>
+                  <h3>{p.name}</h3>
+                  <p>{p.description || 'Club membership with court benefits.'}</p>
+                  <div className="price">
+                    {formatPaise(planMonthlyPaise(p))}
+                    <small>from / month</small>
+                  </div>
+                  <ul className="perk-list">
+                    {(p.entitlements?.perks?.length
+                      ? p.entitlements.perks
+                      : ['Court access', 'Member rates']
+                    )
+                      .slice(0, 4)
+                      .map((perk) => (
+                        <li className="perk" key={perk}>
+                          {perk}
+                        </li>
+                      ))}
+                  </ul>
+                  <Link className={`btn ${idx === 0 ? 'btn-primary' : 'btn-outline'}`} to="/membership">
+                    Compare plans
+                  </Link>
+                </div>
+              ))}
+              {!plans.length && (
+                <p className="text-muted">No active plans — turn plans on in admin Membership Plans.</p>
+              )}
             </div>
-          ))}
-        </div>
-      </section>
+          )}
+        </section>
+      )}
+
+      {features.showBlogs !== false && blogs.length > 0 && (
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="section-head">
+            <h2>From the club desk</h2>
+            <p>Latest guides — seeded and editable in CMS Blog Master.</p>
+          </div>
+          <div className="blog-grid">
+            {blogs.map((b) => (
+              <Link className="blog-card" key={b.id} to="/blogs">
+                <div className="blog-body">
+                  <div className="blog-meta">
+                    <span>{b.category || 'Club'}</span>
+                  </div>
+                  <h3>{b.title}</h3>
+                  <p>{b.excerpt}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="section-head">
@@ -163,9 +209,11 @@ export default function Home() {
             <p>{loc?.phone || '+91-9999999999'}</p>
             <p>{loc?.timezone || 'Asia/Kolkata'} · Open evenings & weekends</p>
             <div style={{ marginTop: '1.1rem' }}>
-              <Link className="btn btn-solid" to="/contact">
-                Contact the club
-              </Link>
+              {features.showContact !== false && (
+                <Link className="btn btn-solid" to="/contact">
+                  Contact the club
+                </Link>
+              )}
             </div>
           </div>
           <div className="map-panel">

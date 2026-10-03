@@ -39,6 +39,7 @@ import { toLocalDate, localDateTimeToUtc, addMinutesUtc } from '../lib/time.js';
 import { create as createBooking } from '../modules/booking/booking.service.js';
 import { Lead } from '../modules/public/lead.model.js';
 import { seedMenus } from './seedMenus.js';
+import { seedBlogs } from './seedBlogs.js';
 import {
   seedExtraMembers,
   seedExtraCustomers,
@@ -673,6 +674,7 @@ async function main() {
   await seedExtraBookings(courts, allMembers);
   await seedExtraLeads();
   await seedMenus();
+  await seedBlogs();
   await seedTemplates();
   await seedArambhRoles();
 
