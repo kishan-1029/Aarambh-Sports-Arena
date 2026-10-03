@@ -4,7 +4,11 @@ import { Link } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { MenuContext } from "../../context/MenuContext";
 import { AuthContext } from "../../context/AuthContext";
-import { buildArambhNavGroup } from "../../config/arambhNav";
+import {
+    buildArambhNavGroups,
+    buildLegacyNavGroups,
+    mergeAdminNavGroups,
+} from "../../config/arambhNav";
 import { usePermission } from "../../hooks/usePermission";
 
 const activateParentDropdown = (item) => {
@@ -63,13 +67,16 @@ const VerticalLayout = (props) => {
 
     const path = props.router.location.pathname;
 
-    const arambhGroup = useMemo(() => {
-        const group = buildArambhNavGroup();
-        return {
-            ...group,
-            menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
-        };
+    const arambhGroups = useMemo(() => {
+        return buildArambhNavGroups()
+            .map((group) => ({
+                ...group,
+                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+            }))
+            .filter((g) => g.isLink || (g.menus && g.menus.length > 0));
     }, [can]);
+
+    const legacyGroups = useMemo(() => buildLegacyNavGroups(), []);
 
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {
@@ -383,11 +390,12 @@ const VerticalLayout = (props) => {
 
         const processedMenuData = getFilteredMenuData();
 
-        // Merge static Arambh module nav after API menus (does not break MenuMaster fetch)
-        const mergedMenuData =
-            arambhGroup.menus.length > 0
-                ? [...processedMenuData, arambhGroup]
-                : processedMenuData;
+        // Legacy Dashboard/Setup/Master/CMS first, then remaining API groups, then split Arambh modules
+        const mergedMenuData = mergeAdminNavGroups(
+            processedMenuData,
+            arambhGroups,
+            legacyGroups,
+        );
 
         if (mergedMenuData.length === 0) {
             return (
