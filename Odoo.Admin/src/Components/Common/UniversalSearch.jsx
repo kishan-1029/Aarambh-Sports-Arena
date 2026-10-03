@@ -156,6 +156,8 @@ const UniversalSearch = () => {
     const customStyles = {
         control: (provided, state) => ({
             ...provided,
+            backgroundColor: "var(--vz-input-bg, #fff)",
+            color: "var(--vz-body-color, #333)",
             minWidth: "200px",
             width: "100%",
             maxWidth: "500px",
@@ -179,8 +181,8 @@ const UniversalSearch = () => {
         }),
         option: (provided, state) => ({
             ...provided,
-            backgroundColor: state.isFocused ? "var(--search-accent-color, #0ab39c)" : "white",
-            color: state.isFocused ? "var(--search-accent-contrast, white)" : "#333",
+            backgroundColor: state.isFocused ? "var(--search-accent-color, #0ab39c)" : "var(--vz-input-bg, #fff)",
+            color: state.isFocused ? "var(--search-accent-contrast, white)" : "var(--vz-body-color, #333)",
             cursor: "pointer",
             padding: "10px 14px",
             fontSize: "13px",
@@ -195,7 +197,7 @@ const UniversalSearch = () => {
         }),
         input: (provided) => ({
             ...provided,
-            color: "#333",
+            color: "var(--vz-body-color, #333)",
             fontSize: "13px",
         }),
         valueContainer: (provided) => ({
@@ -215,6 +217,7 @@ const UniversalSearch = () => {
             }}
         >
             <Select
+                classNamePrefix="select"
                 ref={selectRef}
                 options={searchOptions}
                 onChange={handleSelect}

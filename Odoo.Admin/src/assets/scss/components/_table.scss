@@ -106,36 +106,43 @@ $value in $theme-colors {
     }
 }
 
-.rdt_Table {
-    &.eSTlnH {
-        background-color: var(--#{$variable-prefix}card-bg) !important;
-        color: var(--#{$variable-prefix}body-color);
-    }
-
-    .gZWIKX,
-    .jVeafb {
-        color: var(--#{$variable-prefix}body-color);
-        background-color: var(--#{$variable-prefix}card-bg);
-    }
-
-    .jVeafb:not(:last-of-type),
-    .gZWIKX {
-        border-bottom-color: var(--#{$variable-prefix}border-color);
-    }
+.rdt_Table,
+.rdt_TableHead,
+.rdt_TableHeadRow,
+.rdt_TableCol,
+.rdt_TableCol_Sortable,
+.rdt_TableBody,
+.rdt_TableRow,
+.rdt_TableCell,
+.rdt_TableHeader,
+.rdt_TableFooter,
+.rdt_ExpanderRow,
+.rdt_Pagination {
+    background-color: var(--#{$variable-prefix}card-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+    border-color: var(--#{$variable-prefix}border-color) !important;
 }
 
-.rdt_Pagination {
-    &.jxflYm {
-        background-color: var(--#{$variable-prefix}card-bg);
-        color: var(--#{$variable-prefix}body-color);
-        border-top-color: var(--#{$variable-prefix}border-color);
-    }
+.rdt_TableRow:hover,
+.rdt_TableRow:hover .rdt_TableCell {
+    background-color: var(--#{$variable-prefix}light) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+}
 
-    .bvxQGL {
-        fill: var(--#{$variable-prefix}dark);
-    }
+.rdt_Pagination select,
+.rdt_Pagination button {
+    background-color: var(--#{$variable-prefix}input-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+    border-color: var(--#{$variable-prefix}border-color) !important;
+}
 
-    .bvxQGL:disabled {
-        fill: rgba(var(--#{$variable-prefix}dark-rgb), 0.25);
-    }
+.rdt_Pagination svg {
+    fill: var(--#{$variable-prefix}body-color);
+}
+
+/* Library loading and "no records" panels have no stable class */
+.rdt_Table > div,
+div:has(> .rdt_Table) > div {
+    background-color: var(--#{$variable-prefix}card-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
 }
