@@ -11,10 +11,10 @@ function Layout({ children }) {
   return (
     <div className="shell">
       <header className="topnav">
-        <Link to="/" className="brand brand-lockup" aria-label="Arambh Sports Arena">
+        <Link to="/" className="brand brand-lockup" aria-label="Aarambh Sports Arena">
           <span className="brand-symbol" style={{ backgroundImage: `url(${leftLogo})` }} />
           <span className="brand-text">
-            Arambh <span>Sports Arena</span>
+            Aarambh <span>Sports Arena</span>
           </span>
         </Link>
         <nav className="nav-links" aria-label="Primary">
@@ -33,7 +33,7 @@ function Layout({ children }) {
           <div className="footer-brand">
             <span className="brand-symbol footer-symbol" style={{ backgroundImage: `url(${leftLogo})` }} />
             <div>
-              <strong>Arambh Sports Arena</strong>
+              <strong>Aarambh Sports Arena</strong>
               <div>Vadodara · Courts · Membership · Live slots</div>
             </div>
           </div>

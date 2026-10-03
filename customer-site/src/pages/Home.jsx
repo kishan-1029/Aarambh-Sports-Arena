@@ -47,7 +47,7 @@ export default function Home() {
             aria-hidden="true"
           />
           <div className="hero-kicker">Vadodara · Multi-sport club</div>
-          <h1>{club?.name || 'Arambh Sports Arena'}</h1>
+          <h1>{club?.name || 'Aarambh Sports Arena'}</h1>
           <p className="hero-lead">
             Train. Play. Belong. Live court availability, clear memberships, and a trial
             you can book without the WhatsApp maze.
@@ -154,7 +154,7 @@ export default function Home() {
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="section-head">
           <h2>Find us</h2>
-          <p>Arambh Sports Arena — easy to reach, hard to leave after a good set.</p>
+          <p>Aarambh Sports Arena — easy to reach, hard to leave after a good set.</p>
         </div>
         <div className="location-strip">
           <div className="location-panel">

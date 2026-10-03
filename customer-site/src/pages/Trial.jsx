@@ -142,7 +142,7 @@ export default function Trial() {
           </form>
           <aside className="info-card">
             <h3>What happens next</h3>
-            <p>1. Your lead hits the Arambh front desk queue.</p>
+            <p>1. Your lead hits the Aarambh front desk queue.</p>
             <p>2. We match an open slot on your preferred day.</p>
             <p>3. You get a confirmation call / WhatsApp.</p>
             <p style={{ marginTop: '1rem' }}>Tip: check Availability first so you know which evenings look open.</p>
