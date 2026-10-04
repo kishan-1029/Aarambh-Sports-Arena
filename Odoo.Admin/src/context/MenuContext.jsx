@@ -379,7 +379,10 @@ const MenuProvider = ({ children }) => {
                 for (const menu of menus) {
                     if (menu?.url) {
                         const menuUrl = menu.url.replace(/\/+$/, '') || '/';
-                        if (menuUrl === cleanUrl) {
+                        if (
+                            menuUrl === cleanUrl ||
+                            (menuUrl !== '/' && cleanUrl.startsWith(`${menuUrl}/`))
+                        ) {
                             foundMenuId = menu.id;
                             return;
                         }

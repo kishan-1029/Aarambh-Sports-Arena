@@ -1,30 +1,62 @@
-import swaggerJsdoc from "swagger-jsdoc";
+﻿import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import { arambhPaths } from "./swagger.arambh.paths.js";
 
 const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "BwebDemoProject API",
+      title: "Arambh Sports Arena API",
       version: "1.0.0",
-      description: "API documentation for BwebDemoProject Backend Server",
+      description: [
+        "Live Try it out documentation for Arambh Sports Arena.",
+        "",
+        "**Public (no login):** Health, Public, Public Shop.",
+        "**Admin:** first run `POST /api/v1/auth/company/login` with `{ email, password }`. The session cookie is stored and reused.",
+        "**Portal:** Authorize with the Bearer token from `/api/public/auth/login`.",
+        "**MCP:** Authorize with an `X-API-Key` from Club & Reports ΓåÆ MCP access.",
+        "",
+        "Money is integer paise. List endpoints accept `page`, `pageSize`, `sort`, `q`.",
+      ].join("\n"),
       contact: {
-        name: "API Support",
+        name: "Arambh Sports Arena",
       },
     },
     servers: [
       {
-        url: "/api/v1",
-        description: "API V1",
+        url: "/",
+        description: "This server",
       },
     ],
     components: {
       securitySchemes: {
+        cookieAuth: {
+          type: "apiKey",
+          in: "cookie",
+          name: "sessionId",
+          description: "Admin session cookie. Set automatically after company login.",
+        },
         bearerAuth: {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
-          description: "Enter your JWT token",
+          description: "Portal member token from POST /api/public/auth/login",
+        },
+        mcpKey: {
+          type: "apiKey",
+          in: "header",
+          name: "X-API-Key",
+          description: "MCP key from Club & Reports ΓåÆ MCP access",
+        },
+      },
+      requestBodies: {
+        Login: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/LoginRequest" },
+            },
+          },
         },
       },
       schemas: {
@@ -168,7 +200,7 @@ const options = {
           properties: {
             currencyName: { type: "string", example: "Indian Rupee" },
             currencyCode: { type: "string", example: "INR" },
-            currencySymbol: { type: "string", example: "₹" },
+            currencySymbol: { type: "string", example: "Γé╣" },
             isActive: { type: "boolean", default: true },
           },
         },
@@ -419,18 +451,30 @@ const options = {
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
+    security: [{ cookieAuth: [] }, { bearerAuth: [] }],
     tags: [
-      { name: "Auth", description: "Authentication endpoints" },
-      { name: "Companies", description: "Company management" },
-      { name: "Countries", description: "Country management" },
-      { name: "States", description: "State management" },
-      { name: "Cities", description: "City management" },
-      { name: "Currencies", description: "Currency management" },
+      { name: "Health", description: "Public liveness / readiness ΓÇö try these first" },
+      { name: "Public", description: "Website APIs. No staff login." },
+      { name: "Public Shop", description: "Pro Shop catalogue" },
+      { name: "Portal Auth", description: "Member login / register" },
+      { name: "Portal Shop", description: "Member cart and checkout (Bearer)" },
+      { name: "Auth", description: "Club admin / employee login" },
+      { name: "Dashboard", description: "Admin KPIs" },
+      { name: "Members", description: "Member 360 and search" },
+      { name: "Membership", description: "Plans and memberships" },
+      { name: "Facilities", description: "Sports, courts, blocks" },
+      { name: "Bookings", description: "Court bookings and calendar" },
+      { name: "Customers", description: "Walk-in / billed customers" },
+      { name: "Finance", description: "Invoices and payments (paise)" },
+      { name: "Settings", description: "Club, locations, taxes" },
+      { name: "Shop Admin", description: "Catalogue, inventory, shop orders" },
+      { name: "POS", description: "Caf├⌐ POS" },
+      { name: "MCP", description: "Management MCP tools" },
+      { name: "Companies", description: "Company / tenant admin" },
+      { name: "Countries", description: "Country master" },
+      { name: "States", description: "State master" },
+      { name: "Cities", description: "City master" },
+      { name: "Currencies", description: "Currency master" },
       { name: "Roles", description: "Role management" },
       { name: "Menu Groups", description: "Menu group management" },
       { name: "Menus", description: "Menu management" },
@@ -442,30 +486,53 @@ const options = {
       { name: "Email Templates", description: "Email template management" },
     ],
   },
-  apis: ["./routes/v1/*.js"], // Path to the API routes
+  apis: [
+    "./routes/v1/*.js",
+    "./config/swagger-arambh.docs.js",
+  ],
 };
 
-const swaggerSpec = swaggerJsdoc(options);
+function buildSwaggerSpec() {
+  const spec = swaggerJsdoc(options);
+  const prefixed = {};
+  for (const [pathKey, def] of Object.entries(spec.paths || {})) {
+    if (pathKey.startsWith("/api/")) prefixed[pathKey] = def;
+    else prefixed[`/api/v1${pathKey.startsWith("/") ? pathKey : `/${pathKey}`}`] = def;
+  }
+  spec.paths = { ...prefixed, ...arambhPaths };
+  spec.servers = [{ url: "/", description: "This server" }];
+  return spec;
+}
+
+const swaggerSpec = buildSwaggerSpec();
+
+const swaggerUiOptions = {
+  explorer: true,
+  customCss: ".swagger-ui .topbar { display: none }",
+  customSiteTitle: "Arambh Sports Arena API",
+  swaggerOptions: {
+    persistAuthorization: true,
+    withCredentials: true,
+    displayRequestDuration: true,
+    tryItOutEnabled: true,
+    filter: true,
+    requestInterceptor: (req) => {
+      req.credentials = "include";
+      return req;
+    },
+  },
+};
 
 export const setupSwagger = (app) => {
-  // Swagger UI route
-  app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
-      explorer: true,
-      customCss: ".swagger-ui .topbar { display: none }",
-      customSiteTitle: "BwebDemoProject API Documentation",
-    }),
-  );
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+  app.get("/docs", (_req, res) => res.redirect(302, "/api-docs"));
 
-  // Serve swagger spec as JSON
-  app.get("/api-docs.json", (req, res) => {
+  app.get("/api-docs.json", (_req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
 
-  console.log("📚 Swagger UI available at /api-docs");
+  console.log("≡ƒôÜ Swagger UI available at /api-docs");
 };
 
 export default swaggerSpec;

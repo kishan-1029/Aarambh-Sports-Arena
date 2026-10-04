@@ -2,6 +2,8 @@
 
 Conventions: [[05-Backend-Conventions]]. Envelope `{data, meta}` / `{error}`. All POST creates for money/booking/order/POS require `Idempotency-Key`. Lists accept `page, pageSize, sort, q` + filters. Auth: **P** public, **M** member (own data), **S** staff with permission, **K** MCP credential, **W** webhook signature.
 
+**Live Try it out:** http://localhost:7002/api-docs (OpenAPI JSON: `/api-docs.json`). Public tags work without login. Admin tags need `POST /api/v1/auth/company/login` first so the `sessionId` cookie is sent.
+
 > Cursor keeps this file current: every new or changed endpoint is added in the same PR.
 
 ## Detailed example

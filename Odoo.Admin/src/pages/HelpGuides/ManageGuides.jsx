@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Card,
   CardBody,
@@ -54,6 +55,7 @@ const ManageGuides = () => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [filter, setFilter] = useState(true);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [selectedId, setSelectedId] = useState("");
   const [removeId, setRemoveId] = useState("");
 
@@ -351,7 +353,7 @@ const ManageGuides = () => {
         per_page: perPage,
         sorton: column,
         sortdir: sortDirection,
-        match: query,
+        match: debouncedQuery,
         isActive: filter,
         type: filterType || undefined,
       });
@@ -373,7 +375,7 @@ const ManageGuides = () => {
 
   useEffect(() => {
     fetchGuides();
-  }, [pageNo, perPage, column, sortDirection, query, filter, filterType]);
+  }, [pageNo, perPage, column, sortDirection, debouncedQuery, filter, filterType]);
 
   const handleSort = (col, direction) => {
     setcolumn(col.sortField || "sequence");

@@ -29,10 +29,11 @@ Current phase: 10 (online orders) — E-commerce Pro Shop live end to end; Phase
 
 ### Phase 14 — Public website (partial / hackathon cut)
 - [x] `customer-site/` React + Vite on port **3001** (admin stays on 3000) — ADR-0001 amended
-- [x] `/api/public/*` — club, sports, membership-plans, availability (free/busy only), enquiries, trials
-- [x] Pages: Home, Availability, Membership, Sports, Trial, Contact
-- [ ] Shop, member login, quote accept, AI chat widget (later)
-- **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003` (7002 held by stale process)
+- [x] `/api/public/*` — club, sports, membership-plans, availability (free/busy only), enquiries, trials, faqs
+- [x] Pages: Home, Availability, Membership, Sports, Trial, Contact, FAQs, Shop, Cart, Orders
+- [x] Contact thank-you email template; dark-theme logo; mobile nav/CSS; Gold/Silver benefits on site
+- [ ] Quote accept, AI chat widget (later)
+- **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003`
 
 ### Phase 8 — Catalogue, inventory, purchasing
 - [x] Products / variants / categories — `src/modules/ecommerce` (embedded variants + images, soft archive)
@@ -85,4 +86,5 @@ Current phase: 10 (online orders) — E-commerce Pro Shop live end to end; Phase
 - Odoo.Admin: Front Desk `/front-desk`, Bookings `/courts/bookings`, Courts `/courts` live (Soon badges removed).
 - Seed: Tennis/Padel/Badminton/Cricket + courts + sample booking via `npm run seed:demo`.
 - Website: `customer-site/` Vite on :3001; `/api/public/*` returns `{ isOk: true }`. Dev API base comes from `VITE_API_URL` (see `.env.example`, :7002).
+- Live API docs: http://localhost:7002/api-docs (Try it out). JSON: `/api-docs.json`.
 - Pro Shop manual pass: browse → pick XXL variant (+₹100) → guest cart → sign in merges cart → checkout (pickup, pay at club) → `ASA-ORD-2026-000001` → variant stock 6→5 → cancel → stock back to 6. Unauthenticated `/api/portal/*` and `/api/admin/*` shop routes all return 401.

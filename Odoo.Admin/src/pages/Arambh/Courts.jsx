@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Badge,
   Button,
@@ -76,6 +77,7 @@ const Courts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [statusFilter, setStatusFilter] = useState("");
   const [courtModal, setCourtModal] = useState(false);
   const [sportModal, setSportModal] = useState(false);
@@ -91,7 +93,7 @@ const Courts = () => {
     try {
       const courtParams = {
         pageSize: 100,
-        q: query.trim() || undefined,
+        q: debouncedQuery.trim() || undefined,
         status: statusFilter || undefined,
       };
       const [s, c, b, soc, taxRes] = await Promise.all([
@@ -114,7 +116,7 @@ const Courts = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, statusFilter]);
+  }, [debouncedQuery, statusFilter]);
 
   useEffect(() => {
     load();

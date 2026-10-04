@@ -13,9 +13,11 @@ import { CLUB_TZ } from '../../lib/time.js';
 
 export const BOOKING_PURPOSE = 'Court Booking';
 export const MEMBERSHIP_PURPOSE = 'Membership';
+export const ENQUIRY_PURPOSE = 'Contact Enquiry';
 
 const BOOKING_MARKER = 'data-arambh-mail="booking" data-arambh-slots="1"';
 const MEMBERSHIP_MARKER = 'data-arambh-mail="membership"';
+const ENQUIRY_MARKER = 'data-arambh-mail="enquiry"';
 
 export function fillTemplate(template, data = {}) {
   return String(template || '').replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, key) => {
@@ -146,6 +148,18 @@ const MEMBERSHIP_HTML = shell({
   ],
 });
 
+const ENQUIRY_HTML = shell({
+  marker: ENQUIRY_MARKER,
+  title: 'Thanks for your enquiry',
+  intro:
+    'We received your message and our team will get back to you shortly. Reference number below.',
+  rows: [
+    ['Reference', '{{leadNo}}'],
+    ['Interest', '{{interest}}'],
+    ['Your message', '{{message}}'],
+  ],
+});
+
 async function activeSetup() {
   return EmailSetup.findOne({ isActive: true }).sort({ updatedAt: -1 });
 }
@@ -206,7 +220,18 @@ export async function ensureTransactionalTemplates() {
     html: MEMBERSHIP_HTML,
     marker: MEMBERSHIP_MARKER,
   });
-  return { booking: Boolean(booking), membership: Boolean(membership) };
+  const enquiry = await ensureTemplate({
+    purpose: ENQUIRY_PURPOSE,
+    templateName: 'Contact enquiry thank you',
+    emailSubject: 'Thanks for contacting Aarambh Sports Arena ({{leadNo}})',
+    html: ENQUIRY_HTML,
+    marker: ENQUIRY_MARKER,
+  });
+  return {
+    booking: Boolean(booking),
+    membership: Boolean(membership),
+    enquiry: Boolean(enquiry),
+  };
 }
 
 function transportFor(setup) {
@@ -327,6 +352,20 @@ export async function emailForMembership({ membership, member, plan, amountPaise
       startDate: membership.startLocalDate || '',
       endDate: membership.endLocalDate || '',
       amount: formatRupees(amountPaise),
+    },
+  });
+}
+
+export async function emailForEnquiry({ name, email, interest, message, leadNo }) {
+  const to = String(email || '').trim();
+  if (!to) return { sent: false, reason: 'no-recipient' };
+  return safeSend(ENQUIRY_PURPOSE, {
+    to,
+    data: {
+      name: name || 'there',
+      leadNo: leadNo || '',
+      interest: interest || 'general',
+      message: message || '',
     },
   });
 }

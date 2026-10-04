@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Badge,
   Button,
@@ -62,6 +63,11 @@ const EMPTY_FORM = {
   price2: "",
   shopDiscountPct: "0",
   barDiscountPct: "0",
+  guestPasses: "0",
+  courtAccess: "all",
+  courtDiscountPct: "0",
+  maxBookingsPerDay: "2",
+  advanceBookingDays: "14",
   benefits: "",
   taxId: "",
 };
@@ -90,11 +96,22 @@ function defaultCourtEntitlements(existing) {
 }
 
 function buildEntitlements(form, existing) {
+  const prior = defaultCourtEntitlements(existing?.entitlements);
+  const courtDiscountPct = Math.max(0, Math.min(100, Number(form.courtDiscountPct) || 0));
   return {
-    court: defaultCourtEntitlements(existing?.entitlements),
+    court: {
+      ...prior,
+      access: form.courtAccess || prior.access || "all",
+      pricing: {
+        mode: courtDiscountPct > 0 ? "discount_pct" : prior.pricing?.mode || "discount_pct",
+        value: courtDiscountPct > 0 ? courtDiscountPct : Number(prior.pricing?.value) || 0,
+      },
+      maxBookingsPerDay: Math.max(0, Number(form.maxBookingsPerDay) || 0),
+      advanceBookingDays: Math.max(0, Number(form.advanceBookingDays) || 0),
+    },
     shopDiscountPct: Number(form.shopDiscountPct) || 0,
     barDiscountPct: Number(form.barDiscountPct) || 0,
-    guestPasses: existing?.entitlements?.guestPasses ?? 0,
+    guestPasses: Math.max(0, Number(form.guestPasses) || 0),
     perks: linesToPerks(form.benefits),
   };
 }
@@ -131,6 +148,15 @@ function planToForm(p) {
     taxId: p.taxId ? String(p.taxId._id || p.taxId) : "",
     shopDiscountPct: String(p.entitlements?.shopDiscountPct ?? 0),
     barDiscountPct: String(p.entitlements?.barDiscountPct ?? 0),
+    guestPasses: String(p.entitlements?.guestPasses ?? 0),
+    courtAccess: p.entitlements?.court?.access || "all",
+    courtDiscountPct: String(
+      p.entitlements?.court?.pricing?.mode === "discount_pct"
+        ? p.entitlements?.court?.pricing?.value ?? 0
+        : 0,
+    ),
+    maxBookingsPerDay: String(p.entitlements?.court?.maxBookingsPerDay ?? 2),
+    advanceBookingDays: String(p.entitlements?.court?.advanceBookingDays ?? 14),
     benefits: perksToLines(p.entitlements?.perks),
   };
 }
@@ -150,6 +176,7 @@ const MembershipPlans = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [modal, setModal] = useState(false);
   const [editPlan, setEditPlan] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -167,7 +194,7 @@ const MembershipPlans = () => {
       const [res, taxRes] = await Promise.all([
         listPlans({
           pageSize: 100,
-          q: query.trim() || undefined,
+          q: debouncedQuery.trim() || undefined,
         }),
         listTaxes({ pageSize: 100, active: "true" }).catch(() => ({ data: { data: [] } })),
       ]);
@@ -183,7 +210,7 @@ const MembershipPlans = () => {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     load();
@@ -442,13 +469,42 @@ const MembershipPlans = () => {
                             ))}
                           </ul>
                         </div>
-                        {(p.entitlements?.perks || []).length > 0 && (
-                          <ul className="plan-summary-list">
-                            {p.entitlements.perks.map((perk) => (
-                              <li key={`${p._id}-${perk}`}>{perk}</li>
-                            ))}
-                          </ul>
-                        )}
+                        {(() => {
+                          const lines = [
+                            ...(p.entitlements?.perks || []),
+                            p.entitlements?.shopDiscountPct
+                              ? `${p.entitlements.shopDiscountPct}% shop discount`
+                              : null,
+                            p.entitlements?.barDiscountPct
+                              ? `${p.entitlements.barDiscountPct}% café discount`
+                              : null,
+                            p.entitlements?.court?.maxBookingsPerDay
+                              ? `Up to ${p.entitlements.court.maxBookingsPerDay} bookings / day`
+                              : null,
+                            p.entitlements?.court?.advanceBookingDays
+                              ? `Book ${p.entitlements.court.advanceBookingDays} days ahead`
+                              : null,
+                            p.entitlements?.guestPasses
+                              ? `${p.entitlements.guestPasses} guest passes`
+                              : null,
+                          ].filter(Boolean);
+                          // Dedupe (perks may already include the numeric lines)
+                          const seen = new Set();
+                          const unique = lines.filter((l) => {
+                            const k = l.toLowerCase();
+                            if (seen.has(k)) return false;
+                            seen.add(k);
+                            return true;
+                          });
+                          if (!unique.length) return null;
+                          return (
+                            <ul className="plan-summary-list">
+                              {unique.map((perk) => (
+                                <li key={`${p._id}-${perk}`}>{perk}</li>
+                              ))}
+                            </ul>
+                          );
+                        })()}
                       </div>
                       <div className="d-flex flex-wrap gap-2 align-items-center plan-summary-actions">
                         <Can anyOf={["membership_plan.edit"]}>
@@ -684,7 +740,75 @@ const MembershipPlans = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col md={6}>
+              <Col md={12}>
+                <hr className="my-2" />
+                <p className="text-muted small mb-2">Member benefits (applied when logged in)</p>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label>Court access</Label>
+                  <Input
+                    type="select"
+                    name="courtAccess"
+                    value={form.courtAccess}
+                    onChange={onFormChange}
+                  >
+                    <option value="all">All courts</option>
+                    <option value="off_peak_only">Off-peak only</option>
+                    <option value="none">No court access</option>
+                  </Input>
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label>Court discount %</Label>
+                  <Input
+                    type="number"
+                    name="courtDiscountPct"
+                    min={0}
+                    max={100}
+                    value={form.courtDiscountPct}
+                    onChange={onFormChange}
+                  />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label>Guest passes</Label>
+                  <Input
+                    type="number"
+                    name="guestPasses"
+                    min={0}
+                    value={form.guestPasses}
+                    onChange={onFormChange}
+                  />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label>Max bookings / day</Label>
+                  <Input
+                    type="number"
+                    name="maxBookingsPerDay"
+                    min={0}
+                    value={form.maxBookingsPerDay}
+                    onChange={onFormChange}
+                  />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label>Advance booking days</Label>
+                  <Input
+                    type="number"
+                    name="advanceBookingDays"
+                    min={0}
+                    value={form.advanceBookingDays}
+                    onChange={onFormChange}
+                  />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
                 <FormGroup>
                   <Label>Shop discount %</Label>
                   <Input
@@ -697,9 +821,9 @@ const MembershipPlans = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col md={6}>
+              <Col md={4}>
                 <FormGroup>
-                  <Label>Bar discount %</Label>
+                  <Label>Café / bar discount %</Label>
                   <Input
                     type="number"
                     name="barDiscountPct"
@@ -712,18 +836,18 @@ const MembershipPlans = () => {
               </Col>
               <Col md={12}>
                 <FormGroup className="mb-0">
-                  <Label>Benefits</Label>
+                  <Label>Extra benefit lines (website cards)</Label>
                   <Input
                     type="textarea"
                     name="benefits"
                     rows={5}
                     value={form.benefits}
                     onChange={onFormChange}
-                    placeholder={"Up to 2 bookings / day\n10% shop discount"}
+                    placeholder={"Locker\nFree towel\nPriority coaching slots"}
                   />
                   <p className="text-muted small mb-0 mt-1">
-                    One point per line. These are the lines on the membership cards.
-                    Shop and bar percentages above still set the till discount.
+                    One point per line. Shop, café, court discounts and booking limits above are
+                    applied automatically for Gold/Silver members when they book or shop.
                   </p>
                 </FormGroup>
               </Col>

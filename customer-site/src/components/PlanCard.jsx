@@ -6,7 +6,10 @@ function otherDurations(plan) {
 }
 
 export default function PlanCard({ plan, featured = false, action = 'trial' }) {
-  const perks = plan.entitlements?.perks || [];
+  const perks =
+    (plan.benefits || []).length > 0
+      ? plan.benefits
+      : plan.entitlements?.perks || [];
   const extras = otherDurations(plan);
   const to = action === 'compare' ? '/membership' : '/trial';
   const label = action === 'compare' ? 'Compare plans' : 'Start with a trial';
@@ -28,7 +31,7 @@ export default function PlanCard({ plan, featured = false, action = 'trial' }) {
           : 'Monthly term'}
       </p>
       <ul className="perk-list">
-        {perks.map((perk) => (
+        {perks.slice(0, 8).map((perk) => (
           <li key={perk}>{perk}</li>
         ))}
       </ul>

@@ -22,6 +22,9 @@ const VerticalLayout = (props) => {
 
     const path = props.router.location.pathname;
 
+    const normPath = (url) =>
+        String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
+
     const pathActive = (url) => {
         if (!url || url === "#") return false;
         const current = String(path || "").split("?")[0].replace(/\/+$/, "") || "/";
@@ -42,7 +45,9 @@ const VerticalLayout = (props) => {
         return buildArambhNavGroups()
             .map((group) => ({
                 ...group,
-                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+                menus: (group.menus || []).filter(
+                    (m) => !m.perm || can(m.perm),
+                ),
             }))
             .filter((g) =>
                 g.isLink ? !g.perm || can(g.perm) : g.menus && g.menus.length > 0,
@@ -53,9 +58,6 @@ const VerticalLayout = (props) => {
         if (!unrestricted) return [];
         return buildLegacyNavGroups();
     }, [unrestricted]);
-
-    const normPath = (url) =>
-        String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
 
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {

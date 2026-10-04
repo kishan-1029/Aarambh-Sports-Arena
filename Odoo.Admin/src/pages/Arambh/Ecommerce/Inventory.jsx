@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import {
   Button,
   Card,
@@ -45,6 +46,7 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [categoryId, setCategoryId] = useState("");
   const [stockStatus, setStockStatus] = useState("");
 
@@ -64,7 +66,7 @@ const Inventory = () => {
     setError(null);
     try {
       const res = await listInventory({
-        q: query || undefined,
+        q: debouncedQuery || undefined,
         categoryId: categoryId || undefined,
         stockStatus: stockStatus || undefined,
       });
@@ -78,7 +80,7 @@ const Inventory = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, categoryId, stockStatus]);
+  }, [debouncedQuery, categoryId, stockStatus]);
 
   useEffect(() => {
     load();

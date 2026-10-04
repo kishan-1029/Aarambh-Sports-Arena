@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Card, CardBody, CardHeader, Col, Container, Row, Table } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Col,
+  Container,
+  Input,
+  Row,
+  Table,
+} from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
@@ -9,6 +18,7 @@ import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { getPaymentSettings, listPayments } from "../../api/arambhFinance.api";
 import { apiErrorMessage } from "../../utils/apiErrorMessage";
+import { paymentChannel } from "../../lib/financeChannel";
 
 const PaymentsSettings = () => {
   document.title = "Payments | Arambh Sports Arena";
@@ -16,6 +26,7 @@ const PaymentsSettings = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [channel, setChannel] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -23,7 +34,7 @@ const PaymentsSettings = () => {
     try {
       const [sRes, pRes] = await Promise.all([
         getPaymentSettings(),
-        listPayments({ pageSize: 25 }),
+        listPayments({ pageSize: 25, channel: channel || undefined }),
       ]);
       setSettings(sRes?.data?.data);
       setPayments(Array.isArray(pRes?.data?.data) ? pRes.data.data : []);
@@ -35,7 +46,7 @@ const PaymentsSettings = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [channel]);
 
   useEffect(() => {
     load();
@@ -89,8 +100,18 @@ const PaymentsSettings = () => {
               </Col>
               <Col lg={8}>
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                     <h5 className="mb-0">Recent payments</h5>
+                    <Input
+                      type="select"
+                      style={{ maxWidth: 160 }}
+                      value={channel}
+                      onChange={(e) => setChannel(e.target.value)}
+                    >
+                      <option value="">All channels</option>
+                      <option value="ecom">E-com</option>
+                      <option value="pos">POS</option>
+                    </Input>
                   </CardHeader>
                   <CardBody>
                     {payments.length === 0 ? (
@@ -104,6 +125,7 @@ const PaymentsSettings = () => {
                         <thead>
                           <tr>
                             <th>No</th>
+                            <th>Channel</th>
                             <th>Method</th>
                             <th>Amount</th>
                             <th>Status</th>
@@ -111,17 +133,23 @@ const PaymentsSettings = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {payments.map((p) => (
-                            <tr key={p._id}>
-                              <td>{p.paymentNo}</td>
-                              <td>{p.method}</td>
-                              <td>
-                                <Money paise={p.amountPaise} />
-                              </td>
-                              <td>{p.status}</td>
-                              <td>{p.localDate}</td>
-                            </tr>
-                          ))}
+                          {payments.map((p) => {
+                            const ch = paymentChannel(p);
+                            return (
+                              <tr key={p._id}>
+                                <td>{p.paymentNo}</td>
+                                <td>
+                                  <StatusChip status={ch.tone} label={ch.label} />
+                                </td>
+                                <td>{p.method}</td>
+                                <td>
+                                  <Money paise={p.amountPaise} />
+                                </td>
+                                <td>{p.status}</td>
+                                <td>{p.localDate}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </Table>
                     )}

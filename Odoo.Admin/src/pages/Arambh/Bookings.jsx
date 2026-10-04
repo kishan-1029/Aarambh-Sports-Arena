@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Badge,
   Button,
@@ -48,6 +49,7 @@ const Bookings = () => {
   const [date, setDate] = useState(todayLocal());
   const [view, setView] = useState("calendar");
   const [q, setQ] = useState("");
+  const debouncedQ = useDebouncedValue(q);
   const [status, setStatus] = useState("");
   const [calendar, setCalendar] = useState(null);
   const [rows, setRows] = useState([]);
@@ -72,7 +74,7 @@ const Bookings = () => {
           localDate: date,
           pageSize: 100,
           sort: "start",
-          q: q.trim() || undefined,
+          q: debouncedQ.trim() || undefined,
           status: status || undefined,
         });
         setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
@@ -85,7 +87,7 @@ const Bookings = () => {
     } finally {
       setLoading(false);
     }
-  }, [date, view, q, status]);
+  }, [date, view, debouncedQ, status]);
 
   const runAction = async (id, action) => {
     setBusyId(id);

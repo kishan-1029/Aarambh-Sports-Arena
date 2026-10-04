@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Card,
   CardBody,
@@ -27,6 +28,7 @@ const GuidesGallery = () => {
   const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [activeTab, setActiveTab] = useState("All");
 
   // Modals for preview/reading details
@@ -52,7 +54,7 @@ const GuidesGallery = () => {
         per_page: 100, // retrieve all matching active guides for visual view
         sorton: "sequence",
         sortdir: "asc",
-        match: query,
+        match: debouncedQuery,
         isActive: true, // Only show active guides in the gallery
         type: typeParam,
       });
@@ -71,7 +73,7 @@ const GuidesGallery = () => {
 
   useEffect(() => {
     fetchGuides();
-  }, [query, activeTab]);
+  }, [debouncedQuery, activeTab]);
 
   const toggleDetailModal = (guide = null) => {
     setSelectedGuide(guide);

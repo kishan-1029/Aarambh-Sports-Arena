@@ -14,11 +14,15 @@ import {
   trimName,
 } from '../validate';
 import logoStacked from '../assets/brand/logo-stacked.png';
+import logoStackedDark from '../assets/brand/logo-stacked-dark.jpg';
+import { useTheme } from '../theme.jsx';
 
 export default function AuthModal({ mode = 'login', next = null, onSuccess = null, onClose }) {
   const { login, register } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const logo = theme === 'dark' ? logoStackedDark : logoStacked;
   const [currentMode, setCurrentMode] = useState(mode);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
@@ -141,7 +145,7 @@ export default function AuthModal({ mode = 'login', next = null, onSuccess = nul
           ×
         </button>
 
-        <img className="auth-logo" src={logoStacked} alt="Aarambh Sports Arena" />
+        <img className="auth-logo" src={logo} alt="Aarambh Sports Arena" />
 
         {currentMode === 'login' ? (
           <>

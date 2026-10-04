@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -35,6 +36,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [orderStatus, setOrderStatus] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
   const [fulfillmentType, setFulfillmentType] = useState("");
@@ -47,7 +49,7 @@ const Orders = () => {
     try {
       const res = await listShopOrders({
         pageSize: 100,
-        q: query || undefined,
+        q: debouncedQuery || undefined,
         orderStatus: orderStatus || undefined,
         paymentStatus: paymentStatus || undefined,
         fulfillmentType: fulfillmentType || undefined,
@@ -64,7 +66,7 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, orderStatus, paymentStatus, fulfillmentType, from, to]);
+  }, [debouncedQuery, orderStatus, paymentStatus, fulfillmentType, from, to]);
 
   useEffect(() => {
     load();

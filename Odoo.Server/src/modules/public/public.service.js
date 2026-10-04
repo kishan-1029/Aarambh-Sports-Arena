@@ -10,6 +10,10 @@ import { nextNumber } from '../../lib/counters.js';
 import { toLocalDate } from '../../lib/time.js';
 import { audit } from '../audit/audit.service.js';
 import { AppError, Validation } from '../../lib/errors.js';
+import { benefitLinesForPlan } from '../membership/benefitLines.js';
+import { emailForEnquiry } from '../mail/transactionalMail.js';
+import Faq from '../../../models/Faq.js';
+import FaqCategory from '../../../models/FaqCategory.js';
 
 async function getPublicSettings() {
   let settings = await Settings.findOne({ locationId: null }).lean();
@@ -158,6 +162,7 @@ export async function listMembershipPlansPublic() {
       entitlements: {
         court: {
           access: p.entitlements?.court?.access || 'all',
+          pricing: p.entitlements?.court?.pricing || {},
           maxBookingsPerDay: p.entitlements?.court?.maxBookingsPerDay ?? 2,
           advanceBookingDays: p.entitlements?.court?.advanceBookingDays ?? 14,
           sportKeys: p.entitlements?.court?.sportKeys || [],
@@ -165,10 +170,55 @@ export async function listMembershipPlansPublic() {
         shopDiscountPct: p.entitlements?.shopDiscountPct ?? 0,
         barDiscountPct: p.entitlements?.barDiscountPct ?? 0,
         guestPasses: p.entitlements?.guestPasses ?? 0,
-        perks: p.entitlements?.perks || [],
+        // Prefer admin-authored perk lines; fall back to derived benefit lines
+        perks:
+          (p.entitlements?.perks || []).length > 0
+            ? p.entitlements.perks
+            : benefitLinesForPlan(p.entitlements, []),
       },
+      benefits: benefitLinesForPlan(p.entitlements, p.entitlements?.perks || []),
       eligibility: p.eligibility || {},
     }));
+}
+
+/**
+ * Active FAQs grouped by category for the public website.
+ */
+export async function listFaqsPublic() {
+  const categories = await FaqCategory.find({ isActive: true })
+    .sort({ sequence: 1, categoryName: 1 })
+    .lean();
+  const faqs = await Faq.find({ isActive: true })
+    .sort({ sequence: 1, createdAt: 1 })
+    .lean();
+
+  const byCat = new Map();
+  for (const c of categories) {
+    byCat.set(String(c._id), {
+      _id: String(c._id),
+      name: c.categoryName,
+      description: c.description || '',
+      faqs: [],
+    });
+  }
+  for (const f of faqs) {
+    const key = String(f.category);
+    let bucket = byCat.get(key);
+    if (!bucket) {
+      bucket = { _id: key, name: 'General', description: '', faqs: [] };
+      byCat.set(key, bucket);
+    }
+    bucket.faqs.push({
+      _id: String(f._id),
+      question: f.question,
+      answer: f.answer,
+      sequence: f.sequence || 0,
+    });
+  }
+
+  return {
+    categories: [...byCat.values()].filter((c) => c.faqs.length > 0),
+  };
 }
 
 /**
@@ -306,6 +356,17 @@ export async function createEnquiry(input, ctx = {}) {
     },
     ctx,
   );
+
+  // Fire-and-forget thank-you email (never blocks the enquiry response)
+  if (input.email) {
+    void emailForEnquiry({
+      name: input.name,
+      email: input.email,
+      interest: input.interest,
+      message: input.message,
+      leadNo: lead.leadNo,
+    });
+  }
 
   return {
     leadNo: lead.leadNo,
@@ -464,6 +525,7 @@ export default {
   listBlogsPublic,
   listSportsPublic,
   listMembershipPlansPublic,
+  listFaqsPublic,
   getPublicAvailability,
   createEnquiry,
   createTrial,

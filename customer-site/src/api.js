@@ -89,8 +89,9 @@ export const api = {
     return request(`/api/public/availability?${qs.toString()}`);
   },
   cancellationPolicy: () => request('/api/public/cancellation-policy'),
-  enquiry: (payload) => request('/api/public/enquiry', { method: 'POST', body: payload }),
-  trial: (payload) => request('/api/public/trial', { method: 'POST', body: payload }),
+  enquiry: (payload) => request('/api/public/enquiries', { method: 'POST', body: payload }),
+  trial: (payload) => request('/api/public/trials', { method: 'POST', body: payload }),
+  faqs: () => request('/api/public/faqs'),
 
   // Auth
   login: (payload) => request('/api/public/auth/login', { method: 'POST', body: payload }),

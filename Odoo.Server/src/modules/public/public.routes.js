@@ -64,6 +64,15 @@ router.get('/membership-plans', async (req, res, next) => {
   }
 });
 
+router.get('/faqs', async (req, res, next) => {
+  try {
+    const data = await publicService.listFaqsPublic();
+    return ok(res, data);
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get('/blogs', async (req, res, next) => {
   try {
     const data = await publicService.listBlogsPublic({

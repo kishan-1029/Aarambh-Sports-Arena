@@ -91,24 +91,36 @@ const GROUPS = [
     ],
   },
   {
-    menuGroupName: 'Finance & Shop',
+    menuGroupName: 'E-commerce',
     sequence: 13,
+    icon: 'ri-shopping-cart-2-line',
+    menus: [
+      { menuName: 'Dashboard', menuUrl: '/ecommerce', icon: 'ri-dashboard-line', sequence: 1 },
+      { menuName: 'Products', menuUrl: '/ecommerce/products', icon: 'ri-shopping-bag-3-line', sequence: 2 },
+      { menuName: 'Categories', menuUrl: '/ecommerce/categories', icon: 'ri-price-tag-3-line', sequence: 3 },
+      { menuName: 'Orders', menuUrl: '/ecommerce/orders', icon: 'ri-shopping-cart-line', sequence: 4 },
+      { menuName: 'Inventory', menuUrl: '/ecommerce/inventory', icon: 'ri-archive-line', sequence: 5 },
+    ],
+  },
+  {
+    menuGroupName: 'Finance',
+    sequence: 14,
     icon: 'ri-bank-line',
     menus: [
       { menuName: 'Customers', menuUrl: '/customers', icon: 'ri-contacts-book-line', sequence: 1 },
       { menuName: 'Invoices', menuUrl: '/finance/invoices', icon: 'ri-file-list-3-line', sequence: 2 },
       { menuName: 'Payments', menuUrl: '/settings/payments', icon: 'ri-bank-card-line', sequence: 3 },
-      { menuName: 'Shop inventory', menuUrl: '/shop/inventory', icon: 'ri-archive-line', sequence: 4 },
     ],
   },
   {
     menuGroupName: 'Club',
-    sequence: 14,
+    sequence: 15,
     icon: 'ri-building-line',
     menus: [
       { menuName: 'Club & locations', menuUrl: '/settings/club', icon: 'ri-building-line', sequence: 1, isActive: false },
       { menuName: 'Taxes', menuUrl: '/settings/taxes', icon: 'ri-percent-line', sequence: 2 },
       { menuName: 'Staff directory', menuUrl: '/staff/directory', icon: 'ri-user-settings-line', sequence: 3 },
+      { menuName: 'MCP access', menuUrl: '/settings/mcp', icon: 'ri-key-2-line', sequence: 4 },
     ],
   },
   {
@@ -164,7 +176,13 @@ export async function seedMenus() {
   await MenuGroupMaster.updateMany(
     {
       menuGroupName: {
-        $in: ['POS & Shop', 'POS & Café', 'POS & Cafe', 'Club & Reports', 'Finance'],
+        $in: [
+          'POS & Shop',
+          'POS & Café',
+          'POS & Cafe',
+          'Club & Reports',
+          'Finance & Shop',
+        ],
       },
     },
     { $set: { isActive: false } },
@@ -172,7 +190,7 @@ export async function seedMenus() {
 
   // Drop removed screens from Menu Master
   await MenuMaster.updateMany(
-    { menuUrl: { $in: ['/kds', '/reports', '/settings/club', '/settings/mcp'] } },
+    { menuUrl: { $in: ['/kds', '/reports', '/settings/club', '/settings/mcp', '/shop/inventory', '/crm/pipeline'] } },
     { $set: { isActive: false } },
   );
 

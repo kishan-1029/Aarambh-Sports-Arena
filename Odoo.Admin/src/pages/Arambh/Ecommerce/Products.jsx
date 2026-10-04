@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Link } from "react-router-dom";
 import {
   Badge,
@@ -43,6 +44,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [categoryId, setCategoryId] = useState("");
   const [active, setActive] = useState("");
   const [stockStatus, setStockStatus] = useState("");
@@ -54,7 +56,7 @@ const Products = () => {
     try {
       const res = await listProducts({
         pageSize: 100,
-        q: query || undefined,
+        q: debouncedQuery || undefined,
         categoryId: categoryId || undefined,
         active: active || undefined,
         stockStatus: stockStatus || undefined,
@@ -69,7 +71,7 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, categoryId, active, stockStatus]);
+  }, [debouncedQuery, categoryId, active, stockStatus]);
 
   useEffect(() => {
     load();
