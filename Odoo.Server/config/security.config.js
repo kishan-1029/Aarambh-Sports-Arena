@@ -235,8 +235,8 @@ export const securityFeatures = {
     // Enable HTTP Parameter Pollution protection
     hppProtection: true,
 
-    // Enable Swagger docs (disable in production)
-    swaggerDocs: !isProduction,
+    // Public Try-it docs stay on so evaluators can hit live APIs
+    swaggerDocs: true,
 
     // Enable debug mode (disable in production)
     debugMode: isDevelopment,

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Badge,
   Button,
@@ -149,6 +150,7 @@ const MembershipPlans = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [modal, setModal] = useState(false);
   const [editPlan, setEditPlan] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -166,7 +168,7 @@ const MembershipPlans = () => {
       const [res, taxRes] = await Promise.all([
         listPlans({
           pageSize: 100,
-          q: query.trim() || undefined,
+          q: debouncedQuery.trim() || undefined,
         }),
         listTaxes({ pageSize: 100, active: "true" }).catch(() => ({ data: { data: [] } })),
       ]);
@@ -182,7 +184,7 @@ const MembershipPlans = () => {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     load();

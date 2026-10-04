@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Badge,
   Button,
@@ -138,6 +139,7 @@ const FrontDesk = () => {
   const [date, setDate] = useState(todayLocal());
   const [clock, setClock] = useState(nowLabel());
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [hits, setHits] = useState([]);
   const [searching, setSearching] = useState(false);
   const [member, setMember] = useState(null);
@@ -207,32 +209,30 @@ const FrontDesk = () => {
     return () => clearInterval(t);
   }, []);
 
-  // Debounced member search
   useEffect(() => {
-    if (query.trim().length < 2) {
+    if (debouncedQuery.trim().length < 2) {
       setHits([]);
       return undefined;
     }
-    const handle = setTimeout(async () => {
-      if (abortRef.current) abortRef.current.abort();
-      const ctrl = new AbortController();
-      abortRef.current = ctrl;
-      setSearching(true);
-      try {
-        const res = await searchMembers({ q: query.trim() });
-        if (!ctrl.signal.aborted) {
-          const list = Array.isArray(res?.data?.data) ? res.data.data : [];
-          setHits(list);
-          if (list.length === 1) setMember(list[0]);
-        }
-      } catch {
+    if (abortRef.current) abortRef.current.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setSearching(true);
+    searchMembers({ q: debouncedQuery.trim() })
+      .then((res) => {
+        if (ctrl.signal.aborted) return;
+        const list = Array.isArray(res?.data?.data) ? res.data.data : [];
+        setHits(list);
+        if (list.length === 1) setMember(list[0]);
+      })
+      .catch(() => {
         if (!ctrl.signal.aborted) setHits([]);
-      } finally {
+      })
+      .finally(() => {
         if (!ctrl.signal.aborted) setSearching(false);
-      }
-    }, 150);
-    return () => clearTimeout(handle);
-  }, [query]);
+      });
+    return () => ctrl.abort();
+  }, [debouncedQuery]);
 
   const hours = useMemo(() => {
     const out = [];

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { Link } from "react-router-dom";
 import {
   Badge,
@@ -61,6 +62,7 @@ const Members = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [status, setStatus] = useState("");
   const [tier, setTier] = useState("");
   const [modal, setModal] = useState(false);
@@ -75,7 +77,7 @@ const Members = () => {
     try {
       const res = await listMembers({
         pageSize: 200,
-        q: query || undefined,
+        q: debouncedQuery || undefined,
         status: status || undefined,
         tier: tier || undefined,
       });
@@ -89,7 +91,7 @@ const Members = () => {
     } finally {
       setLoading(false);
     }
-  }, [query, status, tier]);
+  }, [debouncedQuery, status, tier]);
 
   useEffect(() => {
     load();

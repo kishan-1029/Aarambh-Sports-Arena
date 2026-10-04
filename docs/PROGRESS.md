@@ -85,4 +85,5 @@ Current phase: 10 (online orders) — E-commerce Pro Shop live end to end; Phase
 - Odoo.Admin: Front Desk `/front-desk`, Bookings `/courts/bookings`, Courts `/courts` live (Soon badges removed).
 - Seed: Tennis/Padel/Badminton/Cricket + courts + sample booking via `npm run seed:demo`.
 - Website: `customer-site/` Vite on :3001; `/api/public/*` returns `{ isOk: true }`. Dev API base comes from `VITE_API_URL` (see `.env.example`, :7002).
+- Live API docs: http://localhost:7002/api-docs (Try it out). JSON: `/api-docs.json`.
 - Pro Shop manual pass: browse → pick XXL variant (+₹100) → guest cart → sign in merges cart → checkout (pickup, pay at club) → `ASA-ORD-2026-000001` → variant stock 6→5 → cancel → stock back to 6. Unauthenticated `/api/portal/*` and `/api/admin/*` shop routes all return 401.

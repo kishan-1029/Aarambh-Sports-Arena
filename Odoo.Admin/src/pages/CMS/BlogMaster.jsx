@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Card,
   CardBody,
@@ -94,6 +95,7 @@ const BlogMaster = () => {
   const [perPage, setPerPage] = useState(10);
   const [pageNo, setPageNo] = useState(1);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [filterActive, setFilterActive] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -186,7 +188,7 @@ const BlogMaster = () => {
         per_page: perPage,
         sorton: column,
         sortdir: sortDirection,
-        match: query,
+        match: debouncedQuery,
         isActive: filterActive,
         category: filterCategory,
         status: filterStatus,
@@ -217,7 +219,7 @@ const BlogMaster = () => {
     perPage,
     column,
     sortDirection,
-    query,
+    debouncedQuery,
     filterActive,
     filterCategory,
     filterStatus,

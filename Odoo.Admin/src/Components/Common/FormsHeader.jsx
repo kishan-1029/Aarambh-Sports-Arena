@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   Input,
   Row,
 } from "reactstrap";
+import { SEARCH_DEBOUNCE_MS } from "../../hooks/useDebouncedValue";
 
 const FormsHeader = ({
   formName,
@@ -23,6 +24,20 @@ const FormsHeader = ({
   tog_list,
   showAddButton = true
 }) => {
+  const searchTimer = useRef(null);
+
+  useEffect(() => () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+  }, []);
+
+  const onSearchChange = (e) => {
+    const value = e.target.value;
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      if (typeof setQuery === "function") setQuery(value);
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
   return (
     <Row className="g-4 mb-1">
         <Col className="col-sm" lg={4} md={6} sm={6}>
@@ -113,7 +128,7 @@ const FormsHeader = ({
               <input
                 className="form-control search"
                 placeholder="Search..."
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={onSearchChange}
               />
               <i className="ri-search-line search-icon "></i>
             </div>

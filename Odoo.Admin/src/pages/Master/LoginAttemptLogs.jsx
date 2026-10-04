@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import PropTypes from "prop-types";
 import {
     Card,
@@ -59,6 +60,7 @@ const LoginAttemptLogs = () => {
     const [column, setColumn] = useState("lastLoginAttempt");
     const [sortDirection, setSortDirection] = useState("desc");
     const [query, setQuery] = useState("");
+    const debouncedQuery = useDebouncedValue(query);
 
     // Modal states
     const [confirmModal, setConfirmModal] = useState(false);
@@ -69,7 +71,7 @@ const LoginAttemptLogs = () => {
     useEffect(() => {
         fetchLoginAttempts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageNo, perPage, column, sortDirection, query]);
+    }, [pageNo, perPage, column, sortDirection, debouncedQuery]);
 
     const fetchLoginAttempts = async () => {
         setLoading(true);
@@ -82,7 +84,7 @@ const LoginAttemptLogs = () => {
                 per_page: perPage,
                 sorton: column,
                 sortdir: sortDirection,
-                match: query,
+                match: debouncedQuery,
             });
 
             if (response.data?.data?.length > 0) {

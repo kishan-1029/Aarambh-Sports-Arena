@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import PropTypes from "prop-types";
 import {
   Card,
@@ -46,6 +47,7 @@ const Faq = () => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [filter, setFilter] = useState(true);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
   const [selectedId, setSelectedId] = useState("");
   const [removeId, setRemoveId] = useState("");
 
@@ -233,7 +235,7 @@ const Faq = () => {
         per_page: perPage,
         sorton: column,
         sortdir: sortDirection,
-        match: query,
+        match: debouncedQuery,
         isActive: filter,
         categoryId: filterCategory || undefined,
       });
@@ -255,7 +257,7 @@ const Faq = () => {
 
   useEffect(() => {
     fetchFaqs();
-  }, [pageNo, perPage, column, sortDirection, query, filter, filterCategory]);
+  }, [pageNo, perPage, column, sortDirection, debouncedQuery, filter, filterCategory]);
 
   const handleSort = (col, direction) => {
     setcolumn(col.sortField || "createdAt");

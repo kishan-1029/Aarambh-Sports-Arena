@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import {
   Card,
   CardBody,
@@ -49,12 +50,13 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listCustomers({ pageSize: 100, q: query || undefined });
+      const res = await listCustomers({ pageSize: 100, q: debouncedQuery || undefined });
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
@@ -65,7 +67,7 @@ const Customers = () => {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     load();

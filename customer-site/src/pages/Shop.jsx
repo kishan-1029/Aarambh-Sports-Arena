@@ -38,6 +38,18 @@ export default function Shop() {
   }, [q]);
 
   useEffect(() => {
+    const next = search.trim();
+    if (next === q) return undefined;
+    const handle = setTimeout(() => {
+      const nextParams = new URLSearchParams(params);
+      if (next) nextParams.set('q', next);
+      else nextParams.delete('q');
+      setParams(nextParams, { replace: true });
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [search, q, params, setParams]);
+
+  useEffect(() => {
     Promise.all([api.shopCategories(), api.shopBrands()])
       .then(([cats, brandRows]) => {
         setCategories(Array.isArray(cats) ? cats : []);
