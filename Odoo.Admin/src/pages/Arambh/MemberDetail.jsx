@@ -23,6 +23,12 @@ import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { getMember, getMemberTimeline } from "../../api/arambhMembership.api";
 
+const PLAN_COLOUR = {
+  gold: "warning",
+  silver: "secondary",
+  junior: "success",
+};
+
 const MemberDetail = () => {
   const { id } = useParams();
   document.title = "Member 360 | Arambh Sports Arena";
@@ -196,7 +202,10 @@ const MemberDetail = () => {
                       {membership ? (
                         <>
                           <p className="mb-1">
-                            <strong>{membership.planKey}</strong> v{membership.planVersion}{" "}
+                            <Badge color={PLAN_COLOUR[membership.planKey] || "light"} pill>
+                              {(membership.planKey || "—").toUpperCase()}
+                            </Badge>{" "}
+                            <span className="text-muted small">v{membership.planVersion}</span>{" "}
                             <StatusChip status={membership.status} />
                           </p>
                           <p className="mb-1 small">

@@ -15,6 +15,7 @@ import { NotFound, Validation, Conflict, AppError } from '../../lib/errors.js';
 import { audit } from '../audit/audit.service.js';
 import { parseListQuery, runListQuery } from '../../lib/listQuery.js';
 import { enqueue as enqueueNotification } from '../notifications/notification.service.js';
+import { emailForMembership } from '../mail/transactionalMail.js';
 
 export { entitlementsFor, NON_MEMBER_ENTITLEMENTS };
 
@@ -329,6 +330,14 @@ export async function purchase(input, ctx = {}) {
     isDemo: Boolean(input.isDemo),
   });
 
+  await emailForMembership({
+    membership: result.membership,
+    member,
+    plan,
+    amountPaise: pricePaise,
+    ctx,
+  });
+
   return {
     membership: result.membership.toObject
       ? result.membership.toObject()
@@ -504,6 +513,8 @@ export async function listMemberships(req) {
         until.setUTCDate(until.getUTCDate() + 7);
         f.status = 'active';
         f.endDate = { $gte: new Date(), $lte: until };
+      } else if (q.status === 'current') {
+        f.status = { $in: ['active', 'scheduled', 'pending_payment'] };
       } else if (q.status) {
         f.status = q.status;
       }
@@ -637,6 +648,54 @@ export async function updatePlan(id, body, ctx = {}) {
 }
 
 /**
+ * Hide a plan from admin lists, new sales, and the public site.
+ * Live memberships on that plan (any version of the same key) are cancelled
+ * the same way as a membership cancel: status cancelled, member tier cleared.
+ */
+export async function archivePlan(id, ctx = {}) {
+  const plan = await MembershipPlan.findById(id);
+  if (!plan || plan.archivedAt) throw NotFound('Membership plan');
+
+  const live = await Membership.find({
+    planKey: plan.key,
+    status: { $in: ['active', 'scheduled', 'pending_payment'] },
+  }).select('_id');
+
+  let cancelledMemberships = 0;
+  for (const row of live) {
+    await cancel(
+      String(row._id),
+      { reason: `Plan ${plan.name} deleted` },
+      ctx,
+    );
+    cancelledMemberships += 1;
+  }
+
+  const openVersions = await MembershipPlan.find({
+    key: plan.key,
+    archivedAt: null,
+  });
+  for (const doc of openVersions) {
+    const before = doc.toObject();
+    doc.active = false;
+    doc.archivedAt = new Date();
+    await doc.save();
+    await audit.record({
+      actor: actorFromCtx(ctx),
+      source: ctx.source || 'admin',
+      action: 'membership_plan.archive',
+      entity: { type: 'membershipPlan', id: String(doc._id), label: doc.key },
+      before,
+      after: { ...doc.toObject(), cancelledMemberships },
+      requestId: ctx.requestId,
+    });
+  }
+
+  const archived = openVersions.find((doc) => String(doc._id) === String(plan._id)) || plan;
+  return { plan: archived.toObject(), cancelledMemberships };
+}
+
+/**
  * Worker: expire active memberships past endLocalDate.
  */
 export async function expireDue(now = new Date()) {
@@ -763,4 +822,5 @@ export default {
   getPlan,
   createPlan,
   updatePlan,
+  archivePlan,
 };

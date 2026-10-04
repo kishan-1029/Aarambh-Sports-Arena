@@ -19,6 +19,7 @@ import {
 import DataTable from "react-data-table-component";
 import JoditEditor from "jodit-react";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
@@ -436,59 +437,35 @@ const ManageGuides = () => {
       {
         name: "Action",
         cell: (row) => (
-          <div className="d-flex align-items-center gap-1" style={{ height: "28px" }}>
+          <div className="grid-actions">
             {permissions.read && (
               row.type === "YouTube" ? (
-                <a
+                <GridActionButton
+                  label="Preview"
                   href={row.youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-sm btn-info edit-item-btn d-inline-flex align-items-center gap-1"
-                  style={{ height: "28px", lineHeight: "1.2" }}
-                >
-                  <i className="ri-eye-line"></i> Preview
-                </a>
+                />
               ) : row.type === "Document" ? (
-                <a
+                <GridActionButton
+                  label="Preview"
                   href={`${config.api.API_URL}/${row.filePath}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-sm btn-info edit-item-btn d-inline-flex align-items-center gap-1"
-                  style={{ height: "28px", lineHeight: "1.2" }}
-                >
-                  <i className="ri-eye-line"></i> Preview
-                </a>
+                />
               ) : (
-                <button
-                  className="btn btn-sm btn-info edit-item-btn d-flex align-items-center gap-1"
-                  style={{ height: "28px" }}
-                  onClick={() => handleOpenPreview(row)}
-                >
-                  <i className="ri-eye-line"></i> Preview
-                </button>
+                <GridActionButton label="Preview" onClick={() => handleOpenPreview(row)} />
               )
             )}
             {permissions.edit && (
-              <button
-                className="btn btn-sm btn-success edit-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
-                onClick={() => handleTog_edit(row)}
-              >
-                <i className="ri-pencil-line"></i> Edit
-              </button>
+              <GridActionButton label="Edit" onClick={() => handleTog_edit(row)} />
             )}
             {permissions.delete && (
-              <button
-                className="btn btn-sm btn-danger remove-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
-                onClick={() => tog_delete(row._id)}
-              >
-                <i className="ri-delete-bin-line"></i> Delete
-              </button>
+              <GridActionButton label="Delete" onClick={() => tog_delete(row._id)} />
             )}
           </div>
         ),
-        minWidth: "260px",
+        minWidth: "120px",
       },
     ],
     [permissions, pageNo, perPage]

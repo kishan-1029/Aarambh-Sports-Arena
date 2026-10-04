@@ -6,6 +6,7 @@ import { Sport } from '../facilities/sport.model.js';
 import { Location } from '../settings/location.model.js';
 import { Settings } from '../settings/settings.model.js';
 import { Member } from '../members/member.model.js';
+import { Customer } from '../customers/customer.model.js';
 import { Invoice } from '../finance/invoice.model.js';
 import { Payment } from '../finance/payment.model.js';
 import { buildComputedLines, allocateInvoiceNumber, financialYearKey } from '../finance/invoice.service.js';
@@ -27,6 +28,7 @@ import { recordActivity } from '../membership/activity.consumer.js';
 import { courtPrice, isPeak } from './pricing.service.js';
 import { operatingWindow, sessionUnits } from './availability.service.js';
 import { translateLockError, findAlternatives } from './conflictGuard.js';
+import { emailForBooking, notifyBookingRecord } from '../mail/transactionalMail.js';
 
 const DESK_METHODS = new Set(['cash', 'card', 'upi', 'mock', 'desk', 'free']);
 
@@ -73,6 +75,53 @@ async function captureDeskPayment(invoice, method, session, ctx, isDemo) {
   invoice.status = 'paid';
   await invoice.save({ session });
   return payment;
+}
+
+function phoneTail(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return digits.length >= 7 ? digits.slice(-10) : '';
+}
+
+/**
+ * Invoice.customerId is required. Walk-ins and members without a linked
+ * customer get one matched by phone/email, or a new person record.
+ */
+async function ensureCustomerId({ member, customer, isDemo, session }) {
+  if (member?.customerId) return member.customerId;
+  if (customer?.customerId) return customer.customerId;
+
+  const phone = String(customer?.phone || member?.phone || '').trim();
+  const email = String(customer?.email || member?.email || '').trim().toLowerCase();
+  const name =
+    String(customer?.name || `${member?.firstName || ''} ${member?.lastName || ''}`).trim() ||
+    'Walk-in';
+  const tail = phoneTail(phone);
+  const or = [];
+  if (tail) or.push({ phone: new RegExp(`${tail}$`) });
+  if (email) or.push({ email });
+
+  if (or.length) {
+    const found = await Customer.findOne({ archivedAt: null, $or: or }).session(session);
+    if (found) return found._id;
+  }
+
+  const [created] = await Customer.create(
+    [
+      {
+        type: 'person',
+        name,
+        email,
+        phone,
+        tags: member ? ['member'] : ['walk-in'],
+        isDemo: Boolean(isDemo),
+      },
+    ],
+    { session },
+  );
+  if (member?._id) {
+    await Member.updateOne({ _id: member._id }, { $set: { customerId: created._id } }, { session });
+  }
+  return created._id;
 }
 
 async function createCourtInvoice({ customerId, booking, price, court, session, isDemo }) {
@@ -315,7 +364,12 @@ export async function create(input, ctx = {}) {
         paymentMode !== 'desk' &&
         paymentMode !== 'free'
       ) {
-        const customerId = member?.customerId || input.customer?.customerId || null;
+        const customerId = await ensureCustomerId({
+          member,
+          customer: input.customer,
+          isDemo: input.isDemo,
+          session,
+        });
         invoice = await createCourtInvoice({
           customerId,
           booking: doc,
@@ -370,6 +424,15 @@ export async function create(input, ctx = {}) {
     }).catch(() => {});
   }
 
+  await emailForBooking({
+    booking,
+    court,
+    sport,
+    member,
+    ctx,
+    customerEmail: input.customer?.email,
+  });
+
   return booking;
 }
 
@@ -388,9 +451,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
   }
 
   if (expired) {
-    // Try re-lock
     try {
-      return await withTransaction(async (session) => {
+      const confirmed = await withTransaction(async (session) => {
         await SlotLock.deleteMany({ refId: booking._id, kind: 'hold' }, { session });
         try {
           await SlotLock.insertMany(
@@ -412,6 +474,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
         await booking.save({ session });
         return booking.toObject();
       });
+      await notifyBookingRecord(confirmed, ctx);
+      return confirmed;
     } catch (err) {
       if (err?.code === 'SLOT_UNAVAILABLE') {
         throw Conflict('HOLD_EXPIRED', 'Hold expired and slot was taken; refund required', {
@@ -423,7 +487,7 @@ export async function confirmPayment(bookingId, ctx = {}) {
     }
   }
 
-  return withTransaction(async (session) => {
+  const confirmed = await withTransaction(async (session) => {
     await SlotLock.updateMany(
       { refId: booking._id, kind: 'hold' },
       { $set: { kind: 'booking' }, $unset: { expiresAt: 1 } },
@@ -442,6 +506,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
     });
     return booking.toObject();
   });
+  await notifyBookingRecord(confirmed, ctx);
+  return confirmed;
 }
 
 export async function cancel(bookingId, input = {}, ctx = {}) {
@@ -767,7 +833,7 @@ export async function list(req) {
     defaultSort: '-start',
     defaultPageSize: 50,
     maxPageSize: 200,
-    searchFields: ['bookingNo', 'customer.name', 'customer.phone'],
+    searchFields: ['bookingNo'],
     buildFilter: (q) => {
       const filter = {};
       if (q.status) filter.status = q.status;

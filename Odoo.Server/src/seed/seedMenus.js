@@ -74,7 +74,7 @@ const GROUPS = [
     menus: [
       { menuName: 'Members', menuUrl: '/members', icon: 'ri-group-line', sequence: 1 },
       { menuName: 'Membership Plans', menuUrl: '/membership-plans', icon: 'ri-vip-crown-line', sequence: 2 },
-      { menuName: 'Memberships', menuUrl: '/memberships', icon: 'ri-id-card-line', sequence: 3 },
+      { menuName: 'Memberships', menuUrl: '/memberships', icon: 'ri-profile-line', sequence: 3 },
     ],
   },
   {
@@ -91,7 +91,7 @@ const GROUPS = [
   {
     menuGroupName: 'Finance',
     sequence: 13,
-    icon: 'ri-money-rupee-circle-line',
+    icon: 'ri-bank-line',
     menus: [
       { menuName: 'Customers', menuUrl: '/customers', icon: 'ri-contacts-book-line', sequence: 1 },
       { menuName: 'Invoices', menuUrl: '/finance/invoices', icon: 'ri-file-list-3-line', sequence: 2 },

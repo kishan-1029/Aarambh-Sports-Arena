@@ -544,7 +544,7 @@ const CompanyDetails = () => {
               height: 110px;
               border-radius: 50%;
               object-fit: contain;
-              background-color: #f8fafc;
+              background-color: var(--vz-light, #f8fafc);
               border: 3px solid #ffffff;
               box-shadow: 0 4px 15px rgba(0,0,0,0.06);
               margin: 0 auto 15px auto;
@@ -554,7 +554,7 @@ const CompanyDetails = () => {
               border: 1px solid #e2e8f0;
               border-radius: 12px;
               transition: all 0.3s ease;
-              background-color: #ffffff;
+              background-color: var(--vz-card-bg, #ffffff);
               overflow: hidden;
             }
             .premium-upload-card:hover {
@@ -566,20 +566,20 @@ const CompanyDetails = () => {
               border-radius: 8px;
               padding: 24px 16px;
               text-align: center;
-              background-color: #f8fafc;
+              background-color: var(--vz-light, #f8fafc);
               cursor: pointer;
               transition: all 0.2s ease;
             }
             .premium-upload-dropzone:hover {
               border-color: #3b82f6;
-              background-color: #eff6ff;
+              background-color: var(--vz-light, #eff6ff);
             }
             .premium-preview-wrapper {
               position: relative;
               display: inline-block;
               border-radius: 8px;
               padding: 6px;
-              background-color: #f8fafc;
+              background-color: var(--vz-light, #f8fafc);
               border: 1px solid #e2e8f0;
             }
             .premium-delete-badge {
@@ -608,7 +608,7 @@ const CompanyDetails = () => {
             .form-section-card {
               border: 1px solid #f1f5f9;
               border-radius: 12px;
-              background: #ffffff;
+              background: var(--vz-card-bg, #ffffff);
               box-shadow: 0 1px 3px rgba(0,0,0,0.02);
               padding: 24px;
               margin-bottom: 24px;
@@ -616,7 +616,7 @@ const CompanyDetails = () => {
             .form-section-header {
               font-size: 15px;
               font-weight: 700;
-              color: #0f172a;
+              color: var(--vz-heading-color, #0f172a);
               text-transform: uppercase;
               letter-spacing: 0.5px;
               margin-bottom: 20px;

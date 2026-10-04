@@ -25,9 +25,29 @@ import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import {
   listPlans,
+  listMemberships,
   createPlan,
   updatePlan,
+  archivePlan,
 } from "../../api/arambhMembership.api";
+import { listTaxes } from "../../api/arambhFinance.api";
+
+const PLAN_COLOUR = {
+  gold: "warning",
+  silver: "secondary",
+  junior: "success",
+};
+
+const PLAN_HEX = {
+  gold: "#d4a017",
+  silver: "#8a8a8a",
+  junior: "#2e7d32",
+};
+
+function planAccent(plan) {
+  if (plan.colour && plan.colour.toLowerCase() !== "#0d6efd") return plan.colour;
+  return PLAN_HEX[plan.key] || plan.colour || "#0d6efd";
+}
 
 const EMPTY_FORM = {
   key: "",
@@ -41,7 +61,20 @@ const EMPTY_FORM = {
   price2: "",
   shopDiscountPct: "0",
   barDiscountPct: "0",
+  benefits: "",
+  taxId: "",
 };
+
+function linesToPerks(text) {
+  return String(text || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function perksToLines(perks) {
+  return (perks || []).join("\n");
+}
 
 function defaultCourtEntitlements(existing) {
   return (
@@ -61,7 +94,7 @@ function buildEntitlements(form, existing) {
     shopDiscountPct: Number(form.shopDiscountPct) || 0,
     barDiscountPct: Number(form.barDiscountPct) || 0,
     guestPasses: existing?.entitlements?.guestPasses ?? 0,
-    perks: existing?.entitlements?.perks ?? [],
+    perks: linesToPerks(form.benefits),
   };
 }
 
@@ -94,8 +127,10 @@ function planToForm(p) {
     price1: d0.pricePaise != null ? String(d0.pricePaise / 100) : "",
     months2: d1.months != null ? String(d1.months) : "",
     price2: d1.pricePaise != null ? String(d1.pricePaise / 100) : "",
+    taxId: p.taxId ? String(p.taxId._id || p.taxId) : "",
     shopDiscountPct: String(p.entitlements?.shopDiscountPct ?? 0),
     barDiscountPct: String(p.entitlements?.barDiscountPct ?? 0),
+    benefits: perksToLines(p.entitlements?.perks),
   };
 }
 
@@ -110,6 +145,7 @@ function matchesSearch(p, q) {
 const MembershipPlans = () => {
   document.title = "Membership Plans | Arambh Sports Arena";
   const [plans, setPlans] = useState([]);
+  const [taxes, setTaxes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
@@ -119,16 +155,23 @@ const MembershipPlans = () => {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteCount, setDeleteCount] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listPlans({
-        pageSize: 100,
-        q: query.trim() || undefined,
-      });
+      const [res, taxRes] = await Promise.all([
+        listPlans({
+          pageSize: 100,
+          q: query.trim() || undefined,
+        }),
+        listTaxes({ pageSize: 100, active: "true" }).catch(() => ({ data: { data: [] } })),
+      ]);
       setPlans(Array.isArray(res?.data?.data) ? res.data.data : []);
+      setTaxes(Array.isArray(taxRes?.data?.data) ? taxRes.data.data : []);
     } catch (err) {
       setError({
         message:
@@ -192,6 +235,7 @@ const MembershipPlans = () => {
           active: form.active,
           durations,
           entitlements,
+          taxId: form.taxId || null,
         });
       } else {
         await createPlan({
@@ -202,6 +246,7 @@ const MembershipPlans = () => {
           active: form.active,
           durations,
           entitlements,
+          taxId: form.taxId || null,
         });
       }
       closeModal();
@@ -229,6 +274,38 @@ const MembershipPlans = () => {
     }
   };
 
+  const openDelete = async (p) => {
+    setDeleteTarget(p);
+    setDeleteCount(null);
+    try {
+      const res = await listMemberships({
+        planKey: p.key,
+        status: "current",
+        pageSize: 1,
+      });
+      const total = res?.data?.meta?.total;
+      setDeleteCount(Number.isFinite(total) ? total : null);
+    } catch {
+      setDeleteCount(null);
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await archivePlan(deleteTarget._id);
+      setDeleteTarget(null);
+      await load();
+    } catch (err) {
+      window.alert(
+        err?.response?.data?.message || err?.message || "Could not delete plan",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Can
       anyOf={["membership_plan.view", "membership.view", "member.view"]}
@@ -245,10 +322,54 @@ const MembershipPlans = () => {
       }
     >
       <div className="page-content">
+        <style>
+          {`
+            .plan-summary {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+            .plan-summary p,
+            .plan-summary ul {
+              margin: 0;
+            }
+            .plan-summary-desc {
+              color: var(--vz-secondary-color, #878a99);
+              font-size: 0.8125rem;
+              line-height: 1.45;
+            }
+            .plan-summary-facts,
+            .plan-summary-list {
+              display: flex;
+              flex-direction: column;
+              gap: 0.25rem;
+              font-size: 0.8125rem;
+              line-height: 1.45;
+            }
+            .plan-summary-list {
+              margin: 0;
+              padding-left: 1.1rem;
+            }
+            .plan-summary-list li {
+              margin: 0;
+            }
+            .plan-summary-list-plain {
+              list-style: none;
+              padding-left: 0;
+            }
+            .plan-summary-actions {
+              margin-top: auto;
+              padding-top: 0.75rem;
+            }
+            .plan-summary-actions .plan-delete {
+              margin-left: auto;
+            }
+          `}
+        </style>
         <Container fluid>
           <BreadCrumb title="Membership Plans" pageTitle="Arambh" />
           <Row className="mb-3">
-            <Col className="d-flex flex-wrap gap-2 justify-content-end">
+            <Col className="d-flex flex-wrap gap-2 justify-content-end page-toolbar">
               <Input
                 style={{ maxWidth: 260 }}
                 placeholder="Search name, key, description…"
@@ -256,7 +377,7 @@ const MembershipPlans = () => {
                 onChange={(e) => setQuery(e.target.value)}
               />
               <Can anyOf={["membership_plan.edit"]}>
-                <Button color="success" onClick={openCreate}>
+                <Button color="success" size="sm" onClick={openCreate}>
                   <i className="ri-add-line me-1" />
                   Add plan
                 </Button>
@@ -289,11 +410,13 @@ const MembershipPlans = () => {
                   <Card className="h-100">
                     <CardHeader
                       className="d-flex justify-content-between align-items-start gap-2"
-                      style={{ borderTop: `4px solid ${p.colour || "#0d6efd"}` }}
+                      style={{ borderTop: `4px solid ${planAccent(p)}` }}
                     >
                       <div>
                         <h5 className="mb-1">{p.name}</h5>
-                        <span className="text-muted small">{p.key}</span>
+                        <Badge color={PLAN_COLOUR[p.key] || "primary"} pill>
+                          {(p.key || "plan").toUpperCase()}
+                        </Badge>
                       </div>
                       <div className="d-flex flex-column align-items-end gap-1">
                         <Badge color={p.active ? "success" : "secondary"} pill>
@@ -305,27 +428,28 @@ const MembershipPlans = () => {
                       </div>
                     </CardHeader>
                     <CardBody className="d-flex flex-column">
-                      <p className="text-muted small flex-grow-1">
-                        {p.description || "—"}
-                      </p>
-                      <p className="mb-1 small">
-                        Court: {p.entitlements?.court?.access || "—"} ·{" "}
-                        {p.entitlements?.court?.pricing?.mode === "free"
-                          ? "free"
-                          : `${p.entitlements?.court?.pricing?.value ?? 0}% off`}
-                      </p>
-                      <p className="mb-1 small">
-                        Shop {p.entitlements?.shopDiscountPct || 0}% · Bar{" "}
-                        {p.entitlements?.barDiscountPct || 0}%
-                      </p>
-                      <ul className="list-unstyled mb-3 small">
-                        {(p.durations || []).map((d) => (
-                          <li key={`${p._id}-${d.months}`}>
-                            {d.months} mo — <Money paise={d.pricePaise} />
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="d-flex flex-wrap gap-2 align-items-center mt-auto">
+                      <div className="plan-summary">
+                        <p className="plan-summary-desc">
+                          {p.description || "—"}
+                        </p>
+                        <div className="plan-summary-facts">
+                          <ul className="plan-summary-list plan-summary-list-plain">
+                            {(p.durations || []).map((d) => (
+                              <li key={`${p._id}-${d.months}`}>
+                                {d.months} mo — <Money paise={d.pricePaise} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {(p.entitlements?.perks || []).length > 0 && (
+                          <ul className="plan-summary-list">
+                            {p.entitlements.perks.map((perk) => (
+                              <li key={`${p._id}-${perk}`}>{perk}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="d-flex flex-wrap gap-2 align-items-center plan-summary-actions">
                         <Can anyOf={["membership_plan.edit"]}>
                           <Button
                             size="sm"
@@ -352,6 +476,16 @@ const MembershipPlans = () => {
                               {busyId === p._id ? "…" : p.active ? "On" : "Off"}
                             </Label>
                           </div>
+                          <Button
+                            size="sm"
+                            color="soft-danger"
+                            className="plan-delete"
+                            disabled={busyId === p._id || deleting}
+                            onClick={() => openDelete(p)}
+                          >
+                            <i className="ri-delete-bin-line me-1" />
+                            Delete
+                          </Button>
                         </Can>
                       </div>
                     </CardBody>
@@ -362,6 +496,46 @@ const MembershipPlans = () => {
           )}
         </Container>
       </div>
+
+      <Modal
+        isOpen={Boolean(deleteTarget)}
+        toggle={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        centered
+      >
+        <ModalHeader
+          toggle={() => {
+            if (!deleting) setDeleteTarget(null);
+          }}
+        >
+          Delete plan
+        </ModalHeader>
+        <ModalBody>
+          <p className="mb-2">
+            Delete <strong>{deleteTarget?.name}</strong>?
+          </p>
+          <p className="text-muted mb-0">
+            {deleteCount > 0
+              ? `${deleteCount} member${deleteCount === 1 ? "" : "s"} currently on this plan will have that membership cancelled. They lose the plan benefits, the same as cancelling the membership. The plan also leaves this list and the website.`
+              : deleteCount === 0
+                ? "No members are on this plan. It will leave this list and the website."
+                : "Members currently on this plan will have that membership cancelled, the same as cancelling the membership. The plan also leaves this list and the website."}
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            color="light"
+            disabled={deleting}
+            onClick={() => setDeleteTarget(null)}
+          >
+            Cancel
+          </Button>
+          <Button color="danger" disabled={deleting} onClick={onConfirmDelete}>
+            {deleting ? "Deleting…" : "Delete"}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Modal isOpen={modal} toggle={closeModal} centered size="lg">
         <Form onSubmit={onSubmit}>
@@ -433,6 +607,24 @@ const MembershipPlans = () => {
                   <Label check for="plan-active">
                     Active
                   </Label>
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Tax</Label>
+                  <Input
+                    type="select"
+                    name="taxId"
+                    value={form.taxId}
+                    onChange={onFormChange}
+                  >
+                    <option value="">No tax</option>
+                    {taxes.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} ({t.ratePct}%)
+                      </option>
+                    ))}
+                  </Input>
                 </FormGroup>
               </Col>
               <Col md={12}>
@@ -515,6 +707,23 @@ const MembershipPlans = () => {
                     value={form.barDiscountPct}
                     onChange={onFormChange}
                   />
+                </FormGroup>
+              </Col>
+              <Col md={12}>
+                <FormGroup className="mb-0">
+                  <Label>Benefits</Label>
+                  <Input
+                    type="textarea"
+                    name="benefits"
+                    rows={5}
+                    value={form.benefits}
+                    onChange={onFormChange}
+                    placeholder={"Up to 2 bookings / day\n10% shop discount"}
+                  />
+                  <p className="text-muted small mb-0 mt-1">
+                    One point per line. These are the lines on the membership cards.
+                    Shop and bar percentages above still set the till discount.
+                  </p>
                 </FormGroup>
               </Col>
             </Row>

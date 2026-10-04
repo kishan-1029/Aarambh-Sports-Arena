@@ -46,12 +46,81 @@ function nowLabel() {
   });
 }
 
+/** Keep an Indian mobile as up to 10 digits. +91 and a leading 0 are stripped. */
+function normalizeMobile(val) {
+  let digits = String(val || "").replace(/\D+/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  else if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return digits.slice(0, 10);
+}
+
+function mobileError(val) {
+  const digits = normalizeMobile(val);
+  if (!digits) return "Phone number is required.";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number.";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8 or 9.";
+  return null;
+}
+
 /** IST wall-clock → UTC ISO for booking create */
 function istSlotToUtcIso(localDate, hhmm) {
-  const [y, m, d] = localDate.split("-").map(Number);
-  const [hh, mm] = hhmm.split(":").map(Number);
+  const [y, m, d] = String(localDate || "").split("-").map(Number);
+  const [hh, mm] = String(hhmm || "").split(":").map(Number);
+  if (![y, m, d, hh, mm].every((n) => Number.isFinite(n))) return null;
   const utcMs = Date.UTC(y, m - 1, d, hh, mm) - 5.5 * 60 * 60 * 1000;
-  return new Date(utcMs).toISOString();
+  const iso = new Date(utcMs).toISOString();
+  return Number.isNaN(Date.parse(iso)) ? null : iso;
+}
+
+function slotLabel(start) {
+  const t = new Date(start);
+  if (Number.isNaN(t.getTime())) return "";
+  return t.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kolkata",
+  });
+}
+
+/** Map every confirm-booking failure onto a message the form can show. */
+export function confirmBookingError(err) {
+  if (!err?.response) {
+    if (err?.code === "ECONNABORTED") {
+      return "The server took too long to confirm this booking. Refresh the board before trying the same slot again.";
+    }
+    return "Cannot reach the server, so this booking was not confirmed. Check that the API is running and try again.";
+  }
+
+  const status = err.response.status;
+  if (status === 401) {
+    return "Your session expired. Sign in again, then confirm the booking.";
+  }
+
+  const data = err.response.data || {};
+  const details = data?.error?.details;
+  const issues = Array.isArray(details) ? details : null;
+  let msg = data.message || "Booking failed";
+  if (issues?.length) {
+    const text = issues.map((i) => i.message).filter(Boolean).join(". ");
+    if (text) msg = text;
+  }
+
+  const alts =
+    (details && !Array.isArray(details) && details.alternatives) ||
+    data?.data?.alternatives ||
+    data?.alternatives ||
+    [];
+  if (Array.isArray(alts) && alts.length) {
+    const labels = alts.slice(0, 3).map((a) => {
+      const time = a.start ? slotLabel(a.start) : "";
+      if (a.courtName && time) return `${a.courtName} ${time}`;
+      if (time) return a.sameCourt === false ? time : `same court ${time}`;
+      return a.courtName || "another slot";
+    });
+    msg += `. Try: ${labels.join(", ")}`;
+  }
+  return msg;
 }
 
 const TIER_COLOUR = {
@@ -83,6 +152,7 @@ const FrontDesk = () => {
   const [slot, setSlot] = useState(null); // { court, hhmm }
   const [walkName, setWalkName] = useState("");
   const [walkPhone, setWalkPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(null);
   const [payMode, setPayMode] = useState("cash");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
@@ -216,6 +286,7 @@ const FrontDesk = () => {
     setSlot(court && hhmm ? { court, hhmm } : { court: courtCols[0] || null, hhmm: hours[0] || "18:00" });
     setWalkName("");
     setWalkPhone("");
+    setPhoneError(null);
     setPayMode("cash");
     setFormError(null);
     setDrawer(true);
@@ -251,8 +322,22 @@ const FrontDesk = () => {
       return;
     }
     const isMember = Boolean(member);
-    if (!isMember && (!walkName.trim() || !walkPhone.trim())) {
-      setFormError("Walk-in needs name and phone.");
+    if (!isMember) {
+      const phoneErr = mobileError(walkPhone);
+      setPhoneError(phoneErr);
+      if (!walkName.trim()) {
+        setFormError("Walk-in needs a name.");
+        return;
+      }
+      if (phoneErr) {
+        setFormError(null);
+        return;
+      }
+    }
+    const phone = normalizeMobile(walkPhone);
+    const startUtc = istSlotToUtcIso(date, slot.hhmm);
+    if (!startUtc) {
+      setFormError("Pick a valid date and start time.");
       return;
     }
     setSubmitting(true);
@@ -260,7 +345,7 @@ const FrontDesk = () => {
     try {
       const body = {
         courtId: String(slot.court._id),
-        startUtc: istSlotToUtcIso(date, slot.hhmm),
+        startUtc,
         type: isMember ? "member" : "walk_in",
         channel: "front_desk",
         paymentMode: payMode,
@@ -270,11 +355,10 @@ const FrontDesk = () => {
         body.memberId = String(member._id);
         body.bookedByMemberId = String(member._id);
       } else {
-        body.customer = { name: walkName.trim(), phone: walkPhone.trim() };
+        body.customer = { name: walkName.trim(), phone };
       }
-      const res = await createBooking(body, {
-        "Idempotency-Key": `fd-${slot.court._id}-${slot.hhmm}-${Date.now()}`,
-      });
+      body.idempotencyKey = `fd-${slot.court._id}-${date}-${slot.hhmm}-${phone || member?._id || "guest"}`;
+      const res = await createBooking(body);
       const booking = res?.data?.data;
       setToast(
         booking
@@ -284,16 +368,7 @@ const FrontDesk = () => {
       setDrawer(false);
       await loadBoard();
     } catch (err) {
-      const data = err?.response?.data;
-      const alts = data?.data?.alternatives || data?.alternatives;
-      let msg = data?.message || err?.message || "Booking failed";
-      if (Array.isArray(alts) && alts.length) {
-        msg += ` · Try: ${alts
-          .slice(0, 3)
-          .map((a) => a.label || a.courtName || a.start)
-          .join(", ")}`;
-      }
-      setFormError(msg);
+      setFormError(confirmBookingError(err));
     } finally {
       setSubmitting(false);
     }
@@ -312,23 +387,43 @@ const FrontDesk = () => {
         </div>
       }
     >
-      <div className="page-content" style={{ paddingTop: "1rem" }}>
-        <div className="d-flex flex-wrap align-items-center gap-2 mb-3 px-2">
-          <div className="flex-grow-1 position-relative" style={{ maxWidth: 480 }}>
+      <div className="page-content">
+        <div
+          className="bg-white border rounded shadow-sm p-3 mb-3 mx-2"
+          style={{ position: "sticky", top: 78, zIndex: 20 }}
+        >
+          <div className="d-flex flex-wrap align-items-end gap-3">
+          <div className="flex-grow-1 position-relative" style={{ maxWidth: 520, minWidth: 240 }}>
+            <label className="form-label mb-1 text-dark" htmlFor="front-desk-search">
+              Search member
+            </label>
+            <div className="position-relative">
             <Input
+              id="front-desk-search"
               innerRef={searchRef}
-              placeholder="Search member / phone / code  (/)"
+              placeholder="Name, phone, or member code"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoComplete="off"
+              className="bg-white text-dark"
+              style={{ background: "#fff", color: "#212529", border: "1px solid #ced4da" }}
             />
             {searching && (
               <Spinner size="sm" className="position-absolute end-0 top-50 translate-middle-y me-2" />
             )}
+            </div>
+            {query.trim().length >= 2 && !searching && hits.length === 0 && (
+              <div
+                className="border bg-white shadow-sm position-absolute w-100 mt-1 px-3 py-2 small text-muted"
+                style={{ zIndex: 40 }}
+              >
+                No members match that search.
+              </div>
+            )}
             {hits.length > 0 && query.trim().length >= 2 && (
               <div
                 className="border bg-white shadow-sm position-absolute w-100 mt-1"
-                style={{ zIndex: 20, maxHeight: 240, overflowY: "auto" }}
+                style={{ zIndex: 40, maxHeight: 240, overflowY: "auto" }}
               >
                 {hits.map((m) => (
                   <button
@@ -345,7 +440,7 @@ const FrontDesk = () => {
                       {m.firstName} {m.lastName || ""}
                     </span>
                     <span className="text-muted small ms-2">{m.memberCode}</span>
-                    <Badge color={TIER_COLOUR[m.tierKey] || "light"} className="ms-2" pill>
+                    <Badge color={TIER_COLOUR[m.tierKey] || "light"} className={`ms-2${!m.tierKey || m.tierKey === "none" ? " tier-none" : ""}`} pill>
                       {(m.tierKey || "none").toUpperCase()}
                     </Badge>
                   </button>
@@ -364,6 +459,7 @@ const FrontDesk = () => {
           <Button color="success" size="sm" outline onClick={loadBoard}>
             Refresh
           </Button>
+          </div>
         </div>
 
         {toast && (
@@ -468,7 +564,7 @@ const FrontDesk = () => {
                             })}{" "}
                             · {b.courtId?.name || b.courtId?.code || "Court"}
                           </div>
-                          <div className="d-flex align-items-center justify-content-between gap-2">
+                          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <span>
                               {b.bookedByMemberId
                                 ? `${b.bookedByMemberId.firstName} ${b.bookedByMemberId.lastName || ""}`
@@ -505,7 +601,7 @@ const FrontDesk = () => {
                     </Button>
                   </div>
                   <div className="my-2">
-                    <Badge color={TIER_COLOUR[member.tierKey] || "light"} pill>
+                    <Badge color={TIER_COLOUR[member.tierKey] || "light"} className={!member.tierKey || member.tierKey === "none" ? "tier-none" : undefined} pill>
                       {(member.tierKey || "none").toUpperCase()}
                     </Badge>
                     {expired && (
@@ -610,7 +706,7 @@ const FrontDesk = () => {
                   <strong>
                     {member.firstName} {member.lastName || ""}
                   </strong>{" "}
-                  <Badge color={TIER_COLOUR[member.tierKey] || "light"}>
+                  <Badge color={TIER_COLOUR[member.tierKey] || "light"} className={!member.tierKey || member.tierKey === "none" ? "tier-none" : undefined}>
                     {(member.tierKey || "").toUpperCase()}
                   </Badge>
                 </p>
@@ -621,16 +717,25 @@ const FrontDesk = () => {
                     <Input
                       value={walkName}
                       onChange={(e) => setWalkName(e.target.value)}
-                      required={!member}
                     />
                   </FormGroup>
                   <FormGroup>
                     <Label>Phone</Label>
                     <Input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      placeholder="10-digit mobile"
                       value={walkPhone}
-                      onChange={(e) => setWalkPhone(e.target.value)}
-                      required={!member}
+                      invalid={Boolean(phoneError)}
+                      onChange={(e) => {
+                        setWalkPhone(normalizeMobile(e.target.value));
+                        setPhoneError(null);
+                      }}
                     />
+                    {phoneError && (
+                      <div className="invalid-feedback d-block">{phoneError}</div>
+                    )}
                   </FormGroup>
                 </>
               )}

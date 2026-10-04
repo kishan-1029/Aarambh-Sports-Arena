@@ -24,7 +24,9 @@ import {
   searchStates,
 } from "../../api/locations.api";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -65,39 +67,26 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
   {
     name: "Action",
     cell: (row) => (
-      <div className="d-flex gap-2">
-        <div className="edit">
-          {currentPagePermissions.edit && (
-          <button
-            className="btn btn-sm btn-success edit-item-btn "
-            data-bs-toggle="modal"
-            data-bs-target="#showModal"
+      <div className="grid-actions">
+        {currentPagePermissions.edit && (
+          <GridActionButton
+            label="Edit"
             onClick={() => handleTog_edit(row._id)}
-          >
-            Edit
-          </button>
-          )}
-        </div>
-
-        <div className="remove">
-          {currentPagePermissions.delete && (
-          <button
-            className="btn btn-sm btn-danger remove-item-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#deleteRecordModal"
+          />
+        )}
+        {currentPagePermissions.delete && (
+          <GridActionButton
+            label="Remove"
             onClick={() => tog_delete(row._id)}
-          >
-            Remove
-          </button>
-          )}
-          {!currentPagePermissions.edit && !currentPagePermissions.delete && (
-            <span className="text-muted">No actions available</span>
-          )}
-        </div>
+          />
+        )}
+        {!currentPagePermissions.edit && !currentPagePermissions.delete && (
+          <span className="text-muted">No actions available</span>
+        )}
       </div>
     ),
     sortable: false,
-    minWidth: "180px",
+    minWidth: "96px",
   },
 ];
 
@@ -149,6 +138,8 @@ const State = () => {
   };
 
   const [modal_delete, setmodal_delete] = useState(false);
+  const [referenceModal, setReferenceModal] = useState(false);
+  const [referenceData, setReferenceData] = useState(null);
   const tog_delete = (_id) => {
     setmodal_delete(!modal_delete);
     setRemove_id(_id);
@@ -231,7 +222,13 @@ const State = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to remove state. Please try again.");
+        setmodal_delete(false);
+        if (err.response?.status === 409) {
+          setReferenceData(err.response.data);
+          setReferenceModal(true);
+        } else {
+          toast.error("Failed to remove state. Please try again.");
+        }
       }).finally(() => {
         setIsDeleteLoading(false);
       });
@@ -597,6 +594,12 @@ const State = () => {
         toggle={handleDeleteClose}
         setmodal_delete={setmodal_delete}
         disabled={isDeleteLoading}
+      />
+      <ReferenceErrorModal
+        isOpen={referenceModal}
+        toggle={() => setReferenceModal(false)}
+        title="Cannot Delete State"
+        referenceData={referenceData}
       />
     </React.Fragment>
   );

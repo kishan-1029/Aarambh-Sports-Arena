@@ -65,7 +65,7 @@ const CustomersGlobalFilter = () => {
 
                 <Col sm={4}>
                     <div>
-                        <Select
+                        <Select classNamePrefix="select"
                             value={customerStatus}
                             onChange={(e) => {
                                 handlecustomerStatus(e.value);
@@ -151,7 +151,7 @@ const OrderGlobalFilter = () => {
 
             <Col sm={4} className="col-xxl-2">
                 <div>
-                    <Select
+                    <Select classNamePrefix="select"
                         value={orderStatus}
                         onChange={(e) => {
                             handleorderStatus(e);
@@ -165,7 +165,7 @@ const OrderGlobalFilter = () => {
 
             <Col sm={4} className="col-xxl-2">
                 <div>
-                    <Select
+                    <Select classNamePrefix="select"
                         value={orderPayement}
                         onChange={() => {
                             handleorderPayement();
@@ -208,7 +208,7 @@ const ContactsGlobalFilter = () => {
         <div className="col-md-auto ms-auto">
             <div className="d-flex align-items-center gap-2">
                 <span className="text-muted">Sort by: </span>
-                <Select
+                <Select classNamePrefix="select"
                     className="mb-0"
                     value={sortBy}
                     onChange={() => {
@@ -243,7 +243,7 @@ const CompaniesGlobalFilter = () => {
         <div className="col-md-auto ms-auto">
             <div className="d-flex align-items-center gap-2">
                 <span className="text-muted">Sort by: </span>
-                <Select
+                <Select classNamePrefix="select"
                     className="mb-0"
                     value={sortBy}
                     onChange={() => {
@@ -335,7 +335,7 @@ const InvoiceListGlobalSearch = () => {
 
             <Col sm={4} xxl={3}>
                 <div className="input-light">
-                    <Select
+                    <Select classNamePrefix="select"
                         value={isStatus}
                         onChange={() => {
                             handleisStatus();

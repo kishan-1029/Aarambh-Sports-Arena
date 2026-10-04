@@ -16,7 +16,9 @@ import {
 } from "reactstrap";
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -35,32 +37,22 @@ import { MenuContext } from "../../context/MenuContext";
 import IconPicker from "../../Components/Common/IconPicker";
 
 const MenuActions = ({ row, currentPagePermissions, handleTog_edit, tog_delete }) => (
-    <div className="d-flex gap-2">
-        <div className="edit">
-            {currentPagePermissions.edit && (
-                <button
-                    className="btn btn-sm btn-success edit-item-btn "
-                    data-bs-toggle="modal"
-                    data-bs-target="#showModal"
-                    onClick={() => handleTog_edit(row._id)}
-                >
-                    Edit
-                </button>
-            )}
-            {currentPagePermissions.delete && (
-                <button
-                    className="btn btn-sm btn-danger remove-item-btn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#deleteRecordModal"
-                    onClick={() => tog_delete(row._id)}
-                >
-                    Remove
-                </button>
-            )}
-            {!currentPagePermissions.edit && !currentPagePermissions.delete && (
-                <span className="text-muted">No actions available</span>
-            )}
-        </div>
+    <div className="grid-actions">
+        {currentPagePermissions.edit && (
+            <GridActionButton
+                label="Edit"
+                onClick={() => handleTog_edit(row._id)}
+            />
+        )}
+        {currentPagePermissions.delete && (
+            <GridActionButton
+                label="Remove"
+                onClick={() => tog_delete(row._id)}
+            />
+        )}
+        {!currentPagePermissions.edit && !currentPagePermissions.delete && (
+            <span className="text-muted">No actions available</span>
+        )}
     </div>
 );
 
@@ -136,7 +128,7 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
             />
         ),
         sortable: false,
-        minWidth: "180px",
+        minWidth: "96px",
     },
 ];
 
@@ -259,6 +251,8 @@ const MenuMaster = () => {
     };
 
     const [modal_delete, setmodal_delete] = useState(false);
+    const [referenceModal, setReferenceModal] = useState(false);
+    const [referenceData, setReferenceData] = useState(null);
     const tog_delete = (_id) => {
         setmodal_delete(!modal_delete);
         setRemove_id(_id);
@@ -371,7 +365,13 @@ const MenuMaster = () => {
             })
             .catch((err) => {
                 console.log(err);
-                toast.error("Failed to remove menu. Please try again.");
+                setmodal_delete(false);
+                if (err.response?.status === 409) {
+                    setReferenceData(err.response.data);
+                    setReferenceModal(true);
+                } else {
+                    toast.error(err.response?.data?.message || "Failed to remove menu. Please try again.");
+                }
             })
             .finally(() => {
                 setIsDeleteLoading(false);
@@ -1019,6 +1019,12 @@ const MenuMaster = () => {
                 toggle={handleDeleteClose}
                 setmodal_delete={setmodal_delete}
                 disabled={isDeleteLoading}
+            />
+            <ReferenceErrorModal
+                isOpen={referenceModal}
+                toggle={() => setReferenceModal(false)}
+                title="Cannot Delete Menu"
+                referenceData={referenceData}
             />
         </React.Fragment>
     );

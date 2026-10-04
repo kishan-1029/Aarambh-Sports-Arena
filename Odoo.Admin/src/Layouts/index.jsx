@@ -85,7 +85,7 @@ const Layout = (props) => {
             root.style.setProperty('--sidebar-link-icon-color', 'rgba(255, 255, 255, 0.65)');
             root.style.setProperty('--sidebar-link-hover-bg', 'rgba(255, 255, 255, 0.08)');
             root.style.setProperty('--sidebar-link-hover-color', '#ffffff');
-            root.style.setProperty('--sidebar-link-active-bg', 'rgba(15, 122, 74, 0.35)');
+            root.style.setProperty('--sidebar-link-active-bg', 'rgba(255, 255, 255, 0.12)');
             root.style.setProperty('--sidebar-link-active-color', '#ffffff');
             root.style.setProperty('--sidebar-collapse-icon-color', 'rgba(255, 255, 255, 0.8)');
         }
@@ -473,11 +473,11 @@ const Layout = (props) => {
         // Set layout type
         document.documentElement.dataset.layout = "vertical";
 
-        let saved = "light";
+        const saved = "light";
         try {
-            saved = localStorage.getItem("arambh-layout-mode") || "light";
+            localStorage.setItem("arambh-layout-mode", "light");
         } catch {
-            saved = "light";
+            /* ignore */
         }
         setLayoutModeType(saved);
         document.documentElement.setAttribute("data-layout-mode", saved);
@@ -527,6 +527,12 @@ const Layout = (props) => {
                     .minimal-sidebar {
                         background: var(--sidebar-bg, #0f7a4a) !important;
                     }
+
+                    .minimal-sidebar .navbar-brand-box,
+                    .navbar-menu .navbar-brand-box,
+                    .minimal-logo-box {
+                        background: #ffffff !important;
+                    }
                     
                     /* Text & icon contrast sizing overrides */
                     .minimal-sidebar .menu-title {
@@ -547,9 +553,8 @@ const Layout = (props) => {
                     }
                     
                     .minimal-sidebar .navbar-nav .nav-link.active {
-                        background: var(--sidebar-link-active-bg, rgba(15, 122, 74, 0.35)) !important;
+                        background: var(--sidebar-link-active-bg, rgba(255, 255, 255, 0.12)) !important;
                         color: var(--sidebar-link-active-color, #ffffff) !important;
-                        font-weight: 600;
                     }
                     
                     .minimal-sidebar .navbar-nav .menu-link[data-bs-toggle="collapse"]:after {
@@ -613,6 +618,26 @@ const Layout = (props) => {
                         border-color: var(--btn-danger-hover-border, var(--btn-danger-border)) !important;
                         color: var(--btn-danger-hover-color, var(--btn-danger-color)) !important;
                         transform: var(--btn-hover-transform, translateY(-1px)) !important;
+                    }
+
+                    .btn-sm,
+                    .edit-item-btn,
+                    .remove-item-btn,
+                    .badge,
+                    .rdt_Pagination button {
+                        box-shadow: none !important;
+                        transform: none !important;
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                    }
+
+                    .btn-sm:hover,
+                    .btn-sm:active,
+                    .btn-sm:focus,
+                    .edit-item-btn:hover,
+                    .remove-item-btn:hover {
+                        transform: none !important;
+                        box-shadow: none !important;
                     }
 
                     /* Dynamic Form Section Headers Accent borders & Icons */

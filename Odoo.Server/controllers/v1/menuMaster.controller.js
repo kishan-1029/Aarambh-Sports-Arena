@@ -1,5 +1,10 @@
 import MenuMaster from "../../models/MenuMaster.js";
+import "../../models/EmployeeRoles.js";
 import mongoose from "mongoose";
+import {
+  getReferencingCounts,
+  formatReferenceMessage,
+} from "../../utils/referenceHelper.js";
 
 // Helper: Escape regex special characters to prevent NoSQL injection
 const escapeRegex = (str = "") =>
@@ -109,7 +114,36 @@ export const updateMenuMaster = async (req, res) => {
 export const deleteMenuMaster = async (req, res) => {
   try {
     const { menuMasterId } = req.params;
-    
+
+    const existing = await MenuMaster.findById(menuMasterId);
+    if (!existing) {
+      return res.status(404).json({
+        isOk: false,
+        status: 404,
+        message: "Menu not found",
+      });
+    }
+
+    const childCount = await MenuMaster.countDocuments({
+      parentMenu: existing._id,
+      _id: { $ne: existing._id },
+    });
+    const referenceInfo = await getReferencingCounts("MenuMaster", menuMasterId);
+    const details = [...referenceInfo.details];
+    if (childCount > 0) {
+      details.push({ model: "MenuMaster", path: "parentMenu", count: childCount });
+    }
+    const totalReferences = details.reduce((sum, d) => sum + d.count, 0);
+    if (totalReferences > 0) {
+      return res.status(409).json({
+        isOk: false,
+        status: 409,
+        message: "Cannot delete menu. It is being used by other records.",
+        totalReferences,
+        references: details,
+        formattedMessage: formatReferenceMessage(details),
+      });
+    }
 
     const menuMaster = await MenuMaster.findByIdAndUpdate(menuMasterId, {
       isActive: false,

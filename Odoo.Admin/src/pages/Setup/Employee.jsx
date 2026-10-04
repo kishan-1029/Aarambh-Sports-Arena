@@ -17,6 +17,7 @@ import {
   ModalFooter,
 } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DataTable from "react-data-table-component";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import FormsHeader from "../../Components/Common/FormsHeader";
@@ -117,11 +118,15 @@ const Employee = () => {
   const [isEditAdmin, setIsEditAdmin] = useState(false);
   const [isAdminSubmitting, setIsAdminSubmitting] = useState(false);
   const [adminErrors, setAdminErrors] = useState({});
-  const [adminValues, setAdminValues] = useState({
+  const emptyAdminValues = {
     companyName: "",
     email: "",
+    mobileNumber: "",
+    gstNumber: "",
+    website: "",
     password: "",
-  });
+  };
+  const [adminValues, setAdminValues] = useState(emptyAdminValues);
 
   const getDepartmentList = async () => {
     try {
@@ -423,7 +428,10 @@ const Employee = () => {
           setAdminValues({
             companyName: company.companyName || "",
             email: company.email || "",
-            password: "", // Keep blank to preserve same
+            mobileNumber: company.mobileNumber || "",
+            gstNumber: company.gstNumber || "",
+            website: company.website || "",
+            password: "",
           });
           setShowAdminModal(true);
         }
@@ -610,6 +618,17 @@ const Employee = () => {
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(adminValues.email)) {
       errors.email = "Invalid email address";
     }
+    if (!adminValues.mobileNumber.trim()) {
+      errors.mobileNumber = "Phone is required";
+    } else if (!/^\d{10}$/.test(adminValues.mobileNumber.trim())) {
+      errors.mobileNumber = "Phone must be 10 digits";
+    }
+    if (!adminValues.gstNumber.trim()) {
+      errors.gstNumber = "GST number is required";
+    }
+    if (!adminValues.website.trim()) {
+      errors.website = "Website is required";
+    }
     if (!isEditAdmin && !adminValues.password.trim()) {
       errors.password = "Password is required";
     } else if (adminValues.password.trim()) {
@@ -636,6 +655,9 @@ const Employee = () => {
       const formData = new FormData();
       formData.append("companyName", adminValues.companyName);
       formData.append("email", adminValues.email);
+      formData.append("mobileNumber", adminValues.mobileNumber.trim());
+      formData.append("gstNumber", adminValues.gstNumber.trim());
+      formData.append("website", adminValues.website.trim());
       if (adminValues.password.trim()) {
         formData.append("password", adminValues.password);
       }
@@ -677,11 +699,7 @@ const Employee = () => {
       // For Admin Tab, clicking "+ Add" or "+ Add Admin" triggers modal popup
       setIsEditAdmin(false);
       setAdminErrors({});
-      setAdminValues({
-        companyName: "",
-        email: "",
-        password: "",
-      });
+      setAdminValues(emptyAdminValues);
       setShowAdminModal(true);
     } else {
       // Standard employee form toggle
@@ -1163,11 +1181,7 @@ const Employee = () => {
       setIsEditAdmin(false);
       setAdminErrors({});
       setShowAdminPassword(false);
-      setAdminValues({
-        companyName: "",
-        email: "",
-        password: "",
-      });
+      setAdminValues(emptyAdminValues);
       setShowAdminModal(true);
     } else {
       setShowForm(true);
@@ -1242,7 +1256,7 @@ const Employee = () => {
             tog_delete={tog_delete}
           />
         ),
-        maxWidth: "150px",
+        maxWidth: "96px",
       },
     ],
     [currentPagePermissions, activeTab]
@@ -1305,16 +1319,12 @@ const Employee = () => {
       {
         name: "Action",
         cell: (row) => (
-          <div className="d-flex gap-2">
-            <button className="btn btn-sm btn-success edit-item-btn" onClick={() => handleTog_edit(row._id)}>
-              Edit
-            </button>
-            <button className="btn btn-sm btn-danger remove-item-btn" onClick={() => tog_delete(row._id)}>
-              Remove
-            </button>
+          <div className="grid-actions">
+            <GridActionButton label="Edit" onClick={() => handleTog_edit(row._id)} />
+            <GridActionButton label="Remove" onClick={() => tog_delete(row._id)} />
           </div>
         ),
-        maxWidth: "150px",
+        maxWidth: "96px",
       },
     ],
     [activeTab]
@@ -1327,7 +1337,7 @@ const Employee = () => {
       <style>
         {`
           .custom-tab-btn {
-              background-color: #ffffff !important;
+              background-color: var(--vz-input-bg, #ffffff) !important;
               color: var(--vz-success, #0ab39c) !important;
               border: 1px solid var(--vz-success, #0ab39c) !important;
               transition: all 0.2s ease-in-out;
@@ -1482,6 +1492,54 @@ const Employee = () => {
                   {adminErrors.email && <div className="invalid-feedback">{adminErrors.email}</div>}
                 </div>
               </Col>
+              <Col lg={6}>
+                <div className="form-group">
+                  <Label htmlFor="adminMobile" className="form-label fw-medium">Phone <span className="text-danger">*</span></Label>
+                  <Input
+                    type="text"
+                    id="adminMobile"
+                    name="mobileNumber"
+                    className="form-control"
+                    placeholder="10 digit phone"
+                    value={adminValues.mobileNumber}
+                    onChange={handleAdminInputChange}
+                    invalid={!!adminErrors.mobileNumber}
+                  />
+                  {adminErrors.mobileNumber && <div className="invalid-feedback">{adminErrors.mobileNumber}</div>}
+                </div>
+              </Col>
+              <Col lg={6}>
+                <div className="form-group">
+                  <Label htmlFor="adminGst" className="form-label fw-medium">GST Number <span className="text-danger">*</span></Label>
+                  <Input
+                    type="text"
+                    id="adminGst"
+                    name="gstNumber"
+                    className="form-control"
+                    placeholder="GST number"
+                    value={adminValues.gstNumber}
+                    onChange={handleAdminInputChange}
+                    invalid={!!adminErrors.gstNumber}
+                  />
+                  {adminErrors.gstNumber && <div className="invalid-feedback">{adminErrors.gstNumber}</div>}
+                </div>
+              </Col>
+              <Col lg={12}>
+                <div className="form-group">
+                  <Label htmlFor="adminWebsite" className="form-label fw-medium">Website <span className="text-danger">*</span></Label>
+                  <Input
+                    type="text"
+                    id="adminWebsite"
+                    name="website"
+                    className="form-control"
+                    placeholder="www.example.com"
+                    value={adminValues.website}
+                    onChange={handleAdminInputChange}
+                    invalid={!!adminErrors.website}
+                  />
+                  {adminErrors.website && <div className="invalid-feedback">{adminErrors.website}</div>}
+                </div>
+              </Col>
               <Col lg={12}>
                 <div className="form-group">
                   <Label htmlFor="password" className="form-label fw-medium">
@@ -1574,26 +1632,12 @@ EmailOfficeCell.propTypes = {
 };
 
 const EmployeeActions = ({ row, currentPagePermissions, handleTog_edit, tog_delete }) => (
-  <div className="d-flex gap-2">
+  <div className="grid-actions">
     {currentPagePermissions.edit && (
-      <button
-        className="btn btn-sm btn-success edit-item-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#showModal"
-        onClick={() => handleTog_edit(row._id)}
-      >
-        Edit
-      </button>
+      <GridActionButton label="Edit" onClick={() => handleTog_edit(row._id)} />
     )}
     {currentPagePermissions.delete && (
-      <button
-        className="btn btn-sm btn-danger remove-item-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#deleteRecordModal"
-        onClick={() => tog_delete(row._id)}
-      >
-        Remove
-      </button>
+      <GridActionButton label="Remove" onClick={() => tog_delete(row._id)} />
     )}
     {!currentPagePermissions.edit && !currentPagePermissions.delete && (
       <span className="text-muted">No actions available</span>

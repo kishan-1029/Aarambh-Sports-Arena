@@ -23,6 +23,7 @@ import {
   searchCountries,
 } from "../../api/locations.api";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
@@ -35,7 +36,7 @@ import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 const initialState = {
   countryName: "",
   countryCode:"",
-  isActive: false,
+  isActive: true,
 };
 
 const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
@@ -58,39 +59,26 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
   {
     name: "Action",
     cell: (row) => (
-      <div className="d-flex gap-2">
-        <div className="edit">
-          {currentPagePermissions.edit && (
-            <button
-              className="btn btn-sm btn-success edit-item-btn "
-              data-bs-toggle="modal"
-              data-bs-target="#showModal"
-              onClick={() => handleTog_edit(row._id)}
-            >
-              Edit
-            </button>
-          )}
-        </div>
-
-        <div className="remove">
-          {currentPagePermissions.delete && (
-            <button
-              className="btn btn-sm btn-danger remove-item-btn"
-              data-bs-toggle="modal"
-              data-bs-target="#deleteRecordModal"
-              onClick={() => tog_delete(row._id)}
-            >
-              Remove
-            </button>
-          )}
-          {!currentPagePermissions.edit && !currentPagePermissions.delete && (
-            <span className="text-muted">No actions available</span>
-          )}
-        </div>
+      <div className="grid-actions">
+        {currentPagePermissions.edit && (
+          <GridActionButton
+            label="Edit"
+            onClick={() => handleTog_edit(row._id)}
+          />
+        )}
+        {currentPagePermissions.delete && (
+          <GridActionButton
+            label="Remove"
+            onClick={() => tog_delete(row._id)}
+          />
+        )}
+        {!currentPagePermissions.edit && !currentPagePermissions.delete && (
+          <span className="text-muted">No actions available</span>
+        )}
       </div>
     ),
     sortable: false,
-    minWidth: "180px",
+    minWidth: "96px",
   },
 ];
 
@@ -263,10 +251,10 @@ const Country = () => {
   const validate = (values) => {
     const errors = {};
 
-    if (values.countryName === "") {
+    if (!String(values.countryName || "").trim()) {
       errors.countryName = "Country Name is required!";
     }
-    if(values.countryCode === "") {
+    if (!String(values.countryCode || "").trim()) {
       errors.countryCode = "Country Code is required!";
     }
 
@@ -448,7 +436,7 @@ const Country = () => {
                 type="checkbox"
                 className="form-check-input"
                 name="isActive"
-                value={values.isActive}
+                checked={values.isActive}
                 onChange={handleCheck}
               />
               <Label className="form-check-label ms-1">Is Active</Label>

@@ -24,6 +24,7 @@ import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { Can } from "../../Components/Common/Can";
 import {
   archiveMember,
@@ -154,7 +155,11 @@ const Members = () => {
     {
       name: "Tier",
       cell: (r) => (
-        <Badge color={TIER_COLOUR[r.tierKey] || "light"} pill>
+        <Badge
+          color={TIER_COLOUR[r.tierKey] || "light"}
+          className={!r.tierKey || r.tierKey === "none" ? "tier-none" : undefined}
+          pill
+        >
           {(r.tierKey || "none").toUpperCase()}
         </Badge>
       ),
@@ -184,24 +189,19 @@ const Members = () => {
     {
       name: "Actions",
       cell: (r) => (
-        <div className="d-flex gap-1">
-          <Button size="sm" color="soft-primary" tag={Link} to={`/members/${r._id}`}>
-            Open
-          </Button>
+        <div className="grid-actions">
+          <GridActionButton label="Open" to={`/members/${r._id}`} />
           <Can anyOf={["member.edit"]}>
-            <Button
-              size="sm"
-              color="soft-danger"
+            <GridActionButton
+              label="Archive"
               disabled={busyId === r._id || r.status === "suspended"}
               onClick={() => onArchive(r)}
-            >
-              {busyId === r._id ? "…" : "Archive"}
-            </Button>
+            />
           </Can>
         </div>
       ),
       ignoreRowClick: true,
-      width: "170px",
+      width: "96px",
     },
   ];
 
@@ -226,12 +226,12 @@ const Members = () => {
           <Row>
             <Col>
               <Card>
-                <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center page-toolbar">
                   <h5 className="mb-0">Members ({rows.length})</h5>
-                  <div className="d-flex flex-wrap gap-2">
+                  <div className="d-flex flex-wrap gap-2 align-items-center page-toolbar">
                     <Input
                       type="select"
-                      style={{ maxWidth: 140 }}
+                      className="toolbar-field"
                       value={tier}
                       onChange={(e) => setTier(e.target.value)}
                     >
@@ -243,7 +243,7 @@ const Members = () => {
                     </Input>
                     <Input
                       type="select"
-                      style={{ maxWidth: 140 }}
+                      className="toolbar-field"
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
                     >
@@ -254,13 +254,13 @@ const Members = () => {
                       <option value="suspended">Suspended</option>
                     </Input>
                     <Input
-                      style={{ maxWidth: 220 }}
+                      className="toolbar-field"
                       placeholder="Search…"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                     <Can anyOf={["member.create"]}>
-                      <Button color="success" onClick={() => setModal(true)}>
+                      <Button color="success" size="sm" className="text-nowrap" onClick={() => setModal(true)}>
                         <i className="ri-user-add-line me-1" />
                         Add member
                       </Button>

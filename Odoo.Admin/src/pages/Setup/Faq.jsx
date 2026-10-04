@@ -15,6 +15,7 @@ import {
 } from "reactstrap";
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
@@ -299,28 +300,16 @@ const Faq = () => {
       {
         name: "Action",
         cell: (row) => (
-          <div className="d-flex align-items-center gap-1" style={{ height: "28px" }}>
+          <div className="grid-actions">
             {permissions.edit && (
-              <button
-                className="btn btn-sm btn-success edit-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
-                onClick={() => handleTog_edit(row)}
-              >
-                <i className="ri-pencil-line"></i> Edit
-              </button>
+              <GridActionButton label="Edit" onClick={() => handleTog_edit(row)} />
             )}
             {permissions.delete && (
-              <button
-                className="btn btn-sm btn-danger remove-item-btn d-flex align-items-center gap-1"
-                style={{ height: "28px" }}
-                onClick={() => tog_delete(row._id)}
-              >
-                <i className="ri-delete-bin-line"></i> Delete
-              </button>
+              <GridActionButton label="Delete" onClick={() => tog_delete(row._id)} />
             )}
           </div>
         ),
-        minWidth: "180px",
+        minWidth: "96px",
       },
     ],
     [permissions, pageNo, perPage]

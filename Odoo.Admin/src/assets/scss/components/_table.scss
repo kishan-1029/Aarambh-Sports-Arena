@@ -106,36 +106,68 @@ $value in $theme-colors {
     }
 }
 
-.rdt_Table {
-    &.eSTlnH {
-        background-color: var(--#{$variable-prefix}card-bg) !important;
-        color: var(--#{$variable-prefix}body-color);
-    }
-
-    .gZWIKX,
-    .jVeafb {
-        color: var(--#{$variable-prefix}body-color);
-        background-color: var(--#{$variable-prefix}card-bg);
-    }
-
-    .jVeafb:not(:last-of-type),
-    .gZWIKX {
-        border-bottom-color: var(--#{$variable-prefix}border-color);
-    }
+.rdt_Table,
+.rdt_TableHead,
+.rdt_TableHeadRow,
+.rdt_TableCol,
+.rdt_TableCol_Sortable,
+.rdt_TableBody,
+.rdt_TableRow,
+.rdt_TableCell,
+.rdt_TableHeader,
+.rdt_TableFooter,
+.rdt_ExpanderRow,
+.rdt_Pagination {
+    background-color: var(--#{$variable-prefix}card-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+    border-color: var(--#{$variable-prefix}border-color) !important;
 }
 
-.rdt_Pagination {
-    &.jxflYm {
-        background-color: var(--#{$variable-prefix}card-bg);
-        color: var(--#{$variable-prefix}body-color);
-        border-top-color: var(--#{$variable-prefix}border-color);
-    }
+.rdt_TableRow:hover,
+.rdt_TableRow:hover .rdt_TableCell {
+    background-color: var(--#{$variable-prefix}light) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+}
 
-    .bvxQGL {
-        fill: var(--#{$variable-prefix}dark);
-    }
+.rdt_Pagination select,
+.rdt_Pagination button {
+    background-color: var(--#{$variable-prefix}input-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
+    border-color: var(--#{$variable-prefix}border-color) !important;
+}
 
-    .bvxQGL:disabled {
-        fill: rgba(var(--#{$variable-prefix}dark-rgb), 0.25);
-    }
+/* Native page-size menu. A stretched select inside an overflow box opens as a huge list. */
+.rdt_Pagination select {
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    box-sizing: border-box !important;
+    width: 4.25rem !important;
+    min-width: 4.25rem !important;
+    max-width: 4.25rem !important;
+    height: 1.75rem !important;
+    max-height: 1.75rem !important;
+    flex: 0 0 auto !important;
+    padding: 0 0.35rem !important;
+    margin: 0 !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.2 !important;
+    border: 1px solid var(--#{$variable-prefix}border-color) !important;
+    border-radius: 6px !important;
+}
+
+.rdt_Pagination option {
+    font-size: 0.8125rem !important;
+    line-height: 1.3 !important;
+    padding: 0.15rem 0.4rem !important;
+}
+
+.rdt_Pagination svg {
+    fill: var(--#{$variable-prefix}body-color);
+}
+
+/* Library loading and "no records" panels have no stable class */
+.rdt_Table > div,
+div:has(> .rdt_Table) > div {
+    background-color: var(--#{$variable-prefix}card-bg) !important;
+    color: var(--#{$variable-prefix}body-color) !important;
 }

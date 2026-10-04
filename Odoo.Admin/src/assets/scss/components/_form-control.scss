@@ -35,10 +35,37 @@
         background-image: escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#{$gray-400}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/></svg>"));
         background-color: var(--#{$prefix}gray-200) !important;
         border-color: var(--#{$prefix}border-color) !important;
+        color: var(--#{$prefix}body-color) !important;
+    }
+
+    .form-select option {
+        color: #212529;
+        background-color: #fff;
     }
 
     .form-control {
-        background-color: var(--#{$prefix}gray-200) !important;
+        background-color: var(--#{$prefix}input-bg) !important;
+        color: var(--#{$prefix}body-color) !important;
         border-color: var(--#{$prefix}border-color) !important;
+    }
+
+    .form-floating > label {
+        color: var(--#{$prefix}body-color);
+    }
+
+    .form-floating > label::after {
+        background-color: var(--#{$prefix}input-bg) !important;
+    }
+
+    .form-control::placeholder,
+    textarea::placeholder {
+        color: var(--#{$prefix}gray-500);
+    }
+
+    /* Keep the floating label alone until the field is focused */
+    .form-floating > .form-control:not(:focus)::placeholder,
+    .form-floating > .form-control-plaintext::placeholder,
+    .form-floating > textarea:not(:focus)::placeholder {
+        color: transparent !important;
     }
   }
