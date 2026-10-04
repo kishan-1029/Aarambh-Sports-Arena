@@ -23,6 +23,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import {
     createMenu,
     deleteMenu,
@@ -296,7 +297,7 @@ const MenuMaster = () => {
             }
         } catch (err) {
             console.log(err);
-            toast.error("Failed to fetch menu details");
+            toast.error(apiErrorMessage(err, "Failed to fetch menu details"));
         } finally {
             setIsLoading(false);
         }
@@ -346,7 +347,7 @@ const MenuMaster = () => {
                 })
                 .catch((error) => {
                     console.log("Error creating menu master:", error);
-                    toast.error("Failed to add menu. Please try again.");
+                    toast.error(apiErrorMessage(error, "Failed to add menu. Please try again."));
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -370,7 +371,7 @@ const MenuMaster = () => {
                     setReferenceData(err.response.data);
                     setReferenceModal(true);
                 } else {
-                    toast.error(err.response?.data?.message || "Failed to remove menu. Please try again.");
+                    toast.error(apiErrorMessage(err, "Failed to remove menu. Please try again."));
                 }
             })
             .finally(() => {
@@ -416,7 +417,7 @@ const MenuMaster = () => {
                 })
                 .catch((err) => {
                     console.log("Error updating menu master:", err);
-                    toast.error("Failed to update menu. Please try again.");
+                    toast.error(apiErrorMessage(err, "Failed to update menu. Please try again."));
                 })
                 .finally(() => {
                     setIsLoading(false);

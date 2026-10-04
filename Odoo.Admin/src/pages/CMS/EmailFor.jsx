@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { createEmailFor, deleteEmailFor, getEmailForById, updateEmailFor, searchEmailFor } from "../../api/emails.api";
 import { MenuContext } from "../../context/MenuContext";
@@ -90,7 +91,7 @@ const EmailFor = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch email for details");
+        toast.error(apiErrorMessage(err, "Failed to fetch email for details"));
       });
   };
 
@@ -129,7 +130,7 @@ const EmailFor = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add email for");
+          toast.error(apiErrorMessage(error, "Failed to add email for"));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -154,7 +155,7 @@ const EmailFor = () => {
         }
     } catch (error) {
         console.log(error);
-        toast.error("An error occurred while deleting");
+        toast.error(apiErrorMessage(error, "An error occurred while deleting"));
     } finally {
         setIsDeleteLoading(false);
     }
@@ -186,7 +187,7 @@ const EmailFor = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update email for");
+          toast.error(apiErrorMessage(err, "Failed to update email for"));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

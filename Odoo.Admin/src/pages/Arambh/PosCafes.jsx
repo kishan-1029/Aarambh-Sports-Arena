@@ -20,6 +20,7 @@ import {
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
@@ -55,7 +56,7 @@ const PosCafes = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load cafés",
+        message: apiErrorMessage(err, "Failed to load cafés"),
       });
     } finally {
       setLoading(false);
@@ -103,7 +104,7 @@ const PosCafes = () => {
       setOpen(false);
       await load();
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Save failed");
+      toast.error(apiErrorMessage(err, "Save failed"));
     } finally {
       setSaving(false);
     }

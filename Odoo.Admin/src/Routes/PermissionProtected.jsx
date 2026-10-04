@@ -3,6 +3,10 @@ import PropTypes from "prop-types";
 import { Navigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { MenuContext } from "../context/MenuContext";
+import {
+    collectMenuUrls,
+    employeeRouteAllowed,
+} from "@shared/menuGrantPermissions.js";
 
 /**
  * PermissionProtected Component
@@ -14,66 +18,6 @@ import { MenuContext } from "../context/MenuContext";
  * Permission is resolved synchronously during render so route changes
  * do not flash a full-screen spinner (which looked like a page refresh).
  */
-
-const WHITELISTED_ROUTES = [
-    "/dashboard",
-    "/profile",
-    "/",
-    // Legacy Setup / Master / CMS (restored when MenuMaster DB is incomplete)
-    "/company-details",
-    "/department",
-    "/employee",
-    "/employee-roles",
-    "/faq-category",
-    "/faq",
-    "/role-master",
-    "/menu-group",
-    "/menu-master",
-    "/country",
-    "/state",
-    "/city",
-    "/currency-master",
-    "/login-attempt-logs",
-    "/email-setup",
-    "/email-for",
-    "/email-to",
-    "/email-template",
-    "/blog-category",
-    "/blog-tag",
-    "/blog-master",
-    "/guides-gallery",
-    "/manage-guides",
-    // Arambh modules
-    "/front-desk",
-    "/courts",
-    "/courts/bookings",
-    "/members",
-    "/membership-plans",
-    "/memberships",
-    "/pos",
-    "/pos/dashboard",
-    "/pos/orders",
-    "/pos/cafes",
-    "/pos/items",
-    "/pos/menu",
-    "/shop/inventory",
-    "/crm/pipeline",
-    "/settings/mcp",
-    // E-commerce (Pro Shop)
-    "/ecommerce",
-    "/ecommerce/products",
-    "/ecommerce/categories",
-    "/ecommerce/orders",
-    "/ecommerce/inventory",
-    "/customers",
-    "/finance/invoices",
-    "/settings/payments",
-    "/settings/club",
-    "/settings/taxes",
-    "/staff",
-    "/staff/directory",
-    "/settings",
-];
 
 const normalizeUrl = (url) => url.split("?")[0].replace(/\/+$/, "") || "/";
 
@@ -93,29 +37,6 @@ const PermissionProtected = ({ children }) => {
     const access = useMemo(() => {
         try {
             const normalizedPath = normalizeUrl(location.pathname);
-            const isWhitelisted = WHITELISTED_ROUTES.some((route) => {
-                const normalizedRoute = normalizeUrl(route);
-                return (
-                    normalizedPath === normalizedRoute ||
-                    normalizedPath === "/" ||
-                    // Invoice detail: /finance/invoices/:id
-                    (normalizedRoute === "/finance/invoices" &&
-                        normalizedPath.startsWith("/finance/invoices/")) ||
-                    // Member 360: /members/:id
-                    (normalizedRoute === "/members" &&
-                        normalizedPath.startsWith("/members/")) ||
-                    // Product editor: /ecommerce/products/new|:id
-                    (normalizedRoute === "/ecommerce/products" &&
-                        normalizedPath.startsWith("/ecommerce/products/")) ||
-                    // Order detail: /ecommerce/orders/:id
-                    (normalizedRoute === "/ecommerce/orders" &&
-                        normalizedPath.startsWith("/ecommerce/orders/"))
-                );
-            });
-
-            if (isWhitelisted) {
-                return { status: "allowed" };
-            }
 
             if (!menuContext) {
                 return { status: "error", message: "MenuContext not available" };
@@ -125,7 +46,14 @@ const PermissionProtected = ({ children }) => {
                 return { status: "denied" };
             }
 
-            if (isAdmin) {
+            // Company admins keep the full menu. Employees only open screens
+            // that were checked for their role, plus the landing pages.
+            if (role === "ADMIN" || isAdmin) {
+                return { status: "allowed" };
+            }
+
+            const grantedUrls = collectMenuUrls(menuData);
+            if (employeeRouteAllowed(normalizedPath, grantedUrls)) {
                 return { status: "allowed" };
             }
 
@@ -158,7 +86,14 @@ const PermissionProtected = ({ children }) => {
             }
 
             const permissions = getPermissionsForMenu(menuId);
-            const allowed = permissions?.read === true;
+            const allowed = !!(
+                permissions?.read ||
+                permissions?.write ||
+                permissions?.edit ||
+                permissions?.delete ||
+                permissions?.print ||
+                permissions?.mail
+            );
 
             return { status: allowed ? "allowed" : "denied" };
         } catch (err) {

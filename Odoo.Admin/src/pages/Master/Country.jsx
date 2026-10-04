@@ -29,6 +29,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
@@ -142,7 +143,7 @@ const Country = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch country details");
+        toast.error(apiErrorMessage(err, "Failed to fetch country details"));
       }).finally(() => {
         setIsEditFetching(false);
       });
@@ -183,7 +184,7 @@ const Country = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add country. Please try again.");
+          toast.error(apiErrorMessage(error, "Failed to add country. Please try again."));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -208,7 +209,7 @@ const Country = () => {
                 setReferenceData(err.response.data);
                 setReferenceModal(true);
               } else {
-                toast.error("Failed to delete country. Please try again.");
+                toast.error(apiErrorMessage(err, "Failed to delete country. Please try again."));
               }
             }).finally(()=>{
               setIsDeleteLoading(false);
@@ -241,7 +242,7 @@ const Country = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update country. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to update country. Please try again."));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

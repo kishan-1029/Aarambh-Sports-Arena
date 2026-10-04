@@ -85,6 +85,8 @@ export const corsConfig = {
         'X-Client-IP',
         'X-Client-Latitude',
         'X-Client-Longitude',
+        'Cache-Control',
+        'Pragma',
     ],
 
     // Credentials

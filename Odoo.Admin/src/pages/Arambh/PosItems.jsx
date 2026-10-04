@@ -21,6 +21,7 @@ import {
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
@@ -78,7 +79,7 @@ const PosItems = () => {
       setCategories(Array.isArray(catRes?.data?.data) ? catRes.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load items",
+        message: apiErrorMessage(err, "Failed to load items"),
       });
     } finally {
       setLoading(false);
@@ -128,7 +129,7 @@ const PosItems = () => {
       setForm((f) => ({ ...f, imageUrl: url }));
       toast.success("Image uploaded");
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Upload failed");
+      toast.error(apiErrorMessage(err, "Upload failed"));
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -159,7 +160,7 @@ const PosItems = () => {
       setOpen(false);
       await load();
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Save failed");
+      toast.error(apiErrorMessage(err, "Save failed"));
     } finally {
       setSaving(false);
     }

@@ -27,6 +27,7 @@ import {
   updateProduct,
 } from "../../../api/arambhEcommerce.api";
 import { STOCK_STATUS_LABEL, STOCK_STATUS_TONE } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 function imageSrc(url) {
   if (!url) return "";
@@ -61,7 +62,7 @@ const Products = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load products",
+        message: apiErrorMessage(err, "Failed to load products"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);
@@ -86,7 +87,7 @@ const Products = () => {
       await updateProduct(row._id, { active: row.active === false });
       await load();
     } catch (err) {
-      window.alert(err?.response?.data?.message || err?.message || "Could not update the product");
+      window.alert(apiErrorMessage(err, "Could not update the product"));
     } finally {
       setBusyId(null);
     }
@@ -105,7 +106,7 @@ const Products = () => {
       await archiveProduct(row._id, true);
       await load();
     } catch (err) {
-      window.alert(err?.response?.data?.message || err?.message || "Could not archive the product");
+      window.alert(apiErrorMessage(err, "Could not archive the product"));
     } finally {
       setBusyId(null);
     }

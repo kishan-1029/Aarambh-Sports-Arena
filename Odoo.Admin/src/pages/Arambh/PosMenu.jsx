@@ -15,6 +15,7 @@ import {
   Table,
 } from "reactstrap";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
@@ -67,7 +68,7 @@ const PosMenu = () => {
       setItems(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load menu",
+        message: apiErrorMessage(err, "Failed to load menu"),
       });
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ const PosMenu = () => {
 
   useEffect(() => {
     loadCafes().catch((err) =>
-      setError({ message: err?.response?.data?.message || err?.message }),
+      setError({ message: apiErrorMessage(err, "Failed to load cafés") }),
     );
   }, [loadCafes]);
 
@@ -108,7 +109,7 @@ const PosMenu = () => {
         }),
       );
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Update failed");
+      toast.error(apiErrorMessage(err, "Update failed"));
       await loadMenu();
     } finally {
       setBusyKey("");

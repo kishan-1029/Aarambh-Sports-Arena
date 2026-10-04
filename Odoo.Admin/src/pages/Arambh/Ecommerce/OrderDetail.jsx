@@ -34,6 +34,7 @@ import {
   PAYMENT_STATUS_LABEL,
   PAYMENT_STATUS_TONE,
 } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 function imageSrc(url) {
   if (!url) return "";
@@ -76,7 +77,7 @@ const OrderDetail = () => {
       setNote(data?.adminNote || "");
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load the order",
+        message: apiErrorMessage(err, "Failed to load the order"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -96,7 +97,7 @@ const OrderDetail = () => {
       await fn();
       await load();
     } catch (err) {
-      setActionError(err?.response?.data?.message || err?.message || "That action did not go through");
+      setActionError(apiErrorMessage(err, "That action did not go through"));
     } finally {
       setBusy(false);
     }

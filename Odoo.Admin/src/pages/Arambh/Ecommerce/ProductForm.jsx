@@ -28,6 +28,7 @@ import {
   uploadProductImage,
 } from "../../../api/arambhEcommerce.api";
 import { paiseToRupees, rupeesToPaise } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 function imageSrc(url) {
   if (!url) return "";
@@ -136,7 +137,7 @@ const ProductForm = () => {
       );
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load the product",
+        message: apiErrorMessage(err, "Failed to load the product"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -183,7 +184,7 @@ const ProductForm = () => {
         ]);
       }
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Image upload failed");
+      setFormError(apiErrorMessage(err, "Image upload failed"));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -287,7 +288,7 @@ const ProductForm = () => {
         await load();
       }
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Could not save the product");
+      setFormError(apiErrorMessage(err, "Could not save the product"));
     } finally {
       setSaving(false);
     }

@@ -23,6 +23,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import {
@@ -100,7 +101,7 @@ const BlogCategory = () => {
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to fetch category details");
+        toast.error(apiErrorMessage(err, "Failed to fetch category details"));
       });
   };
 
@@ -137,12 +138,12 @@ const BlogCategory = () => {
             setValues(initialState);
             fetchCategories();
           } else {
-            toast.error(res.data.message || "Failed to add category");
+            toast.error(apiErrorMessage(res, "Failed to add category"));
           }
         })
         .catch((error) => {
           console.error(error);
-          toast.error(error.response?.data?.message || "Failed to add blog category");
+          toast.error(apiErrorMessage(error, "Failed to add blog category"));
         })
         .finally(() => {
           setIsSubmitLoading(false);
@@ -165,12 +166,12 @@ const BlogCategory = () => {
             setmodal_edit(false);
             fetchCategories();
           } else {
-            toast.error(res.data.message || "Failed to update category");
+            toast.error(apiErrorMessage(res, "Failed to update category"));
           }
         })
         .catch((err) => {
           console.error(err);
-          toast.error(err.response?.data?.message || "Failed to update blog category");
+          toast.error(apiErrorMessage(err, "Failed to update blog category"));
         })
         .finally(() => {
           setIsUpdateLoading(false);
@@ -188,7 +189,7 @@ const BlogCategory = () => {
         fetchCategories();
         setmodal_delete(false);
       } else {
-        toast.error(res.data.message || "Failed to delete category");
+        toast.error(apiErrorMessage(res, "Failed to delete category"));
       }
     } catch (error) {
       console.error(error);
@@ -197,7 +198,7 @@ const BlogCategory = () => {
         setReferenceData(error.response.data);
         setReferenceModal(true);
       } else {
-        toast.error(error.response?.data?.message || "An error occurred while deleting");
+        toast.error(apiErrorMessage(error, "An error occurred while deleting"));
       }
     } finally {
       setIsDeleteLoading(false);

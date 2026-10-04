@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Button, Col, Input, Row, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { Can } from "../../Components/Common/Can";
 import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
@@ -73,7 +74,7 @@ const PosTerminal = () => {
       }
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load cafés",
+        message: apiErrorMessage(err, "Failed to load cafés"),
       });
     } finally {
       setLoadingCafes(false);
@@ -117,7 +118,7 @@ const PosTerminal = () => {
       await loadToday(cafeId);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load menu",
+        message: apiErrorMessage(err, "Failed to load menu"),
       });
     } finally {
       setLoadingMenu(false);
@@ -224,7 +225,7 @@ const PosTerminal = () => {
       toast.success(`${order?.number || "Paid"} · ${formatPaise(order?.totalPaise)}`);
       await loadToday(cafeId);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Payment failed");
+      toast.error(apiErrorMessage(err, "Payment failed"));
     } finally {
       setPaying(false);
     }

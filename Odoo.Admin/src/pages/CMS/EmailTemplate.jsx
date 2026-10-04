@@ -20,6 +20,7 @@ import FormsFooter from "../../Components/Common/FormAddFooter";
 import { AuthContext } from "../../context/AuthContext";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { getAllEmailSetups, getAllEmailFor, getAllEmailTo, searchEmailTemplates, createEmailTemplate, deleteEmailTemplate, getEmailTemplateById, updateEmailTemplate } from "../../api/emails.api";
 import JoditEditor from "jodit-react";
 import { MenuContext } from "../../context/MenuContext";
@@ -292,7 +293,7 @@ const EmailTemplate = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to add email template");
+          toast.error(apiErrorMessage(err, "Failed to add email template"));
         })
         .finally(() => setIsLoading(false));
     }
@@ -327,7 +328,7 @@ const EmailTemplate = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Cannot update Email Template");
+          toast.error(apiErrorMessage(err, "Cannot update Email Template"));
         })
         .finally(() => setIsLoading(false));
     }
@@ -356,7 +357,7 @@ const EmailTemplate = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Cannot delete Employee");
+        toast.error(apiErrorMessage(err, "Cannot delete Employee"));
       })
       .finally(() => setIsDeleteLoading(false));
   };
@@ -404,7 +405,7 @@ const EmailTemplate = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch email template details");
+        toast.error(apiErrorMessage(err, "Failed to fetch email template details"));
       });
   };
 

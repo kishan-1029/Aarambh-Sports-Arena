@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import {
@@ -121,12 +122,12 @@ const BlogTag = () => {
             setValues(initialState);
             fetchTags();
           } else {
-            toast.error(res.data.message || "Failed to add tag");
+            toast.error(apiErrorMessage(res, "Failed to add tag"));
           }
         })
         .catch((error) => {
           console.error(error);
-          toast.error(error.response?.data?.message || "Failed to add blog tag");
+          toast.error(apiErrorMessage(error, "Failed to add blog tag"));
         })
         .finally(() => {
           setIsSubmitLoading(false);
@@ -149,12 +150,12 @@ const BlogTag = () => {
             setmodal_edit(false);
             fetchTags();
           } else {
-            toast.error(res.data.message || "Failed to update tag");
+            toast.error(apiErrorMessage(res, "Failed to update tag"));
           }
         })
         .catch((err) => {
           console.error(err);
-          toast.error(err.response?.data?.message || "Failed to update blog tag");
+          toast.error(apiErrorMessage(err, "Failed to update blog tag"));
         })
         .finally(() => {
           setIsUpdateLoading(false);
@@ -172,7 +173,7 @@ const BlogTag = () => {
         fetchTags();
         setmodal_delete(false);
       } else {
-        toast.error(res.data.message || "Failed to delete tag");
+        toast.error(apiErrorMessage(res, "Failed to delete tag"));
       }
     } catch (error) {
       console.error(error);
@@ -181,7 +182,7 @@ const BlogTag = () => {
         setReferenceData(error.response.data);
         setReferenceModal(true);
       } else {
-        toast.error(error.response?.data?.message || "An error occurred while deleting tag");
+        toast.error(apiErrorMessage(error, "An error occurred while deleting tag"));
       }
     } finally {
       setIsDeleteLoading(false);

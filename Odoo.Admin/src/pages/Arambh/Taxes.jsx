@@ -25,6 +25,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import GridActionButton from "../../Components/Common/GridActionButton";
 import { Can } from "../../Components/Common/Can";
 import { createTax, listTaxes, updateTax } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const APPLIES = ["court", "membership", "shop", "bar"];
 
@@ -72,7 +73,7 @@ const Taxes = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load taxes",
+        message: apiErrorMessage(err, "Failed to load taxes"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);
@@ -149,7 +150,7 @@ const Taxes = () => {
       setModal(false);
       await load();
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Could not save tax");
+      setFormError(apiErrorMessage(err, "Could not save tax"));
     } finally {
       setSaving(false);
     }

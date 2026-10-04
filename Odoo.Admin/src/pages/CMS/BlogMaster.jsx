@@ -28,6 +28,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import config from "../../config";
@@ -285,7 +286,7 @@ const BlogMaster = () => {
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to fetch blog post details");
+        toast.error(apiErrorMessage(err, "Failed to fetch blog post details"));
       });
   };
 
@@ -320,11 +321,11 @@ const BlogMaster = () => {
         fetchBlogs();
         loadMasterData();
       } else {
-        toast.error(res.data.message || "Failed to publish blog");
+        toast.error(apiErrorMessage(res, "Failed to publish blog"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to publish blog");
+      toast.error(apiErrorMessage(err, "Failed to publish blog"));
     }
   };
 
@@ -337,7 +338,7 @@ const BlogMaster = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update status");
+      toast.error(apiErrorMessage(err, "Failed to update status"));
     }
   };
 
@@ -425,12 +426,12 @@ const BlogMaster = () => {
             fetchBlogs();
             loadMasterData();
           } else {
-            toast.error(res.data.message || "Operation failed");
+            toast.error(apiErrorMessage(res, "Operation failed"));
           }
         })
         .catch((err) => {
           console.error(err);
-          toast.error(err.response?.data?.message || "Failed to save blog post");
+          toast.error(apiErrorMessage(err, "Failed to save blog post"));
         })
         .finally(() => {
           setIsSubmitLoading(false);
@@ -449,11 +450,11 @@ const BlogMaster = () => {
         fetchBlogs();
         loadMasterData();
       } else {
-        toast.error(res.data.message || "Failed to delete blog");
+        toast.error(apiErrorMessage(res, "Failed to delete blog"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete blog");
+      toast.error(apiErrorMessage(err, "Failed to delete blog"));
     } finally {
       setIsDeleteLoading(false);
     }

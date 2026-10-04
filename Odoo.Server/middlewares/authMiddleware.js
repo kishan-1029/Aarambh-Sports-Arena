@@ -15,7 +15,9 @@ const refreshEmployeePermissions = async (sessionUser) => {
     const employeeRole = await EmployeeRoles.findOne({
       roleId: sessionUser.roleId,
       isActive: true,
-    }).select("roles updatedAt");
+    })
+      .sort({ updatedAt: -1 })
+      .select("roles updatedAt");
 
     if (!employeeRole) return null;
 
@@ -91,12 +93,19 @@ export const authMiddleware = (roles) => {
       req.session.user.permissions = refreshData.permissions;
       req.session.user.permissionsUpdatedAt = refreshData.updatedAt;
     }
-    // ── Ensure Arambh string permissions on session ────────────────
-    if (
+    // Rebuild string permissions when menu checkboxes change, and once
+    // for sessions that were created before menu grants were included.
+    const stamp = req.session.user.permissionsUpdatedAt
+      ? new Date(req.session.user.permissionsUpdatedAt).toISOString()
+      : "none";
+    const missingStrings =
       !Array.isArray(req.session.user.stringPermissions) ||
       (req.session.user.role === "ADMIN" &&
-        req.session.user.stringPermissions.length === 0)
-    ) {
+        req.session.user.stringPermissions.length === 0);
+    const menuGrantsStale =
+      req.session.user.role !== "ADMIN" &&
+      req.session.user.menuGrantSyncAt !== stamp;
+    if (missingStrings || menuGrantsStale) {
       await attachStringPermissions(req.session.user);
     }
     // ───────────────────────────────────────────────────────────────

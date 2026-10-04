@@ -12,6 +12,7 @@ import {
     Form,
 } from "reactstrap";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Common/withRouter";
 import { AuthContext } from "../../context/AuthContext";
@@ -448,25 +449,22 @@ const handleLoginError = (err, updateFromResponse) => {
         const { status, data } = err.response;
         if (status === 423) {
             updateFromResponse(data);
-            toast.error(
-                data.message ||
-                "Your account is locked due to multiple failed login attempts."
-            );
+            toast.error(apiErrorMessage(data, "Your account is locked due to multiple failed login attempts."));
         } else if (status === 401) {
             updateFromResponse(data);
             const remaining = data.attemptsRemaining;
             if (remaining === undefined) {
-                toast.error(data.message || "Invalid credentials");
+                toast.error(apiErrorMessage(data, "Invalid credentials"));
             } else {
                 toast.error(
                     `Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`
                 );
             }
         } else {
-            toast.error(data.message || "Authentication failed!");
+            toast.error(apiErrorMessage(data, "Authentication failed!"));
         }
     } else {
-        toast.error(err.message || "Authentication failed!");
+        toast.error(apiErrorMessage(err, "Authentication failed!"));
     }
 };
 
@@ -511,7 +509,7 @@ const performSendOTP = (
                 setOtpResendDisabled(true);
                 setOtpCountdown(60);
             } else {
-                toast.error(res.data.message || "Failed to send OTP");
+                toast.error(apiErrorMessage(res, "Failed to send OTP"));
                 if (res.data.remainingTime) {
                     setOtpResendDisabled(true);
                     setOtpCountdown(res.data.remainingTime);
@@ -524,17 +522,11 @@ const performSendOTP = (
                 err?.response?.status === 429 &&
                 err?.response?.data?.remainingTime
             ) {
-                toast.error(
-                    err.message || "Please wait before requesting a new OTP"
-                );
+                toast.error(apiErrorMessage(err, "Please wait before requesting a new OTP"));
                 setOtpResendDisabled(true);
                 setOtpCountdown(err?.response?.data?.remainingTime);
             } else {
-                toast.error(
-                    err?.response?.data?.message ||
-                    err.message ||
-                    "Failed to send OTP"
-                );
+                toast.error(apiErrorMessage(err, "Failed to send OTP"));
             }
         });
 };
@@ -559,7 +551,7 @@ const performResendOTP = (
                 setOtpResendDisabled(true);
                 setOtpCountdown(60);
             } else {
-                toast.error(res.data.message || "Failed to resend OTP");
+                toast.error(apiErrorMessage(res, "Failed to resend OTP"));
                 if (res.data.remainingTime) {
                     setOtpResendDisabled(true);
                     setOtpCountdown(res.data.remainingTime);
@@ -572,13 +564,11 @@ const performResendOTP = (
                 err?.response?.status === 429 &&
                 err?.response?.data?.remainingTime
             ) {
-                toast.error(
-                    err.message || "Please wait before requesting a new OTP"
-                );
+                toast.error(apiErrorMessage(err, "Please wait before requesting a new OTP"));
                 setOtpResendDisabled(true);
                 setOtpCountdown(err?.response?.data?.remainingTime);
             } else {
-                toast.error(err.message || "Failed to resend OTP");
+                toast.error(apiErrorMessage(err, "Failed to resend OTP"));
             }
         });
 };
@@ -605,12 +595,12 @@ const performVerifyOTP = (
                 toast.success("OTP verified successfully");
                 setForgotPasswordStep(3);
             } else {
-                toast.error(res.data.message || "Invalid OTP");
+                toast.error(apiErrorMessage(res, "Invalid OTP"));
             }
         })
         .catch((err) => {
             setIsVerifyOtpLoading(false);
-            toast.error(err.message || "Failed to verify OTP");
+            toast.error(apiErrorMessage(err, "Failed to verify OTP"));
         });
 };
 
@@ -654,16 +644,16 @@ const performResetPassword = ({
                 setNewPassword("");
                 setConfirmPassword("");
             } else {
-                toast.error(res.message || "Failed to reset password");
+                toast.error(apiErrorMessage(res, "Failed to reset password"));
             }
         })
         .catch((err) => {
             setIsResetPasswordLoading(false);
-            toast.error(err.message || "Failed to reset password");
+            toast.error(apiErrorMessage(err, "Failed to reset password"));
         });
 };
 
-const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey) => {
+const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey, setMenuPermissions, setSessionRoleId) => {
     const status = res.status || res.data?.status;
 
     if (status === 423 || status === 401) {
@@ -688,11 +678,17 @@ const handleLoginResponse = (res, updateFromResponse, setAdminData, setRole, fet
         if (setArambhRoleKey) {
             setArambhRoleKey(res.data.arambhRoleKey || null);
         }
+        if (setMenuPermissions) {
+            setMenuPermissions(Array.isArray(res.data.menuPermissions) ? res.data.menuPermissions : []);
+        }
+        if (setSessionRoleId && res.data.roleId) {
+            setSessionRoleId(String(res.data.roleId));
+        }
         setAdminData({ ...res.data.data });
-        fetchMenus();
+        fetchMenus(true);
         navigate("/dashboard", { replace: true });
     } else {
-        toast.error(res.data.message || "Authentication failed!");
+        toast.error(apiErrorMessage(res, "Authentication failed!"));
     }
 };
 
@@ -709,6 +705,8 @@ const executeLogin = async ({
     fetchLoginStatus,
     setStringPermissions,
     setArambhRoleKey,
+    setMenuPermissions,
+    setSessionRoleId,
 }) => {
     setIsLoginLoading(true);
     try {
@@ -727,7 +725,7 @@ const executeLogin = async ({
             clientLongitude: userLocation.longitude,
         }, securityHeaders);
 
-        handleLoginResponse(res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey);
+        handleLoginResponse(res, updateFromResponse, setAdminData, setRole, fetchMenus, navigate, setStringPermissions, setArambhRoleKey, setMenuPermissions, setSessionRoleId);
     } catch (error) {
         handleLoginError(error, updateFromResponse);
     } finally {
@@ -755,6 +753,8 @@ const performLogin = async (e, {
     fetchLoginStatus,
     setStringPermissions,
     setArambhRoleKey,
+    setMenuPermissions,
+    setSessionRoleId,
 }) => {
     if (e) {
         e.preventDefault();
@@ -799,12 +799,14 @@ Do you want to continue?`;
         fetchLoginStatus,
         setStringPermissions,
         setArambhRoleKey,
+        setMenuPermissions,
+        setSessionRoleId,
     });
 };
 
 const Login = () => {
     const { fetchMenus } = useContext(MenuContext);
-    const { setAdminData, setRole, setStringPermissions, setArambhRoleKey } = useContext(AuthContext);
+    const { setAdminData, setRole, setStringPermissions, setArambhRoleKey, setMenuPermissions, setSessionRoleId } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [publicCompany, setPublicCompany] = useState(null);
@@ -934,6 +936,8 @@ const Login = () => {
             fetchLoginStatus,
             setStringPermissions,
             setArambhRoleKey,
+            setMenuPermissions,
+            setSessionRoleId,
         });
     };
 

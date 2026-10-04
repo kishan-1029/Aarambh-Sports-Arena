@@ -4,6 +4,7 @@ import { Offcanvas, OffcanvasHeader, OffcanvasBody } from "reactstrap";
 import { AuthContext } from "../../context/AuthContext";
 import { updateCompanySettings } from "../../api/companies.api";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const ThemeCustomizer = ({ show, onClose, onThemeChange }) => {
     const { adminData, setAdminData } = useContext(AuthContext);
@@ -85,7 +86,7 @@ const ThemeCustomizer = ({ show, onClose, onThemeChange }) => {
             }
         } catch (error) {
             console.error("Failed to update theme settings:", error);
-            toast.error(error.response?.data?.message || "Failed to save theme settings.");
+            toast.error(apiErrorMessage(error, "Failed to save theme settings."));
         } finally {
             setIsSaving(false);
         }

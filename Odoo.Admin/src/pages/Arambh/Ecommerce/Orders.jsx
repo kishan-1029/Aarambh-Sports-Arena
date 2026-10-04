@@ -27,6 +27,7 @@ import {
   PAYMENT_STATUS_LABEL,
   PAYMENT_STATUS_TONE,
 } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 const Orders = () => {
   document.title = "Shop orders | Arambh Sports Arena";
@@ -56,7 +57,7 @@ const Orders = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load orders",
+        message: apiErrorMessage(err, "Failed to load orders"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);

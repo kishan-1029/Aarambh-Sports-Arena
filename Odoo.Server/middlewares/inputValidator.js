@@ -86,11 +86,16 @@ export const handleValidationErrors = (req, res, next) => {
         value: error.value === undefined ? undefined : '[REDACTED]', // Don't expose sensitive values
     }));
 
+    const detailText = formattedErrors
+        .map((item) => (item.field ? `${item.field}: ${item.message}` : item.message))
+        .filter(Boolean)
+        .join('. ');
+
     return res.status(400).json({
         isOk: false,
         status: 400,
         error: 'Validation Error',
-        message: 'Invalid input data',
+        message: detailText || 'Invalid input data',
         details: formattedErrors,
     });
 };

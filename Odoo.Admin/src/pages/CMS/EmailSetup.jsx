@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { createEmailSetup, deleteEmailSetup, getEmailSetupById, updateEmailSetup, searchEmailSetups } from "../../api/emails.api";
 import { MenuContext } from "../../context/MenuContext";
@@ -99,7 +100,7 @@ const EmailSetup = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch email setup details");
+        toast.error(apiErrorMessage(err, "Failed to fetch email setup details"));
       });
   };
 
@@ -138,7 +139,7 @@ const EmailSetup = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add email setup");
+          toast.error(apiErrorMessage(error, "Failed to add email setup"));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -163,7 +164,7 @@ const EmailSetup = () => {
         }
     } catch (error) {
         console.log(error);
-        toast.error("An error occurred while deleting");
+        toast.error(apiErrorMessage(error, "An error occurred while deleting"));
     } finally {
         setIsDeleteLoading(false);
     }
@@ -195,7 +196,7 @@ const EmailSetup = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update email setup");
+          toast.error(apiErrorMessage(err, "Failed to update email setup"));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

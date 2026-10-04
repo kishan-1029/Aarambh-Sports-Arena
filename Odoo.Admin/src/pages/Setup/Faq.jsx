@@ -18,6 +18,7 @@ import BreadCrumb from "../../Components/Common/BreadCrumb";
 import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import {
@@ -161,12 +162,12 @@ const Faq = () => {
             setValues(initialState);
             fetchFaqs();
           } else {
-            toast.error(res.data.message || "Failed to add FAQ");
+            toast.error(apiErrorMessage(res, "Failed to add FAQ"));
           }
         })
         .catch((error) => {
           console.error(error);
-          toast.error(error.response?.data?.message || "Failed to add FAQ");
+          toast.error(apiErrorMessage(error, "Failed to add FAQ"));
         })
         .finally(() => {
           setIsSubmitLoading(false);
@@ -189,12 +190,12 @@ const Faq = () => {
             setUpdateForm(false);
             fetchFaqs();
           } else {
-            toast.error(res.data.message || "Failed to update FAQ");
+            toast.error(apiErrorMessage(res, "Failed to update FAQ"));
           }
         })
         .catch((err) => {
           console.error(err);
-          toast.error(err.response?.data?.message || "Failed to update FAQ");
+          toast.error(apiErrorMessage(err, "Failed to update FAQ"));
         })
         .finally(() => {
           setIsUpdateLoading(false);
@@ -212,11 +213,11 @@ const Faq = () => {
         fetchFaqs();
         setmodal_delete(false);
       } else {
-        toast.error(res.data.message || "Failed to delete FAQ");
+        toast.error(apiErrorMessage(res, "Failed to delete FAQ"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while deleting");
+      toast.error(apiErrorMessage(error, "An error occurred while deleting"));
     } finally {
       setIsDeleteLoading(false);
     }

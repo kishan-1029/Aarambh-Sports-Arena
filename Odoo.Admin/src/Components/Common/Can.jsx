@@ -9,13 +9,15 @@ import { usePermission } from '../../hooks/usePermission';
  * <Can anyOf={['booking.view', 'booking.create']}>...</Can>
  */
 const Can = ({ perm, anyOf, allOf, fallback = null, children }) => {
-  const { can, canAny, canAll } = usePermission();
+  const { can, canAny, canAll, grantsLoading } = usePermission();
 
   let allowed = true;
   if (perm) allowed = can(perm);
   else if (anyOf?.length) allowed = canAny(...anyOf);
   else if (allOf?.length) allowed = canAll(...allOf);
 
+  // Menus are still loading the assigned modules. Don't flash "No access".
+  if (!allowed && grantsLoading) return null;
   if (!allowed) return fallback;
 
   return <>{children}</>;

@@ -104,6 +104,12 @@ function logError(error) {
 }
 
 const app = express();
+// Authenticated JSON must not answer 304. A reload then gets an empty body and the admin app breaks.
+app.set("etag", false);
+app.use("/api", (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 const httpServer = http.createServer(app);
 let databasestatus = "In-Progress";
 

@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { createMenuGroup, deleteMenuGroup, getMenuGroupById, updateMenuGroup, searchMenuGroups } from "../../api/menus.api";
 import { MenuContext } from "../../context/MenuContext";
 import IconPicker from "../../Components/Common/IconPicker";
@@ -147,7 +148,7 @@ const MenuGroup = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch menu group details");
+        toast.error(apiErrorMessage(err, "Failed to fetch menu group details"));
       }).finally(() => {
         setIsLoading(false);
       });
@@ -191,7 +192,7 @@ const MenuGroup = () => {
         })
         .catch((error) => {
           console.log("Error creating menu group:", error);
-          toast.error("Failed to add menu group. Please try again.");
+          toast.error(apiErrorMessage(error, "Failed to add menu group. Please try again."));
         }).finally(() => {
           setIsLoading(false);
         });
@@ -214,7 +215,7 @@ const MenuGroup = () => {
           setReferenceData(err.response.data);
           setReferenceModal(true);
         } else {
-          toast.error(err.response?.data?.message || "Failed to remove menu group. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to remove menu group. Please try again."));
         }
       }).finally(() => {
         setIsDeleteLoading(false);
@@ -248,7 +249,7 @@ const MenuGroup = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update menu group. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to update menu group. Please try again."));
         }).finally(() => {
           setIsLoading(false);
         });

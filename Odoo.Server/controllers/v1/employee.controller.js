@@ -1,11 +1,40 @@
 import EmployeeModels from "../../models/Employee.js";
 import CompanyMaster from "../../models/CompanyMaster.js";
+import EmployeeRoles from "../../models/EmployeeRoles.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import authService from "../../services/authService.js";
 import RoleMaster from "../../models/RoleMaster.js";
 import { attachStringPermissions } from "../../src/modules/auth/sessionPermissions.js";
 import { audit } from "../../src/modules/audit/audit.service.js";
+
+const menuGrantsFromSession = async (sessionUser) => {
+  if (Array.isArray(sessionUser?.permissions) && sessionUser.permissions.length) {
+    return sessionUser.permissions;
+  }
+  if (!sessionUser?.roleId) return [];
+  const doc = await EmployeeRoles.findOne({
+    roleId: sessionUser.roleId,
+    isActive: true,
+  })
+    .sort({ updatedAt: -1 })
+    .select("roles updatedAt")
+    .lean();
+  if (!doc) return [];
+  const permissions = (doc.roles || []).map((r) => ({
+    menuId: r.menuId?.toString() || null,
+    menuGroupId: r.menuGroupId?.toString() || null,
+    read: !!r.read,
+    write: !!r.write,
+    delete: !!r.delete,
+    edit: !!r.edit,
+    print: !!r.print,
+    mail: !!r.mail,
+  }));
+  sessionUser.permissions = permissions;
+  sessionUser.permissionsUpdatedAt = doc.updatedAt;
+  return permissions;
+};
 
 // Helper: Escape regex special characters to prevent NoSQL injection
 const escapeRegex = (str = "") =>
@@ -525,7 +554,7 @@ export const loginEmployee = async (req, res) => {
     try {
       await audit.record({
         actor: {
-          type: "staff",
+          type: "user",
           id: employee._id.toString(),
           name: employee.employeeName,
         },
@@ -600,14 +629,24 @@ export const getCurrentUser = async (req, res) => {
       });
     }
 
+    const sessionUser = req.session?.user || {};
+    const roleId =
+      sessionUser.roleId ||
+      user.roleId?._id?.toString() ||
+      user.roleId?.toString() ||
+      null;
+    const permissions = await menuGrantsFromSession(sessionUser);
+
     const dataToSend = {
       _id: user._id,
-      employeeName: user.employeeName,
-      emailOffice: user.emailOffice,
+      employeeName: user.employeeName || user.companyName || sessionUser.name || "",
+      companyName: user.companyName || "",
+      emailOffice: user.emailOffice || user.email || sessionUser.email || "",
       role: role,
       isActive: user.isActive,
       departmentId: user.departmentId,
-      roleId: user.roleId,
+      roleId,
+      permissions,
     };
 
     const company = await CompanyMaster.findOne({ isSuperAdmin: false });
@@ -637,7 +676,7 @@ export const logoutUser = async (req, res) => {
       if (sessionUser) {
         await audit.record({
           actor: {
-            type: "staff",
+            type: "user",
             id: sessionUser.id,
             name: sessionUser.name,
           },
@@ -692,14 +731,19 @@ export const logoutUser = async (req, res) => {
  * Returns role + Arambh string permissions (menu CRUD stays in session.permissions)
  */
 export const verifySession = async (req, res) => {
-  // If we reach here, authMiddleware has already validated the session
+  const sessionUser = req.session?.user || {};
+  const menuPermissions = await menuGrantsFromSession(sessionUser);
   return res.status(200).json({
     isOk: true,
     data: {
       role: req.user.role,
-      permissions: req.user.stringPermissions || req.session?.user?.stringPermissions || [],
+      roleId: sessionUser.roleId || req.user.roleId || null,
+      name: sessionUser.name || req.user.name || "",
+      email: sessionUser.email || req.user.email || "",
+      permissions: req.user.stringPermissions || sessionUser.stringPermissions || [],
+      menuPermissions,
       arambhRoleKey:
-        req.user.arambhRoleKey || req.session?.user?.arambhRoleKey || null,
+        req.user.arambhRoleKey || sessionUser.arambhRoleKey || null,
     },
   });
 };

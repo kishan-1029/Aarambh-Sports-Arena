@@ -19,6 +19,7 @@ import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import { Can } from "../../Components/Common/Can";
 import api from "../../api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 function formatPaise(paise) {
   if (paise == null || Number.isNaN(Number(paise))) return "—";
@@ -67,7 +68,7 @@ const PosOrders = () => {
       setOrders(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load orders",
+        message: apiErrorMessage(err, "Failed to load orders"),
       });
     } finally {
       setLoading(false);

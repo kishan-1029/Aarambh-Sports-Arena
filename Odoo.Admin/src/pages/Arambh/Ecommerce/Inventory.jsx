@@ -36,6 +36,7 @@ import {
   STOCK_STATUS_LABEL,
   STOCK_STATUS_TONE,
 } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 const Inventory = () => {
   document.title = "Inventory | Arambh Sports Arena";
@@ -70,7 +71,7 @@ const Inventory = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load inventory",
+        message: apiErrorMessage(err, "Failed to load inventory"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);
@@ -130,7 +131,7 @@ const Inventory = () => {
       setModal(null);
       await load();
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Could not update the stock");
+      setFormError(apiErrorMessage(err, "Could not update the stock"));
     } finally {
       setSaving(false);
     }

@@ -11,7 +11,6 @@ import {
   getCompanyById,
 } from "../../controllers/v1/company.controller.js";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
-import { checkPermission } from "../../middlewares/checkPermission.js";
 import { requireSuperAdmin } from "../../middlewares/requireSuperAdmin.js";
 // ============ SECURITY IMPORTS ============
 import { authRateLimiter, uploadRateLimiter } from "../../middlewares/rateLimiter.js";
@@ -190,7 +189,6 @@ router.put(
 router.get(
   "/companies/getCompanyDetails",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
-  checkPermission("/company-details", "read"),
   getCurrentUserDetails,
 );
 

@@ -13,11 +13,12 @@ import {
 import { usePermission } from "../../hooks/usePermission";
 
 const VerticalLayout = (props) => {
-    const { menuData, loading, updateCurrentPagePermissions } =
+    const { menuData, loading, isAdmin, updateCurrentPagePermissions } =
         useContext(MenuContext);
-    const { adminData } = useContext(AuthContext);
+    const { adminData, role } = useContext(AuthContext);
     const { can } = usePermission();
     const [expandedItems, setExpandedItems] = useState({});
+    const unrestricted = isAdmin || role === "ADMIN";
 
     const path = props.router.location.pathname;
 
@@ -37,34 +38,21 @@ const VerticalLayout = (props) => {
         );
 
     const arambhGroups = useMemo(() => {
+        if (!unrestricted) return [];
         return buildArambhNavGroups()
             .map((group) => ({
                 ...group,
                 menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
             }))
             .filter((g) =>
-                g.isLink
-                    ? !g.perm || can(g.perm)
-                    : g.menus && g.menus.length > 0,
+                g.isLink ? !g.perm || can(g.perm) : g.menus && g.menus.length > 0,
             );
-    }, [can]);
+    }, [can, unrestricted]);
 
     const legacyGroups = useMemo(() => {
-        // Setup / Master / CMS stay for company ADMIN or staff with settings/role/employee manage
-        const canSeeAdminShell =
-            can("settings.manage") || can("role.manage") || can("employee.manage");
-        return buildLegacyNavGroups()
-            .map((group) => ({
-                ...group,
-                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
-            }))
-            .filter((g) => {
-                if (["Setup", "Master", "CMS"].includes(g.groupName)) {
-                    return canSeeAdminShell;
-                }
-                return true;
-            });
-    }, [can]);
+        if (!unrestricted) return [];
+        return buildLegacyNavGroups();
+    }, [unrestricted]);
 
     const normPath = (url) =>
         String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
@@ -341,12 +329,11 @@ const VerticalLayout = (props) => {
 
         const processedMenuData = getFilteredMenuData();
 
-        // Legacy Dashboard/Setup/Master/CMS first, then remaining API groups, then split Arambh modules
-        const mergedMenuData = mergeAdminNavGroups(
-            processedMenuData,
-            arambhGroups,
-            legacyGroups,
-        );
+        // Employees see only the menus and menu groups checked on Employee Roles.
+        // Admins keep the full shell (legacy + Arambh + any extra API groups).
+        const mergedMenuData = unrestricted
+            ? mergeAdminNavGroups(processedMenuData, arambhGroups, legacyGroups)
+            : processedMenuData;
 
         if (mergedMenuData.length === 0) {
             return (

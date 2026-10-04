@@ -31,6 +31,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 
@@ -191,7 +192,7 @@ const City = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch city details");
+        toast.error(apiErrorMessage(err, "Failed to fetch city details"));
       }).finally(() => {
         setIsEditFetching(false);
       });
@@ -232,7 +233,7 @@ const City = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add city. Please try again.");
+          toast.error(apiErrorMessage(error, "Failed to add city. Please try again."));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -255,7 +256,7 @@ const City = () => {
           setReferenceData(err.response.data);
           setReferenceModal(true);
         } else {
-          toast.error("Failed to remove city. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to remove city. Please try again."));
         }
       }).finally(() => {
         setIsDeleteLoading(false);
@@ -288,7 +289,7 @@ const City = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update city. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to update city. Please try again."));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

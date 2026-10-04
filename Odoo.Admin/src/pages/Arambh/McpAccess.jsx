@@ -21,6 +21,7 @@ import Skeleton from "../../Components/Common/Skeleton";
 import { Can } from "../../Components/Common/Can";
 import GridActionButton from "../../Components/Common/GridActionButton";
 import { createMcpKey, listMcpKeys, revokeMcpKey } from "../../api/arambhMcp.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const McpAccess = () => {
   document.title = "MCP access | Arambh Sports Arena";
@@ -40,7 +41,7 @@ const McpAccess = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load keys",
+        message: apiErrorMessage(err, "Failed to load keys"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -70,7 +71,7 @@ const McpAccess = () => {
       await load();
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Create failed",
+        message: apiErrorMessage(err, "Create failed"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -84,7 +85,7 @@ const McpAccess = () => {
       await load();
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Revoke failed",
+        message: apiErrorMessage(err, "Revoke failed"),
       });
     }
   };

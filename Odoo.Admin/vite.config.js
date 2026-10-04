@@ -12,11 +12,15 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@shared': path.resolve(__dirname, '../packages/shared'),
         },
     },
     server: {
         port: 3000,
         open: true,
+        fs: {
+            allow: [path.resolve(__dirname, '..')],
+        },
     },
     build: {
         outDir: 'build',

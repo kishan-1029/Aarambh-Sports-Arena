@@ -14,6 +14,7 @@ import {
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { getAllCountries, getStatesByCountry, getCitiesByState } from "../../api/locations.api";
 import { updateCompany } from "../../api/companies.api";
 import config from "../../config";
@@ -149,7 +150,7 @@ const CompanyDetails = () => {
       }
     } catch (error) {
       console.error("Error fetching countries:", error);
-      toast.error("Failed to load countries");
+      toast.error(apiErrorMessage(error, "Failed to load countries"));
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +168,7 @@ const CompanyDetails = () => {
       }
     } catch (error) {
       console.error("Error fetching states:", error);
-      toast.error("Failed to load states");
+      toast.error(apiErrorMessage(error, "Failed to load states"));
     } finally {
       setIsStatesLoading(false);
     }
@@ -184,7 +185,7 @@ const CompanyDetails = () => {
       }
     } catch (error) {
       console.error("Error fetching cities:", error);
-      toast.error("Failed to load cities");
+      toast.error(apiErrorMessage(error, "Failed to load cities"));
     } finally {
       setIsCitiesLoading(false);
     }
@@ -445,12 +446,12 @@ const CompanyDetails = () => {
           resetFaviconStates();
           resetLoginBannerStates();
         } else {
-          toast.error(response.data.message);
+          toast.error(apiErrorMessage(response, "Request failed"));
         }
       })
       .catch((error) => {
         console.error("Error updating company details:", error);
-        toast.error("Failed to update company details");
+        toast.error(apiErrorMessage(error, "Failed to update company details"));
       })
       .finally(() => {
         setIsSubmitting(false);

@@ -22,6 +22,7 @@ import BreadCrumb from "../../Components/Common/BreadCrumb";
 import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import config from "../../config";
@@ -276,12 +277,12 @@ const ManageGuides = () => {
             setSelectedFile(null);
             fetchGuides();
           } else {
-            toast.error(res.data.message || "Failed to add Guide");
+            toast.error(apiErrorMessage(res, "Failed to add Guide"));
           }
         })
         .catch((error) => {
           console.error(error);
-          toast.error(error.response?.data?.message || "Failed to add Guide");
+          toast.error(apiErrorMessage(error, "Failed to add Guide"));
         })
         .finally(() => {
           setIsSubmitLoading(false);
@@ -306,12 +307,12 @@ const ManageGuides = () => {
             setSelectedFile(null);
             fetchGuides();
           } else {
-            toast.error(res.data.message || "Failed to update Guide");
+            toast.error(apiErrorMessage(res, "Failed to update Guide"));
           }
         })
         .catch((err) => {
           console.error(err);
-          toast.error(err.response?.data?.message || "Failed to update Guide");
+          toast.error(apiErrorMessage(err, "Failed to update Guide"));
         })
         .finally(() => {
           setIsUpdateLoading(false);
@@ -329,11 +330,11 @@ const ManageGuides = () => {
         fetchGuides();
         setmodal_delete(false);
       } else {
-        toast.error(res.data.message || "Failed to delete Guide");
+        toast.error(apiErrorMessage(res, "Failed to delete Guide"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while deleting");
+      toast.error(apiErrorMessage(error, "An error occurred while deleting"));
     } finally {
       setIsDeleteLoading(false);
     }

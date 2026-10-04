@@ -18,6 +18,7 @@ import KpiTile from "../../Components/Common/KpiTile";
 import Skeleton from "../../Components/Common/Skeleton";
 import { Can } from "../../Components/Common/Can";
 import api from "../../api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 function formatPaise(paise) {
   if (paise == null || Number.isNaN(Number(paise))) return "—";
@@ -47,7 +48,7 @@ const PosDashboard = () => {
       setOrders(Array.isArray(orderRes?.data?.data) ? orderRes.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load POS dashboard",
+        message: apiErrorMessage(err, "Failed to load POS dashboard"),
       });
     } finally {
       setLoading(false);

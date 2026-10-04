@@ -31,6 +31,7 @@ import {
   archivePlan,
 } from "../../api/arambhMembership.api";
 import { listTaxes } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const PLAN_COLOUR = {
   gold: "warning",
@@ -175,7 +176,7 @@ const MembershipPlans = () => {
     } catch (err) {
       setError({
         message:
-          err?.response?.data?.message || err?.message || "Failed to load plans",
+          apiErrorMessage(err, "Failed to load plans"),
         requestId: err?.response?.data?.requestId,
       });
       setPlans([]);
@@ -253,7 +254,7 @@ const MembershipPlans = () => {
       await load();
     } catch (err) {
       setFormError(
-        err?.response?.data?.message || err?.message || "Could not save plan",
+        apiErrorMessage(err, "Could not save plan"),
       );
     } finally {
       setSaving(false);
@@ -267,7 +268,7 @@ const MembershipPlans = () => {
       await load();
     } catch (err) {
       window.alert(
-        err?.response?.data?.message || err?.message || "Toggle failed",
+        apiErrorMessage(err, "Toggle failed"),
       );
     } finally {
       setBusyId(null);
@@ -299,7 +300,7 @@ const MembershipPlans = () => {
       await load();
     } catch (err) {
       window.alert(
-        err?.response?.data?.message || err?.message || "Could not delete plan",
+        apiErrorMessage(err, "Could not delete plan"),
       );
     } finally {
       setDeleting(false);

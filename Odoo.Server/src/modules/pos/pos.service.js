@@ -357,7 +357,7 @@ export async function createPaidOrder(input, ctx = {}) {
   try {
     await audit.record({
       actor: {
-        type: 'staff',
+        type: 'user',
         id: ctx.user?.id,
         name: ctx.user?.name || ctx.user?.email,
       },

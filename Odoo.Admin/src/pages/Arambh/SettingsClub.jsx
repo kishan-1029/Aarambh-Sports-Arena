@@ -23,6 +23,7 @@ import {
   patchSettings,
   listLocations,
 } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const FEATURE_FLAGS = [
   { key: "publicSiteEnabled", label: "Public website enabled" },
@@ -61,7 +62,7 @@ const SettingsClub = () => {
       setLocations(Array.isArray(locs) ? locs : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load settings",
+        message: apiErrorMessage(err, "Failed to load settings"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -86,7 +87,7 @@ const SettingsClub = () => {
       setSettings(res?.data?.data);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Save failed",
+        message: apiErrorMessage(err, "Save failed"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -103,7 +104,7 @@ const SettingsClub = () => {
       setSettings(res?.data?.data);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Toggle failed",
+        message: apiErrorMessage(err, "Toggle failed"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {

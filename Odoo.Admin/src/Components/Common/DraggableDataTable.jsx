@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const dragHandleCol = {
     name: "⋮⋮",
@@ -103,7 +104,7 @@ const DraggableDataTable = ({
                 }
             } catch (error) {
                 console.error("Error updating sequence:", error);
-                toast.error("Failed to update sequence. Please try again.");
+                toast.error(apiErrorMessage(error, "Failed to update sequence. Please try again."));
 
                 // Refresh data to revert any local changes
                 if (onDataRefresh) {

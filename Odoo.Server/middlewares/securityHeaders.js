@@ -156,6 +156,8 @@ export const getCorsConfig = (allowedOrigins = []) => {
             'X-Client-IP',
             'X-Client-Latitude',
             'X-Client-Longitude',
+            'Cache-Control',
+            'Pragma',
         ],
         exposedHeaders: [
             'RateLimit-Limit',
@@ -211,11 +213,20 @@ export const sanitizeErrors = (err, req, res, next) => {
 
     // Handle specific error types
     if (err.name === 'ValidationError') {
+        const details = Object.entries(err.errors || {}).map(([field, item]) => ({
+            field,
+            message: item?.message || 'Invalid value',
+        }));
+        const detailText = details
+            .map((item) => (item.field ? `${item.field}: ${item.message}` : item.message))
+            .filter(Boolean)
+            .join('. ');
         return res.status(400).json({
             isOk: false,
             status: 400,
             error: 'Validation Error',
-            message: isProduction ? 'Invalid input data' : err.message,
+            message: detailText || (isProduction ? 'Invalid input data' : err.message),
+            details,
         });
     }
 
@@ -241,7 +252,7 @@ export const sanitizeErrors = (err, req, res, next) => {
     res.status(err.status || 500).json({
         isOk: false,
         status: err.status || 500,
-        error: isProduction ? 'Internal Server Error' : err.name,
+        error: isProduction ? 'Internal Server Err-or' : err.name,
         message: isProduction ? 'An unexpected error occurred' : err.message,
     });
 };

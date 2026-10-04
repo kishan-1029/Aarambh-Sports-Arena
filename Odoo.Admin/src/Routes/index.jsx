@@ -15,12 +15,23 @@ import { AuthContext } from '../context/AuthContext';
 
 const Index = () => {
 
-    const { adminData } = useContext(AuthContext);
+    const { role, isSessionVerified } = useContext(AuthContext);
+    const signedIn = isSessionVerified && Boolean(role);
+
+    if (!isSessionVerified) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Routes>
             <Route>
-                {!adminData && publicRoutes.map((route) => (
+                {!signedIn && publicRoutes.map((route) => (
                     <Route
                         path={route.path}
                         element={
@@ -34,7 +45,7 @@ const Index = () => {
                 ))}
             </Route>
 
-            {adminData && (
+            {signedIn && (
                 <Route
                     element={
                         <AuthProtected>
@@ -57,7 +68,7 @@ const Index = () => {
                 </Route>
             )}
 
-            {adminData && (
+            {signedIn && (
                 <Route
                     element={
                         <AuthProtected>

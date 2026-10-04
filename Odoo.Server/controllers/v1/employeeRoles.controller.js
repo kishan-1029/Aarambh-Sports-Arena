@@ -5,6 +5,26 @@ import mongoose from "mongoose";
 
 const PERMISSION_KEYS = ["read", "write", "edit", "delete", "print", "mail"];
 
+/** Keep the newest permission document for a role and deactivate older copies. */
+const collapseToLatest = async (roleId) => {
+  if (!roleId || !mongoose.Types.ObjectId.isValid(String(roleId))) return null;
+  const docs = await EmployeeRoles.find({ roleId }).sort({ updatedAt: -1 });
+  if (!docs.length) return null;
+
+  const [latest, ...older] = docs;
+  if (!latest.isActive) {
+    latest.isActive = true;
+    await latest.save();
+  }
+  if (older.length) {
+    await EmployeeRoles.updateMany(
+      { _id: { $in: older.map((doc) => doc._id) } },
+      { $set: { isActive: false } },
+    );
+  }
+  return latest;
+};
+
 const processRoles = (roles) =>
   roles.map((role) => ({
     menuId: role.menuId ? role.menuId.toString() : null,
@@ -181,14 +201,23 @@ export const createEmployeeRoles = async (req, res) => {
       }
     }
 
-    const employeeRoles = await EmployeeRoles.create({
-      roleId: safeRoleId,
-      roles: processedRoles,
-    });
+    const existing = await collapseToLatest(safeRoleId);
+    const employeeRoles = existing
+      ? await EmployeeRoles.findByIdAndUpdate(
+          existing._id,
+          { roles: processedRoles, isActive: true },
+          { new: true },
+        )
+      : await EmployeeRoles.create({
+          roleId: safeRoleId,
+          roles: processedRoles,
+        });
 
     return res.status(200).json({
       isOk: true,
-      message: "Employee roles created successfully",
+      message: existing
+        ? "Employee roles updated successfully"
+        : "Employee roles created successfully",
       data: employeeRoles,
     });
   } catch (error) {
@@ -205,9 +234,9 @@ export const getEmployeeRoles = async (req, res) => {
   try {
     const { roleId } = req.params;
     const safeRoleId = typeof roleId === "string" ? roleId.trim() : "";
-    const employeeRoles = await EmployeeRoles.find({ roleId: safeRoleId });
+    const latest = await collapseToLatest(safeRoleId);
 
-    if (!employeeRoles?.length) {
+    if (!latest) {
       return res.status(200).json({
         isOk: true,
         message: "No roles assigned yet",
@@ -217,7 +246,7 @@ export const getEmployeeRoles = async (req, res) => {
 
     return res.status(200).json({
       isOk: true,
-      data: employeeRoles,
+      data: [latest],
     });
   } catch (error) {
     // ✅ Fix 4: console.log → console.error

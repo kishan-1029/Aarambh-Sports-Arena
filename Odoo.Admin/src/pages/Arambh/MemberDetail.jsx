@@ -22,6 +22,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { getMember, getMemberTimeline } from "../../api/arambhMembership.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const PLAN_COLOUR = {
   gold: "warning",
@@ -50,7 +51,7 @@ const MemberDetail = () => {
       setTimeline(Array.isArray(t?.data?.data) ? t.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load member",
+        message: apiErrorMessage(err, "Failed to load member"),
         requestId: err?.response?.data?.requestId,
       });
       setProfile(null);

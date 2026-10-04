@@ -19,6 +19,7 @@ import {
   STOCK_STATUS_LABEL,
   STOCK_STATUS_TONE,
 } from "./shopLabels";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 const EcommerceDashboard = () => {
   document.title = "E-commerce | Arambh Sports Arena";
@@ -36,7 +37,7 @@ const EcommerceDashboard = () => {
       setLowStock(Array.isArray(low?.data?.data) ? low.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load the shop overview",
+        message: apiErrorMessage(err, "Failed to load the shop overview"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {

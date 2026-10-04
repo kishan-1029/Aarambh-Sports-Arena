@@ -36,6 +36,7 @@ import {
   updateSport,
 } from "../../api/arambhBooking.api";
 import { listTaxes } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const EMPTY_COURT_FORM = {
   sportId: "",
@@ -107,7 +108,7 @@ const Courts = () => {
       setSocial(Array.isArray(soc?.data?.data) ? soc.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load",
+        message: apiErrorMessage(err, "Failed to load"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -178,7 +179,7 @@ const Courts = () => {
       await load();
     } catch (err) {
       setFormError(
-        err?.response?.data?.message || err?.message || "Could not create court",
+        apiErrorMessage(err, "Could not create court"),
       );
     } finally {
       setSaving(false);
@@ -201,7 +202,7 @@ const Courts = () => {
       await load();
     } catch (err) {
       setFormError(
-        err?.response?.data?.message || err?.message || "Could not create sport",
+        apiErrorMessage(err, "Could not create sport"),
       );
     } finally {
       setSaving(false);
@@ -216,9 +217,7 @@ const Courts = () => {
       await updateCourt(c._id, { status: next });
       await load();
     } catch (err) {
-      window.alert(
-        err?.response?.data?.message || err?.message || "Status update failed",
-      );
+      window.alert(apiErrorMessage(err, "Status update failed"));
     } finally {
       setBusyId(null);
     }
@@ -230,9 +229,7 @@ const Courts = () => {
       await updateSport(s._id, { active: !s.active });
       await load();
     } catch (err) {
-      window.alert(
-        err?.response?.data?.message || err?.message || "Toggle failed",
-      );
+      window.alert(apiErrorMessage(err, "Toggle failed"));
     } finally {
       setBusyId(null);
     }

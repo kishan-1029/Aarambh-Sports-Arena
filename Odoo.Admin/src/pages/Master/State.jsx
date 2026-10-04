@@ -31,6 +31,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 
@@ -163,7 +164,7 @@ const State = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch state details");
+        toast.error(apiErrorMessage(err, "Failed to fetch state details"));
       }).finally(() => {
         setIsEditFetching(false);
       });
@@ -204,7 +205,7 @@ const State = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add state. Please try again.");
+          toast.error(apiErrorMessage(error, "Failed to add state. Please try again."));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -227,7 +228,7 @@ const State = () => {
           setReferenceData(err.response.data);
           setReferenceModal(true);
         } else {
-          toast.error("Failed to remove state. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to remove state. Please try again."));
         }
       }).finally(() => {
         setIsDeleteLoading(false);
@@ -260,7 +261,7 @@ const State = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update state. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to update state. Please try again."));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

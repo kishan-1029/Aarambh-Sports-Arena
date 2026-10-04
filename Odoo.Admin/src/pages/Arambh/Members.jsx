@@ -31,6 +31,7 @@ import {
   listMembers,
   registerMember,
 } from "../../api/arambhMembership.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const TIER_COLOUR = {
   gold: "warning",
@@ -82,7 +83,7 @@ const Members = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load members",
+        message: apiErrorMessage(err, "Failed to load members"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);
@@ -118,7 +119,7 @@ const Members = () => {
       setForm(EMPTY_FORM);
       await load();
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Could not register member");
+      setFormError(apiErrorMessage(err, "Could not register member"));
     } finally {
       setSaving(false);
     }
@@ -134,7 +135,7 @@ const Members = () => {
       await archiveMember(row._id);
       await load();
     } catch (err) {
-      window.alert(err?.response?.data?.message || err?.message || "Archive failed");
+      window.alert(apiErrorMessage(err, "Archive failed"));
     } finally {
       setBusyId(null);
     }

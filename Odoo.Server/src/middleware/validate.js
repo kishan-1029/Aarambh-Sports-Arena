@@ -19,11 +19,12 @@ export function validate(schemas = {}) {
       return next();
     } catch (err) {
       if (err?.name === 'ZodError') {
-        return next(
-          Validation(
-            err.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })),
-          ),
-        );
+        const issues = err.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) || [];
+        const summary = issues
+          .map((i) => (i.path ? `${i.path}: ${i.message}` : i.message))
+          .filter(Boolean)
+          .join('. ');
+        return next(Validation(issues, summary || 'Validation failed'));
       }
       return next(err);
     }

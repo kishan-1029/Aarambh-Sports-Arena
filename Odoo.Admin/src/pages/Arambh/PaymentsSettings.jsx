@@ -8,6 +8,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { getPaymentSettings, listPayments } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const PaymentsSettings = () => {
   document.title = "Payments | Arambh Sports Arena";
@@ -28,7 +29,7 @@ const PaymentsSettings = () => {
       setPayments(Array.isArray(pRes?.data?.data) ? pRes.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load payments",
+        message: apiErrorMessage(err, "Failed to load payments"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {

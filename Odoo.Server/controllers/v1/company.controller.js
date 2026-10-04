@@ -451,7 +451,7 @@ export const loginCompany = async (req, res) => {
     try {
       await audit.record({
         actor: {
-          type: role === "ADMIN" ? "staff" : "staff",
+          type: "user",
           id: userId.toString(),
           name: req.session.user.name,
         },
@@ -477,6 +477,8 @@ export const loginCompany = async (req, res) => {
       role,
       // Surface string permissions for admin Can / usePermission
       permissions: req.session.user.stringPermissions || [],
+      menuPermissions: req.session.user.permissions || [],
+      roleId: req.session.user.roleId || null,
       arambhRoleKey: req.session.user.arambhRoleKey || null,
     });
   } catch (error) {

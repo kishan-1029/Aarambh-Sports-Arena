@@ -27,6 +27,7 @@ import {
   listBookings,
   listCourts,
 } from "../../api/arambhBooking.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 function todayLocal() {
   const d = new Date();
@@ -173,7 +174,7 @@ const FrontDesk = () => {
       setTodayBookings(Array.isArray(bookings?.data?.data) ? bookings.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load court board",
+        message: apiErrorMessage(err, "Failed to load court board"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -190,7 +191,7 @@ const FrontDesk = () => {
         setToast("Checked in");
         await loadBoard();
       } catch (err) {
-        setToast(err?.response?.data?.message || err?.message || "Check-in failed");
+        setToast(apiErrorMessage(err, "Check-in failed"));
       } finally {
         setBusyId(null);
       }

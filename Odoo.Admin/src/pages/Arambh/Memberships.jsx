@@ -19,6 +19,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { listMemberships } from "../../api/arambhMembership.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const PLAN_COLOUR = {
   gold: "warning",
@@ -44,7 +45,7 @@ const Memberships = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load memberships",
+        message: apiErrorMessage(err, "Failed to load memberships"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);

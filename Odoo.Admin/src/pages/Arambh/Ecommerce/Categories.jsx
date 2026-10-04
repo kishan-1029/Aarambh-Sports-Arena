@@ -29,6 +29,7 @@ import {
   listCategories,
   updateCategory,
 } from "../../../api/arambhEcommerce.api";
+import { apiErrorMessage } from "../../../utils/apiErrorMessage";
 
 const EMPTY_FORM = {
   name: "",
@@ -59,7 +60,7 @@ const Categories = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load categories",
+        message: apiErrorMessage(err, "Failed to load categories"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);
@@ -117,7 +118,7 @@ const Categories = () => {
       setModal(false);
       await load();
     } catch (err) {
-      setFormError(err?.response?.data?.message || err?.message || "Could not save the category");
+      setFormError(apiErrorMessage(err, "Could not save the category"));
     } finally {
       setSaving(false);
     }
@@ -129,7 +130,7 @@ const Categories = () => {
       await updateCategory(row._id, { active: row.active === false });
       await load();
     } catch (err) {
-      window.alert(err?.response?.data?.message || err?.message || "Could not update the category");
+      window.alert(apiErrorMessage(err, "Could not update the category"));
     } finally {
       setBusyId(null);
     }
@@ -142,7 +143,7 @@ const Categories = () => {
       await deleteCategory(row._id);
       await load();
     } catch (err) {
-      window.alert(err?.response?.data?.message || err?.message || "Could not delete the category");
+      window.alert(apiErrorMessage(err, "Could not delete the category"));
     } finally {
       setBusyId(null);
     }

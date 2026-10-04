@@ -25,6 +25,7 @@ import {
   listBookings,
   listCourts,
 } from "../../api/arambhBooking.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 function todayLocal() {
   const d = new Date();
@@ -78,7 +79,7 @@ const Bookings = () => {
       }
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load bookings",
+        message: apiErrorMessage(err, "Failed to load bookings"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -94,7 +95,7 @@ const Bookings = () => {
       await load();
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Action failed",
+        message: apiErrorMessage(err, "Action failed"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {

@@ -8,6 +8,7 @@ import Skeleton from "../../Components/Common/Skeleton";
 import PieChart from "../../Components/Common/PieChart";
 import { AuthContext } from "../../context/AuthContext";
 import { getDashboard } from "../../api/arambhDashboard.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const PLAN_COLOUR = {
   gold: "warning",
@@ -42,7 +43,7 @@ const Dashboard = () => {
       })
       .catch((err) => {
         if (!alive) return;
-        setError(err?.response?.data?.message || err?.message || "Failed to load dashboard");
+        setError(apiErrorMessage(err, "Failed to load dashboard"));
         setData(null);
       })
       .finally(() => {

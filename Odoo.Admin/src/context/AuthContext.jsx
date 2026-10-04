@@ -3,7 +3,7 @@ import { createContext, useEffect, useState, useCallback, useMemo } from "react"
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserDetails } from "../api/companies.api";
-import { verifySession } from "../api/auth.api";
+import { getCurrentUser, verifySession } from "../api/auth.api";
 
 
 const AuthContext = createContext();
@@ -16,6 +16,8 @@ const AuthProvider = ({ children }) => {
     // Arambh string permissions (booking.create, …) — parallel to MenuContext CRUD
     const [stringPermissions, setStringPermissions] = useState([]);
     const [arambhRoleKey, setArambhRoleKey] = useState(null);
+    const [menuPermissions, setMenuPermissions] = useState([]);
+    const [sessionRoleId, setSessionRoleId] = useState(null);
 
     const navigate = useNavigate();
 
@@ -25,22 +27,32 @@ const AuthProvider = ({ children }) => {
         setLoading(true);
         getCurrentUserDetails()
             .then((res) => {
-
-                setAdminData(res.data.data);
-
+                if (res.data?.data) setAdminData(res.data.data);
             })
             .catch((error) => {
                 console.log("error", error);
                 const status = error.response?.status;
-                // Never treat rate-limit / network blips as logout
                 if (status === 429 || !error.response) return;
-                // Only hard-logout on clear unauthenticated session
                 if (status === 401) {
                     localStorage.removeItem("role");
                     setAdminData(null);
                     setRole(null);
                     navigate("/");
+                    return;
                 }
+                getCurrentUser()
+                    .then((me) => {
+                        if (me.data?.isOk && me.data.data) {
+                            setAdminData(me.data.data);
+                            if (Array.isArray(me.data.data.permissions)) {
+                                setMenuPermissions(me.data.data.permissions);
+                            }
+                            if (me.data.data.roleId) {
+                                setSessionRoleId(String(me.data.data.roleId));
+                            }
+                        }
+                    })
+                    .catch(() => {});
             })
             .finally(() => {
                 setLoading(false);
@@ -63,8 +75,17 @@ const AuthProvider = ({ children }) => {
                     : [];
                 setStringPermissions(perms);
                 setArambhRoleKey(res.data.data.arambhRoleKey || null);
+                if (Array.isArray(res.data.data.menuPermissions)) {
+                    setMenuPermissions(res.data.data.menuPermissions);
+                }
+                if (res.data.data.roleId) {
+                    setSessionRoleId(String(res.data.data.roleId));
+                }
+                setAdminData((prev) => prev || {
+                    employeeName: res.data.data.name || "",
+                    email: res.data.data.email || "",
+                });
                 setIsSessionVerified(true);
-                // Fetch full user data
                 getAdmin();
             }
         } catch (error) {
@@ -85,6 +106,8 @@ const AuthProvider = ({ children }) => {
             setRole(null);
             setStringPermissions([]);
             setArambhRoleKey(null);
+            setMenuPermissions([]);
+            setSessionRoleId(null);
             setIsSessionVerified(true);
             setLoading(false);
             navigate("/");
@@ -109,7 +132,11 @@ const AuthProvider = ({ children }) => {
         setStringPermissions,
         arambhRoleKey,
         setArambhRoleKey,
-    }), [adminData, getAdmin, role, loading, isSessionVerified, stringPermissions, arambhRoleKey]);
+        menuPermissions,
+        setMenuPermissions,
+        sessionRoleId,
+        setSessionRoleId,
+    }), [adminData, getAdmin, role, loading, isSessionVerified, stringPermissions, arambhRoleKey, menuPermissions, sessionRoleId]);
 
     return (
         <AuthContext.Provider value={contextValue}>

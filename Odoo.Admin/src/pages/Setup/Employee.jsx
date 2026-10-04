@@ -25,6 +25,7 @@ import FormsFooter from "../../Components/Common/FormAddFooter";
 import { AuthContext } from "../../context/AuthContext";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { getAllDepartments } from "../../api/departments.api";
 import { getAllCountries, getStatesByCountry, getCitiesByState } from "../../api/locations.api";
 import {
@@ -136,7 +137,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
-      toast.error("Failed to load departments");
+      toast.error(apiErrorMessage(error, "Failed to load departments"));
     }
   };
 
@@ -149,7 +150,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error fetching countries:", error);
-      toast.error("Failed to load countries");
+      toast.error(apiErrorMessage(error, "Failed to load countries"));
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +167,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error fetching states:", error);
-      toast.error("Failed to load states");
+      toast.error(apiErrorMessage(error, "Failed to load states"));
     } finally {
       setIsStatesLoading(false);
     }
@@ -182,7 +183,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error fetching cities:", error);
-      toast.error("Failed to load cities");
+      toast.error(apiErrorMessage(error, "Failed to load cities"));
     } finally {
       setIsCitiesLoading(false);
     }
@@ -196,7 +197,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error fetching roles:", error);
-      toast.error("Failed to load roles");
+      toast.error(apiErrorMessage(error, "Failed to load roles"));
     }
   };
 
@@ -210,7 +211,7 @@ const Employee = () => {
         sortdir: sortDirection,
         match: query,
         isActive: filter,
-        branchId: adminData.branchId ? adminData.branchId._id : null,
+        branchId: adminData?.branchId ? adminData.branchId._id : null,
       });
       if (response.data.data.length > 0) {
         let res = response.data.data[0];
@@ -223,7 +224,7 @@ const Employee = () => {
       console.log(err);
     }
     setLoading(false);
-  }, [pageNo, perPage, column, sortDirection, query, filter, adminData.branchId]);
+  }, [pageNo, perPage, column, sortDirection, query, filter, adminData?.branchId]);
 
   const fetchAdminsList = async () => {
     setLoading(true);
@@ -234,7 +235,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Failed to load companies:", error);
-      toast.error("Failed to load onboarded admins.");
+      toast.error(apiErrorMessage(error, "Failed to load onboarded admins."));
     } finally {
       setLoading(false);
     }
@@ -310,7 +311,7 @@ const Employee = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to add employee. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to add employee. Please try again."));
         })
         .finally(() => setIsLoading(false));
     }
@@ -356,7 +357,7 @@ const Employee = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Cannot update Employee");
+          toast.error(apiErrorMessage(err, "Cannot update Employee"));
         })
         .finally(() => setIsLoading(false));
     }
@@ -388,7 +389,7 @@ const Employee = () => {
         })
         .catch((err) => {
           console.error(err);
-          toast.error("Cannot delete Company Admin");
+          toast.error(apiErrorMessage(err, "Cannot delete Company Admin"));
         })
         .finally(() => setIsDeleteLoading(false));
     } else {
@@ -400,7 +401,7 @@ const Employee = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Cannot delete Employee");
+          toast.error(apiErrorMessage(err, "Cannot delete Employee"));
         })
         .finally(() => setIsDeleteLoading(false));
     }
@@ -437,7 +438,7 @@ const Employee = () => {
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch admin details");
+        toast.error(apiErrorMessage(err, "Failed to fetch admin details"));
       } finally {
         setIsLoading(false);
       }
@@ -482,7 +483,7 @@ const Employee = () => {
         }
       } catch (err) {
         console.log(err);
-        toast.error("Failed to fetch employee details");
+        toast.error(apiErrorMessage(err, "Failed to fetch employee details"));
       } finally {
         setIsLoading(false);
       }
@@ -592,7 +593,7 @@ const Employee = () => {
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-      toast.error("Failed to reset password");
+      toast.error(apiErrorMessage(error, "Failed to reset password"));
     } finally {
       setIsLoading(false);
     }
@@ -687,7 +688,7 @@ const Employee = () => {
         });
         setAdminErrors(serverErrors);
       } else {
-        toast.error(error.response?.data?.message || "Failed to onboard client admin.");
+        toast.error(apiErrorMessage(error, "Failed to onboard client admin."));
       }
     } finally {
       setIsAdminSubmitting(false);
@@ -1330,7 +1331,7 @@ const Employee = () => {
     [activeTab]
   );
 
-  document.title = `${activeTab === "admin" ? "Admin" : "Employee"} | ${adminData.companyName}`;
+  document.title = `${activeTab === "admin" ? "Admin" : "Employee"} | ${adminData?.companyName || "Arambh"}`;
 
   return (
     <React.Fragment>

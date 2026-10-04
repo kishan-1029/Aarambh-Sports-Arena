@@ -18,6 +18,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { listInvoices } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const statusTone = (s) => {
   if (s === "paid") return "paid";
@@ -91,7 +92,7 @@ const Invoices = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load invoices",
+        message: apiErrorMessage(err, "Failed to load invoices"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);

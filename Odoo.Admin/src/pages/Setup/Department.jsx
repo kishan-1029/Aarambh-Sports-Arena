@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import {
@@ -154,7 +155,7 @@ const Department = () => {
             })
             .catch((err) => {
                 console.log(err);
-                toast.error("Failed to fetch department details");
+                toast.error(apiErrorMessage(err, "Failed to fetch department details"));
             })
             .finally(() => {
                 setIsLoading(false);
@@ -197,7 +198,7 @@ const Department = () => {
                 })
                 .catch((error) => {
                     console.log(error);
-                    toast.error("Failed to add department. Please try again.");
+                    toast.error(apiErrorMessage(error, "Failed to add department. Please try again."));
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -223,9 +224,7 @@ const Department = () => {
                     setReferenceData(err.response.data);
                     setReferenceModal(true);
                 } else {
-                    toast.error(
-                        "Failed to delete department. Please try again."
-                    );
+                    toast.error(apiErrorMessage(err, "Failed to delete department. Please try again."));
                 }
             })
             .finally(() => {
@@ -265,7 +264,7 @@ const Department = () => {
                 })
                 .catch((err) => {
                     console.log(err);
-                    toast.error("Failed to update department. Please try again.");
+                    toast.error(apiErrorMessage(err, "Failed to update department. Please try again."));
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -356,7 +355,7 @@ const Department = () => {
         [currentPagePermissions, handleTog_edit, tog_delete]
     );
 
-    document.title = `Department Master | ${adminData.companyName}`;
+    document.title = `Department Master | ${adminData?.companyName || "Arambh"}`;
 
     return (
         <React.Fragment>

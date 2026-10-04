@@ -22,6 +22,7 @@ import FormsHeader from "../../Components/Common/FormsModalHeader";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
 import { toast } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 import { MenuContext } from "../../context/MenuContext";
 import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
@@ -136,7 +137,7 @@ const RoleMaster = () => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Failed to fetch role details");
+        toast.error(apiErrorMessage(err, "Failed to fetch role details"));
       }).finally(() => {
         setIsEditFetching(false);
       });
@@ -177,7 +178,7 @@ const RoleMaster = () => {
         })
         .catch((error) => {
           console.log(error);
-          toast.error("Failed to add role. Please try again.");
+          toast.error(apiErrorMessage(error, "Failed to add role. Please try again."));
         }).finally(() => {
           setIsSubmitLoading(false);
         });
@@ -202,7 +203,7 @@ const RoleMaster = () => {
           setReferenceData(err.response.data);
           setReferenceModal(true);
         } else {
-          toast.error("Failed to delete role. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to delete role. Please try again."));
         }
       }).finally(() => {
         setIsDeleteLoading(false);
@@ -235,7 +236,7 @@ const RoleMaster = () => {
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Failed to update role. Please try again.");
+          toast.error(apiErrorMessage(err, "Failed to update role. Please try again."));
         }).finally(() => {
           setIsUpdateLoading(false);
         });

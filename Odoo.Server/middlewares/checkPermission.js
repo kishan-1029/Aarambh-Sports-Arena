@@ -16,6 +16,7 @@ const isPermissionStale = async (sessionUser) => {
     if (!roleId) return false;
 
     const dbRole = await EmployeeRoles.findOne({ roleId, isActive: true })
+      .sort({ updatedAt: -1 })
       .select("updatedAt")
       .lean();
 
@@ -43,7 +44,7 @@ const refreshPermissions = async (req) => {
     const employeeRole = await EmployeeRoles.findOne({
       roleId,
       isActive: true,
-    });
+    }).sort({ updatedAt: -1 });
 
     if (!employeeRole) return false;
 

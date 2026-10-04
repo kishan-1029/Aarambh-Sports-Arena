@@ -16,6 +16,7 @@ import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
 import { Can } from "../../Components/Common/Can";
 import { listCustomers } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const columns = [
   { name: "Name", selector: (r) => r.name, sortable: true, minWidth: "160px" },
@@ -58,7 +59,7 @@ const Customers = () => {
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load customers",
+        message: apiErrorMessage(err, "Failed to load customers"),
         requestId: err?.response?.data?.requestId,
       });
       setRows([]);

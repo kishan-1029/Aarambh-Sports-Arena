@@ -57,10 +57,19 @@ router.post(
  *       404:
  *         description: Employee roles not found
  */
+/** An employee may load their own role. Reading any other role still needs the Employee Roles screen. */
+const readOwnRoleOrPermitted = (req, res, next) => {
+  const ownRoleId = req.session?.user?.roleId || req.user?.roleId;
+  if (ownRoleId && String(ownRoleId) === String(req.params.roleId)) {
+    return next();
+  }
+  return checkPermission("/employee-roles", "read")(req, res, next);
+};
+
 router.get(
   "/employee-roles/:roleId",
   authMiddleware(["ADMIN", "EMPLOYEE"]),
-  checkPermission("/employee-roles", "read"),
+  readOwnRoleOrPermitted,
   getEmployeeRoles,
 );
 

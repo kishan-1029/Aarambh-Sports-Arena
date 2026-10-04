@@ -26,6 +26,7 @@ import {
   downloadInvoicePdf,
   creditNoteInvoice,
 } from "../../api/arambhFinance.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const InvoiceDetail = () => {
   const { id } = useParams();
@@ -50,7 +51,7 @@ const InvoiceDetail = () => {
       }
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load invoice",
+        message: apiErrorMessage(err, "Failed to load invoice"),
         requestId: err?.response?.data?.requestId,
       });
       setInvoice(null);
@@ -76,7 +77,7 @@ const InvoiceDetail = () => {
       await load();
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Payment failed",
+        message: apiErrorMessage(err, "Payment failed"),
         requestId: err?.response?.data?.requestId,
       });
     } finally {
@@ -95,7 +96,7 @@ const InvoiceDetail = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "PDF download failed",
+        message: apiErrorMessage(err, "PDF download failed"),
       });
     }
   };
@@ -108,7 +109,7 @@ const InvoiceDetail = () => {
       await load();
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Credit note failed",
+        message: apiErrorMessage(err, "Credit note failed"),
       });
     } finally {
       setBusy(false);

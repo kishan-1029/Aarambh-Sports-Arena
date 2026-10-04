@@ -24,6 +24,9 @@ import { AuthContext } from "../../context/AuthContext";
 import { getAllRoles, getAdminCreatedRoles, getEmployeeCreatedRoles } from "../../api/roles.api";
 import { getMenusByGroups } from "../../api/menus.api";
 import { getEmployeeRolesByRoleId, createEmployeeRoles, updateEmployeeRoles } from "../../api/employeeRoles.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
+
+const sameId = (a, b) => a != null && b != null && String(a) === String(b);
 
 const createPermissionObject = (menuField, id, permission, isChecked) => {
   const permissions = {
@@ -95,7 +98,7 @@ const addAllMenuPermissions = (menus, rolesArray, menuField, isChecked) => {
 };
 
 const findRoleIndex = (rolesArray, menuField, menuId) => {
-  return rolesArray.findIndex(r => r[menuField] === menuId);
+  return rolesArray.findIndex(r => sameId(r[menuField], menuId));
 };
 
 const updateAllMenuPermissions = (menus, rolesArray, menuField, isChecked) => {
@@ -120,7 +123,7 @@ const updateAllMenuPermissions = (menus, rolesArray, menuField, isChecked) => {
 
 const checkAllMenus = (menus, roles) => {
   return menus.every(menu => {
-    const role = roles.find(r => r.menuId === menu.id);
+    const role = roles.find(r => sameId(r.menuId, menu.id));
     const hasAll = role?.read && role?.write && role?.delete && role?.edit && role?.print && role?.mail;
     if (menu.children && menu.children.length > 0) {
       return hasAll && checkAllMenus(menu.children, roles);
@@ -131,7 +134,7 @@ const checkAllMenus = (menus, roles) => {
 
 const checkAnyMenus = (menus, roles) => {
   return menus.some(menu => {
-    const role = roles.find(r => r.menuId === menu.id);
+    const role = roles.find(r => sameId(r.menuId, menu.id));
     const hasAny = role?.read || role?.write || role?.delete || role?.edit || role?.print || role?.mail;
     if (menu.children && menu.children.length > 0) {
       return hasAny || checkAnyMenus(menu.children, roles);
@@ -185,7 +188,8 @@ const EmployeeRoles = () => {
   const [employeeCreatedRoles, setEmployeeCreatedRoles] = useState([]);
   const [selectedEmployeeCreatedRole, setSelectedEmployeeCreatedRole] = useState(null);
 
-  const { menuData: contextMenuData } = useContext(MenuContext);
+  const { invalidateMenuCache, fetchMenus } = useContext(MenuContext);
+  const activeRole = selectedRole || selectedEmployeeCreatedRole;
   const { adminData, role } = useContext(AuthContext);
 
   // Fetch all roles and menu data
@@ -225,7 +229,7 @@ const EmployeeRoles = () => {
       }
     } catch (error) {
       console.error("Error fetching roles:", error);
-      toast.error("Failed to load roles");
+      toast.error(apiErrorMessage(error, "Failed to load roles"));
     } finally {
       setLoading(false);
     }
@@ -244,7 +248,7 @@ const EmployeeRoles = () => {
       }
     } catch (error) {
       console.error("Error fetching admin roles:", error);
-      toast.error("Failed to load roles");
+      toast.error(apiErrorMessage(error, "Failed to load roles"));
     } finally {
       setLoading(false);
     }
@@ -280,23 +284,11 @@ const EmployeeRoles = () => {
         }
       } else {
         console.error("No data in API response or isOk is false");
-        toast.error("Failed to load menu data");
-
-        // If context data is available, use it as a fallback
-        if (contextMenuData && contextMenuData.length > 0) {
-
-          setMenuData(contextMenuData);
-        }
+        toast.error(apiErrorMessage(response, "Failed to load menu data"));
       }
     } catch (error) {
       console.error("Error fetching menu data:", error);
-      toast.error("Failed to load menus and menu groups");
-
-      // If context data is available, use it as a fallback
-      if (contextMenuData && contextMenuData.length > 0) {
-
-        setMenuData(contextMenuData);
-      }
+      toast.error(apiErrorMessage(error, "Failed to load menus and menu groups"));
     } finally {
       setLoading(false);
     }
@@ -313,14 +305,13 @@ const EmployeeRoles = () => {
       } else {
         // If no roles found, set to null
         setEmployeeRoles(null);
-        toast.info(response.message)
+        if (response.data?.message) toast.info(response.data.message);
       }
     } catch (error) {
       if (error.response?.status === 404) {
-        // No roles assigned yet, that's fine
         setEmployeeRoles(null);
       } else {
-        toast.error("Failed to load employee roles");
+        toast.error(apiErrorMessage(error, "Failed to load employee roles"));
       }
     } finally {
       setLoading(false);
@@ -330,6 +321,7 @@ const EmployeeRoles = () => {
 
   // Handle permission checkboxes
   const handlePermissionChange = (id, isGroup, permission, isChecked) => {
+    if (!activeRole) return;
     setRolesChanged(true);
 
     const menuField = isGroup ? "menuGroupId" : "menuId";
@@ -340,7 +332,7 @@ const EmployeeRoles = () => {
 
       // Find existing role by menuId or menuGroupId
       const roleIndex = updatedRoles.roles.findIndex(r =>
-        (isGroup ? r.menuGroupId === id : r.menuId === id)
+        (isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id))
       );
 
       if (roleIndex === -1) {
@@ -355,7 +347,7 @@ const EmployeeRoles = () => {
     } else {
       // Create new roles structure if none exists
       const newRoles = {
-        roleId: selectedRole.value,
+        roleId: activeRole?.value,
         roles: [createPermissionObject(menuField, id, permission, isChecked)]
       };
       setEmployeeRoles(newRoles);
@@ -364,6 +356,7 @@ const EmployeeRoles = () => {
 
   // Handle all permissions for a menu
   const handleAllPermissions = (id, isGroup, isChecked) => {
+    if (!activeRole) return;
     setRolesChanged(true);
 
     const menuField = isGroup ? "menuGroupId" : "menuId";
@@ -374,7 +367,7 @@ const EmployeeRoles = () => {
 
       // Find existing role by menuId or menuGroupId
       const roleIndex = updatedRoles.roles.findIndex(r =>
-        (isGroup ? r.menuGroupId === id : r.menuId === id)
+        (isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id))
       );
 
       if (roleIndex === -1) {
@@ -402,7 +395,7 @@ const EmployeeRoles = () => {
     } else {
       // Create new roles structure with all permissions
       const newRoles = {
-        roleId: selectedRole.value,
+        roleId: activeRole?.value,
         roles: [
           {
             [menuField]: id,
@@ -421,6 +414,7 @@ const EmployeeRoles = () => {
 
   // Handle column-wide permission changes
   const handleColumnPermissionChange = (permission, isChecked) => {
+    if (!activeRole) return;
     setRolesChanged(true);
 
     if (employeeRoles) {
@@ -460,7 +454,7 @@ const EmployeeRoles = () => {
       });
 
       const newRoles = {
-        roleId: selectedRole.value,
+        roleId: activeRole?.value,
         roles: [
           ...allMenuIds.map(menuId => createPermissionObject("menuId", menuId, permission, isChecked)),
           ...allGroupIds.map(groupId => createPermissionObject("menuGroupId", groupId, permission, isChecked))
@@ -472,6 +466,7 @@ const EmployeeRoles = () => {
 
   // Handle all permissions for a group
   const handleAllGroupPermissions = (groupId, isChecked) => {
+    if (!activeRole) return;
     setRolesChanged(true);
 
     const group = menuData.find(g => g.groupId === groupId);
@@ -480,7 +475,7 @@ const EmployeeRoles = () => {
     if (!employeeRoles) {
       // Create new roles structure for this group
       const newRoles = {
-        roleId: selectedRole.value,
+        roleId: activeRole?.value,
         roles: []
       };
 
@@ -499,7 +494,7 @@ const EmployeeRoles = () => {
 
     if (group.isLink) {
       // Update group permissions
-      const roleIndex = updatedRoles.roles.findIndex(r => r.menuGroupId === groupId);
+      const roleIndex = updatedRoles.roles.findIndex(r => sameId(r.menuGroupId, groupId));
       if (roleIndex === -1) {
         updatedRoles.roles.push(createFullPermissionObject("menuGroupId", groupId, isChecked));
       } else {
@@ -524,7 +519,7 @@ const EmployeeRoles = () => {
     if (!employeeRoles?.roles) return false;
 
     const role = employeeRoles.roles.find(r =>
-      isGroup ? r.menuGroupId === id : r.menuId === id
+      isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id)
     );
 
     return role?.[permission] || false;
@@ -535,7 +530,7 @@ const EmployeeRoles = () => {
     if (!employeeRoles?.roles) return false;
 
     const role = employeeRoles.roles.find(r =>
-      isGroup ? r.menuGroupId === id : r.menuId === id
+      isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id)
     );
 
     if (!role) return false;
@@ -555,7 +550,7 @@ const EmployeeRoles = () => {
     if (!employeeRoles?.roles) return false;
 
     const role = employeeRoles.roles.find(r =>
-      isGroup ? r.menuGroupId === id : r.menuId === id
+      isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id)
     );
 
     if (!role) return false;
@@ -587,7 +582,7 @@ const EmployeeRoles = () => {
     // Check if all IDs have the specified permission
     return allIds.every(({ id, isGroup }) => {
       const role = employeeRoles.roles.find(r =>
-        isGroup ? r.menuGroupId === id : r.menuId === id
+        isGroup ? sameId(r.menuGroupId, id) : sameId(r.menuId, id)
       );
       return !!role?.[permission];
     });
@@ -601,7 +596,7 @@ const EmployeeRoles = () => {
     if (!group) return false;
 
     if (group.isLink) {
-      const role = employeeRoles.roles.find(r => r.menuGroupId === groupId);
+      const role = employeeRoles.roles.find(r => sameId(r.menuGroupId, groupId));
       return !!(role?.read && role?.write && role?.delete && role?.edit && role?.print && role?.mail);
     } else if (group.menus) {
       return checkAllMenus(group.menus, employeeRoles.roles);
@@ -618,7 +613,7 @@ const EmployeeRoles = () => {
     if (!group) return false;
 
     if (group.isLink) {
-      const role = employeeRoles.roles.find(r => r.menuGroupId === groupId);
+      const role = employeeRoles.roles.find(r => sameId(r.menuGroupId, groupId));
       return !!(role?.read || role?.write || role?.delete || role?.edit || role?.print || role?.mail);
     } else if (group.menus) {
       return checkAnyMenus(group.menus, employeeRoles.roles);
@@ -636,14 +631,14 @@ const EmployeeRoles = () => {
   //     if (employeeRoles._id) {
   //       // Update existing roles
   //       await updateEmployeeRoles(selectedRole.value, {
-  //         roleId: selectedRole.value,
+  //         roleId: activeRole?.value,
   //         roles: employeeRoles.roles
   //       });
   //       toast.success("Employee roles updated successfully");
   //     } else {
   //       // Create new roles
   //       await createEmployeeRoles({
-  //         roleId: selectedRole.value,
+  //         roleId: activeRole?.value,
   //         roles: employeeRoles.roles
   //       });
   //       toast.success("Employee roles created successfully");
@@ -704,16 +699,14 @@ const EmployeeRoles = () => {
       }
 
       fetchEmployeeRoles(activeRole.value);
+      invalidateMenuCache();
+      fetchMenus(true);
       setRoles(roles.map(role =>
         role.value === activeRole.value ? { ...role } : role
       ));
     } catch (error) {
       console.error("Error saving employee roles:", error);
-      if (error.response?.status === 403) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to save employee roles");
-      }
+      toast.error(apiErrorMessage(error, "Failed to save employee roles"));
     } finally {
       setSaveLoading(false);
     }
@@ -730,16 +723,14 @@ const EmployeeRoles = () => {
       });
       toast.success("Employee roles updated successfully");
       fetchEmployeeRoles(activeRole.value);
+      invalidateMenuCache();
+      fetchMenus(true);
       setRoles(roles.map(role =>
         role.value === activeRole.value ? { ...role } : role
       ));
     } catch (error) {
       console.error("Error saving employee roles:", error);
-      if (error.response?.status === 403) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to save employee roles");
-      }
+      toast.error(apiErrorMessage(error, "Failed to save employee roles"));
     } finally {
       setSaveLoading(false);
     }
@@ -879,7 +870,7 @@ const EmployeeRoles = () => {
     });
   };
 
-  document.title = `Employee Roles | ${adminData.companyName}`;
+  document.title = `Employee Roles | ${adminData?.companyName || "Arambh"}`;
 
   return (
     <React.Fragment>

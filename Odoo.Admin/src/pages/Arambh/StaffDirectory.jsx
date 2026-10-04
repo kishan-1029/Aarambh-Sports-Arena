@@ -17,6 +17,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import { AuthContext } from "../../context/AuthContext";
 import { Can } from "../../Components/Common/Can";
 import { getAllEmployees } from "../../api/employees.api";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 
 const columns = [
   {
@@ -73,7 +74,7 @@ const StaffDirectory = () => {
       setRows(Array.isArray(data) ? data : []);
     } catch (err) {
       setError({
-        message: err?.response?.data?.message || err?.message || "Failed to load employees",
+        message: apiErrorMessage(err, "Failed to load employees"),
         requestId: err?.response?.data?.requestId || err?.response?.headers?.["x-request-id"],
       });
       setRows([]);

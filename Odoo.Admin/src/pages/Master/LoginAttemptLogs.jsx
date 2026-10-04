@@ -19,6 +19,7 @@ import { getLoginAttempts, resetLoginAttempts, unlockAccount, blockUser, unblock
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import GridActionButton from "../../Components/Common/GridActionButton";
 import { toast, ToastContainer } from "react-toastify";
+import { apiErrorMessage } from "../../utils/apiErrorMessage";
 import { AuthContext } from "../../context/AuthContext";
 // Format date helper
 const formatDate = (dateString) => {
@@ -95,7 +96,7 @@ const LoginAttemptLogs = () => {
             }
         } catch (error) {
             console.error("Error fetching login attempts:", error);
-            toast.error("Failed to fetch login attempts");
+            toast.error(apiErrorMessage(error, "Failed to fetch login attempts"));
         } finally {
             setLoading(false);
         }
@@ -171,7 +172,7 @@ const LoginAttemptLogs = () => {
             fetchLoginAttempts();
         } catch (error) {
             console.error("Action failed:", error);
-            toast.error(`Failed to ${modalAction} account`);
+            toast.error(apiErrorMessage(error, `Failed to ${modalAction} account`));
         } finally {
             setActionLoading(false);
             setConfirmModal(false);
