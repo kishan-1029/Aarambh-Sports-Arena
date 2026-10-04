@@ -40,6 +40,9 @@ import { create as createBooking } from '../modules/booking/booking.service.js';
 import { Lead } from '../modules/public/lead.model.js';
 import { seedMenus } from './seedMenus.js';
 import { seedBlogs } from './seedBlogs.js';
+import { seedShop } from './seedShop.js';
+import { ProductCategory } from '../modules/ecommerce/category.model.js';
+import { Product } from '../modules/ecommerce/product.model.js';
 import {
   seedExtraMembers,
   seedExtraCustomers,
@@ -89,6 +92,8 @@ async function resetDemo() {
     SocialSession,
     SocialParticipant,
     Lead,
+    ProductCategory,
+    Product,
   ];
 
   for (const Model of collections) {
@@ -673,6 +678,7 @@ async function main() {
   await seedSampleBooking(courts, allMembers);
   await seedExtraBookings(courts, allMembers);
   await seedExtraLeads();
+  await seedShop();
   await seedMenus();
   await seedBlogs();
   await seedTemplates();

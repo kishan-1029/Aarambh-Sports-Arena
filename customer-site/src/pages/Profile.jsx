@@ -27,6 +27,9 @@ export function ProfileSidebar({ user, logout }) {
         <NavLink to="/profile/bookings" className={({ isActive }) => (isActive ? 'active' : '')}>
           My Bookings
         </NavLink>
+        <NavLink to="/profile/orders" className={({ isActive }) => (isActive ? 'active' : '')}>
+          My Orders
+        </NavLink>
         <NavLink to="/membership" className={({ isActive }) => (isActive ? 'active' : '')}>
           Membership
         </NavLink>

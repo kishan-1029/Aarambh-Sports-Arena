@@ -82,6 +82,7 @@ export async function getClub() {
       showBlogs: settings.showBlogs !== false,
       showTrial: settings.showTrial !== false,
       showContact: settings.showContact !== false,
+      showShop: settings.showShop !== false,
     },
     location: location
       ? {

@@ -32,6 +32,8 @@ export const settingsPatchSchema = z.object({
   walkInMaxPerPhonePerDay: z.number().int().min(1).optional(),
   walkInRequiresPhone: z.boolean().optional(),
   lowStockDefault: z.number().int().min(0).optional(),
+  shopDeliveryChargePaise: z.number().int().min(0).optional(),
+  shopFreeDeliveryAbovePaise: z.number().int().min(0).optional(),
   invoicePrefix: z.string().optional(),
   receiptFooter: z.string().optional(),
   paymentsProvider: z.enum(['mock', 'razorpay']).optional(),
@@ -43,6 +45,7 @@ export const settingsPatchSchema = z.object({
   showBlogs: z.boolean().optional(),
   showTrial: z.boolean().optional(),
   showContact: z.boolean().optional(),
+  showShop: z.boolean().optional(),
 });
 
 export const taxCreateSchema = z.object({

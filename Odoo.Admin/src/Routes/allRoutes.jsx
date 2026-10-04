@@ -42,6 +42,13 @@ import Memberships from "../pages/Arambh/Memberships";
 import Courts from "../pages/Arambh/Courts";
 import Bookings from "../pages/Arambh/Bookings";
 import FrontDesk from "../pages/Arambh/FrontDesk";
+import EcommerceDashboard from "../pages/Arambh/Ecommerce/Dashboard";
+import ShopProducts from "../pages/Arambh/Ecommerce/Products";
+import ShopProductForm from "../pages/Arambh/Ecommerce/ProductForm";
+import ShopCategories from "../pages/Arambh/Ecommerce/Categories";
+import ShopOrders from "../pages/Arambh/Ecommerce/Orders";
+import ShopOrderDetail from "../pages/Arambh/Ecommerce/OrderDetail";
+import ShopInventory from "../pages/Arambh/Ecommerce/Inventory";
 
 
 const authProtectedRoutes = [
@@ -80,8 +87,18 @@ const authProtectedRoutes = [
     { path: "/membership-plans", component: <MembershipPlans /> },
     { path: "/memberships", component: <Memberships /> },
     { path: "/kds", component: <ComingSoon /> },
-    { path: "/shop/inventory", component: <ComingSoon /> },
     { path: "/crm/pipeline", component: <ComingSoon /> },
+
+    // E-commerce (Pro Shop)
+    { path: "/ecommerce", component: <EcommerceDashboard /> },
+    { path: "/ecommerce/products", component: <ShopProducts /> },
+    { path: "/ecommerce/products/new", component: <ShopProductForm /> },
+    { path: "/ecommerce/products/:id", component: <ShopProductForm /> },
+    { path: "/ecommerce/categories", component: <ShopCategories /> },
+    { path: "/ecommerce/orders", component: <ShopOrders /> },
+    { path: "/ecommerce/orders/:id", component: <ShopOrderDetail /> },
+    { path: "/ecommerce/inventory", component: <ShopInventory /> },
+    { path: "/shop/inventory", component: <Navigate to="/ecommerce/inventory" replace /> },
     { path: "/customers", component: <Customers /> },
     { path: "/finance/invoices", component: <Invoices /> },
     { path: "/finance/invoices/:id", component: <InvoiceDetail /> },

@@ -44,8 +44,12 @@ export const ARAMBH_ROUTES = [
   { label: "Memberships", path: "/memberships", perm: "membership.view", icon: "ri-id-card-line" },
   { label: "POS", path: "/pos", perm: "pos.create", icon: "ri-store-2-line", comingSoon: true, fullscreen: true },
   { label: "Kitchen Display (KDS)", path: "/kds", perm: "kds.view", icon: "ri-restaurant-line", comingSoon: true },
-  { label: "Shop / Inventory", path: "/shop/inventory", perm: "inventory.view", icon: "ri-shopping-bag-3-line", comingSoon: true },
   { label: "CRM", path: "/crm/pipeline", perm: "lead.view", icon: "ri-customer-service-2-line", comingSoon: true },
+  { label: "E-commerce", path: "/ecommerce", perm: "product.view", icon: "ri-shopping-cart-2-line" },
+  { label: "Shop products", path: "/ecommerce/products", perm: "product.view", icon: "ri-shopping-bag-3-line" },
+  { label: "Shop categories", path: "/ecommerce/categories", perm: "product.view", icon: "ri-price-tag-3-line" },
+  { label: "Shop orders", path: "/ecommerce/orders", perm: "order.view", icon: "ri-shopping-cart-line" },
+  { label: "Inventory", path: "/ecommerce/inventory", perm: "inventory.view", icon: "ri-archive-line" },
   { label: "Customers", path: "/customers", perm: "customer.view", icon: "ri-contacts-book-line" },
   { label: "Invoices", path: "/finance/invoices", perm: "invoice.view", icon: "ri-money-rupee-circle-line" },
   { label: "Payments", path: "/settings/payments", perm: "payment.manage", icon: "ri-bank-card-line" },
@@ -123,10 +127,16 @@ export function buildArambhNavGroups() {
       { name: "Membership Plans", url: "/membership-plans", icon: "ri-vip-crown-line", perm: "membership_plan.view" },
       { name: "Memberships", url: "/memberships", icon: "ri-id-card-line", perm: "membership.view" },
     ]),
-    group("arambh-commerce", "POS & Shop", "ri-store-2-line", [
+    group("arambh-ecommerce", "E-commerce", "ri-shopping-cart-2-line", [
+      { name: "Dashboard", url: "/ecommerce", icon: "ri-dashboard-line", perm: "product.view" },
+      { name: "Products", url: "/ecommerce/products", icon: "ri-shopping-bag-3-line", perm: "product.view" },
+      { name: "Categories", url: "/ecommerce/categories", icon: "ri-price-tag-3-line", perm: "product.view" },
+      { name: "Orders", url: "/ecommerce/orders", icon: "ri-shopping-cart-line", perm: "order.view" },
+      { name: "Inventory", url: "/ecommerce/inventory", icon: "ri-archive-line", perm: "inventory.view" },
+    ]),
+    group("arambh-commerce", "POS & Counter", "ri-store-2-line", [
       { name: "POS", url: "/pos", icon: "ri-store-2-line", perm: "pos.create", comingSoon: true },
       { name: "Kitchen Display (KDS)", url: "/kds", icon: "ri-restaurant-line", perm: "kds.view", comingSoon: true },
-      { name: "Shop / Inventory", url: "/shop/inventory", icon: "ri-shopping-bag-3-line", perm: "inventory.view", comingSoon: true },
       { name: "CRM", url: "/crm/pipeline", icon: "ri-customer-service-2-line", perm: "lead.view", comingSoon: true },
     ]),
     group("arambh-finance", "Finance", "ri-money-rupee-circle-line", [
