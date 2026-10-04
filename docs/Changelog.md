@@ -22,3 +22,4 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-03 · Phase 17 MCP · `mcp/` host (HTTP+stdio) from project360 patterns; `/api/mcp/*` + API keys (ADR-0007); admin Settings → MCP access; CONNECT.md for Claude/ChatGPT/Cursor.
 - 2026-10-03 · Deploy · Single-domain nginx+PM2 (`deploy/`): `/` site, `/admin` panel, `/api` backend, `/mcp` MCP; same-origin frontends.
 - 2026-10-04 · Admin UI · Grid row actions are icon-only; the action name is the tooltip. Page buttons stay labelled.
+- 2026-10-04 · Front Desk · Quick book walk-in phone must be a 10-digit Indian mobile (starts with 6–9). Same check on booking create.
