@@ -15,16 +15,26 @@ const INTERESTS = [
 
 function planPerks(plan) {
   return [
-    ...(plan.entitlements?.perks || []),
-    plan.entitlements?.court?.maxBookingsPerDay
-      ? `Up to ${plan.entitlements.court.maxBookingsPerDay} bookings a day`
-      : null,
-    plan.entitlements?.court?.advanceBookingDays
-      ? `Book up to ${plan.entitlements.court.advanceBookingDays} days ahead`
-      : null,
-    plan.entitlements?.shopDiscountPct ? `${plan.entitlements.shopDiscountPct}% shop discount` : null,
-    plan.entitlements?.barDiscountPct ? `${plan.entitlements.barDiscountPct}% café discount` : null,
-    plan.entitlements?.guestPasses ? `${plan.entitlements.guestPasses} guest passes` : null,
+    ...((plan.benefits || []).length ? plan.benefits : plan.entitlements?.perks || []),
+    ...(((plan.benefits || []).length || (plan.entitlements?.perks || []).length)
+      ? []
+      : [
+          plan.entitlements?.court?.maxBookingsPerDay
+            ? `Up to ${plan.entitlements.court.maxBookingsPerDay} bookings a day`
+            : null,
+          plan.entitlements?.court?.advanceBookingDays
+            ? `Book up to ${plan.entitlements.court.advanceBookingDays} days ahead`
+            : null,
+          plan.entitlements?.shopDiscountPct
+            ? `${plan.entitlements.shopDiscountPct}% shop discount`
+            : null,
+          plan.entitlements?.barDiscountPct
+            ? `${plan.entitlements.barDiscountPct}% café discount`
+            : null,
+          plan.entitlements?.guestPasses
+            ? `${plan.entitlements.guestPasses} guest passes`
+            : null,
+        ]),
   ].filter(Boolean);
 }
 

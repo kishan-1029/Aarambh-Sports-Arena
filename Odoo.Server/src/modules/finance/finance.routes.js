@@ -40,11 +40,24 @@ router.get(
           if (q.status) f.status = q.status;
           if (q.kind) f.kind = q.kind;
           if (q.customerId) f.customerId = q.customerId;
+          // Bifurcate POS vs E-com vs membership/booking
+          if (q.sourceType) f.sourceType = q.sourceType;
+          if (q.channel === 'ecom' || q.channel === 'ecommerce') {
+            f.sourceType = 'order';
+          } else if (q.channel === 'pos') {
+            f.sourceType = 'pos_order';
+          } else if (q.channel === 'membership') {
+            f.sourceType = 'membership';
+          } else if (q.channel === 'booking') {
+            f.sourceType = 'booking';
+          } else if (q.channel === 'other') {
+            f.sourceType = { $nin: ['order', 'pos_order', 'membership', 'booking'] };
+          }
           return f;
         },
       });
       const { data, meta } = await runListQuery(Invoice, parsed, {
-        populate: { path: 'customerId', select: 'name email phone' },
+        populate: { path: 'customerId', select: 'name email phone tags' },
       });
       return ok(res, data, 'ok', meta);
     } catch (err) {
@@ -165,10 +178,17 @@ router.get(
           const f = {};
           if (q.status) f.status = q.status;
           if (q.method) f.method = q.method;
+          if (q.channel === 'pos') {
+            f.posSessionId = { $ne: null };
+          } else if (q.channel === 'ecom' || q.channel === 'ecommerce') {
+            f.sourceType = 'shop_order';
+          }
           return f;
         },
       });
-      const { data, meta } = await runListQuery(Payment, parsed);
+      const { data, meta } = await runListQuery(Payment, parsed, {
+        populate: { path: 'invoiceIds', select: 'number sourceType' },
+      });
       return ok(res, data, 'ok', meta);
     } catch (err) {
       return next(err);

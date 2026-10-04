@@ -11,48 +11,57 @@ const MenuContext = createContext();
 // Cache duration in milliseconds (30 minutes)
 const CACHE_DURATION = 30 * 60 * 1000;
 
+const sameId = (a, b) => {
+    if (a == null || b == null) return false;
+    return String(a) === String(b);
+};
+
 // Recursive helper function to filter menu items at any nesting level
 const filterMenuItems = (menuItems, roles) => {
     if (!Array.isArray(menuItems) || !Array.isArray(roles)) {
         return [];
     }
 
-    return menuItems.filter(menu => {
-        const hasReadPermission = roles.some(role =>
-            role.menuId === menu.id && role.read
-        );
+    return menuItems
+        .map((menu) => ({ ...menu, children: menu.children ? [...menu.children] : undefined }))
+        .filter((menu) => {
+            const hasReadPermission = roles.some(
+                (role) => role.read && sameId(role.menuId, menu.id),
+            );
 
-        if (menu.children && menu.children.length > 0) {
-            menu.children = filterMenuItems(menu.children, roles);
-            return hasReadPermission || menu.children.length > 0;
-        }
+            if (menu.children && menu.children.length > 0) {
+                menu.children = filterMenuItems(menu.children, roles);
+                return hasReadPermission || menu.children.length > 0;
+            }
 
-        return hasReadPermission;
-    });
+            return hasReadPermission;
+        });
 };
 
-// Helper function to filter menus based on user permissions
+// Helper function to filter menus based on user permissions (non-mutating)
 const filterMenusByPermission = (menuGroups, roles) => {
     if (!Array.isArray(menuGroups) || !Array.isArray(roles)) {
         return [];
     }
 
-    return menuGroups.filter(group => {
-        if (group.isLink) {
-            return roles.some(role =>
-                role.menuGroupId === group.groupId && role.read
-            );
-        }
+    return menuGroups
+        .map((group) => ({ ...group, menus: group.menus ? [...group.menus] : [] }))
+        .filter((group) => {
+            if (group.isLink) {
+                return roles.some(
+                    (role) => role.read && sameId(role.menuGroupId, group.groupId),
+                );
+            }
 
-        const filteredMenus = filterMenuItems(group.menus || [], roles);
+            const filteredMenus = filterMenuItems(group.menus || [], roles);
 
-        if (filteredMenus.length > 0) {
-            group.menus = filteredMenus;
-            return true;
-        }
+            if (filteredMenus.length > 0) {
+                group.menus = filteredMenus;
+                return true;
+            }
 
-        return false;
-    });
+            return false;
+        });
 };
 
 const MenuProvider = ({ children }) => {
@@ -181,8 +190,14 @@ const MenuProvider = ({ children }) => {
                     completeMenus: menuGroups,
                     timestamp: now
                 }));
+            } else {
+                // No MenuMaster ACL → show nothing (never fall back to full nav)
+                setMenuData([]);
             }
+            return;
         }
+
+        setMenuData([]);
     }, [employeeRoleId, fetchEmployeeRoles]);
 
     const updateCurrentPagePermissions = useCallback((menuId) => {
@@ -358,7 +373,10 @@ const MenuProvider = ({ children }) => {
                 for (const menu of menus) {
                     if (menu?.url) {
                         const menuUrl = menu.url.replace(/\/+$/, '') || '/';
-                        if (menuUrl === cleanUrl) {
+                        if (
+                            menuUrl === cleanUrl ||
+                            (menuUrl !== '/' && cleanUrl.startsWith(`${menuUrl}/`))
+                        ) {
                             foundMenuId = menu.id;
                             return;
                         }

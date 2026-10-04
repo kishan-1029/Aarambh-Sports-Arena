@@ -208,6 +208,8 @@ export const createCompanyMaster = async (req, res) => {
       pincode: pincode || superAdmin?.pincode || "390001",
       website: website || superAdmin?.website || "sportsarena.aarambhevents.in",
       isActive: isActive !== undefined ? isActive : true,
+      // New company logins are client admins — only seed/manual can mark super-admin
+      isSuperAdmin: false,
       addButtonTextColor: addButtonTextColor || superAdmin?.addButtonTextColor || "",
       removeButtonTextColor: removeButtonTextColor || superAdmin?.removeButtonTextColor || "",
     });

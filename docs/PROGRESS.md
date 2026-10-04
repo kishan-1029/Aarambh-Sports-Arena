@@ -29,10 +29,11 @@ Current phase: 10 (online orders) — E-commerce Pro Shop live end to end; Phase
 
 ### Phase 14 — Public website (partial / hackathon cut)
 - [x] `customer-site/` React + Vite on port **3001** (admin stays on 3000) — ADR-0001 amended
-- [x] `/api/public/*` — club, sports, membership-plans, availability (free/busy only), enquiries, trials
-- [x] Pages: Home, Availability, Membership, Sports, Trial, Contact
-- [ ] Shop, member login, quote accept, AI chat widget (later)
-- **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003` (7002 held by stale process)
+- [x] `/api/public/*` — club, sports, membership-plans, availability (free/busy only), enquiries, trials, faqs
+- [x] Pages: Home, Availability, Membership, Sports, Trial, Contact, FAQs, Shop, Cart, Orders
+- [x] Contact thank-you email template; dark-theme logo; mobile nav/CSS; Gold/Silver benefits on site
+- [ ] Quote accept, AI chat widget (later)
+- **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003`
 
 ### Phase 8 — Catalogue, inventory, purchasing
 - [x] Products / variants / categories — `src/modules/ecommerce` (embedded variants + images, soft archive)

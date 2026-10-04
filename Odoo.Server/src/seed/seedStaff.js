@@ -99,7 +99,27 @@ const STAFF = [
     arambhKey: 'manager',
     employeeName: 'Vikram Club Manager',
     email: 'manager@arambh.demo',
-    menus: 'all-arambh',
+    /** Club ops — not Setup/Master/CMS shell */
+    menus: [
+      '/dashboard',
+      '/front-desk',
+      '/courts',
+      '/courts/bookings',
+      '/members',
+      '/membership-plans',
+      '/memberships',
+      '/pos/dashboard',
+      '/pos',
+      '/pos/orders',
+      '/ecommerce',
+      '/ecommerce/products',
+      '/ecommerce/orders',
+      '/customers',
+      '/finance/invoices',
+      '/settings/payments',
+      '/settings/club',
+      '/staff/directory',
+    ],
   },
 ];
 
@@ -117,10 +137,14 @@ const ARAMBH_MENU_URLS = [
   '/pos/cafes',
   '/pos/items',
   '/pos/menu',
+  '/ecommerce',
+  '/ecommerce/products',
+  '/ecommerce/categories',
+  '/ecommerce/orders',
+  '/ecommerce/inventory',
   '/customers',
   '/finance/invoices',
   '/settings/payments',
-  '/shop/inventory',
   '/settings/club',
   '/settings/mcp',
   '/settings/taxes',
@@ -301,17 +325,64 @@ export async function seedStaff() {
     );
   }
 
+  /** Extra company ADMIN logins (can manage employees; Add Admin tab is super-admin only) */
+  const COMPANY_ADMINS = [
+    {
+      email: 'ops.admin@arambh.demo',
+      companyName: 'Arambh Ops Admin',
+    },
+    {
+      email: 'club.admin@arambh.demo',
+      companyName: 'Arambh Club Admin',
+    },
+  ];
+
+  const companyAdmins = [];
+  for (const def of COMPANY_ADMINS) {
+    const existing = await CompanyMaster.findOne({ email: def.email }).select('_id').lean();
+    const fields = {
+      companyName: def.companyName,
+      email: def.email,
+      password: passwordHash,
+      mobileNumber: '9999900001',
+      gstNumber: '24ACQFS6351L2AI',
+      countryId: country._id,
+      stateId: state._id,
+      cityId: city._id,
+      address: 'Arambh Sports Arena, Vadodara',
+      pincode: '390001',
+      website: 'https://arambh.demo',
+      isActive: true,
+      isSuperAdmin: false,
+    };
+    if (existing?._id) {
+      await CompanyMaster.collection.updateOne({ _id: existing._id }, { $set: fields });
+    } else {
+      await CompanyMaster.collection.insertOne({
+        ...fields,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+    companyAdmins.push(def.email);
+  }
+
   logger.info(
     {
       count: created.length,
       password: DEMO_STAFF_PASSWORD,
       accounts: created.map((c) => `${c.email} (${c.role})`),
-      admin: admin ? 'admin@demo.com (full ADMIN)' : null,
+      admin: admin ? 'admin@demo.com (super ADMIN — can Add Admin)' : null,
+      companyAdmins,
     },
     'seeded demo staff accounts',
   );
 
-  return { accounts: created, password: DEMO_STAFF_PASSWORD };
+  return {
+    accounts: created,
+    password: DEMO_STAFF_PASSWORD,
+    companyAdmins,
+  };
 }
 
 export default seedStaff;

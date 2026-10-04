@@ -32,6 +32,20 @@ export default function OrderDetail() {
     if (ready && user) load();
   }, [ready, user, load]);
 
+  // Poll while the order is still moving so ecom-admin status changes show up
+  useEffect(() => {
+    if (!ready || !user || !order) return undefined;
+    const terminal = ['completed', 'cancelled', 'delivered'].includes(order.orderStatus);
+    if (terminal) return undefined;
+    const id = setInterval(() => {
+      api
+        .myOrder(orderNumber)
+        .then(setOrder)
+        .catch(() => {});
+    }, 15000);
+    return () => clearInterval(id);
+  }, [ready, user, order, orderNumber]);
+
   const onCancel = async () => {
     if (!window.confirm('Cancel this order? The items go back on the shelf.')) return;
     setCancelling(true);

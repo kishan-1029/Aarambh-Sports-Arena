@@ -3,6 +3,7 @@ import { Product } from './product.model.js';
 import { Cart } from './cart.model.js';
 import { PortalAccount } from '../portal/portalAccount.model.js';
 import { Member } from '../members/member.model.js';
+import { Customer } from '../customers/customer.model.js';
 import { getClubSettings } from '../settings/settings.service.js';
 import { withTransaction } from '../../lib/db.js';
 import { nextNumber } from '../../lib/counters.js';
@@ -257,6 +258,15 @@ export async function checkout(
     },
     requestId: ctx.requestId,
   });
+
+  // Finance bifurcation: mark the linked customer as an e-com shopper
+  const linkedCustomerId = created.customerId || account.customerId || member?.customerId;
+  if (linkedCustomerId) {
+    await Customer.updateOne(
+      { _id: linkedCustomerId },
+      { $addToSet: { tags: { $each: ['ecom', 'shop'] } } },
+    ).catch(() => {});
+  }
 
   return toCustomerOrder(created.toObject());
 }

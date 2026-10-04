@@ -126,7 +126,14 @@ export const arambhPaths = {
   "/api/public/membership-plans": {
     get: op({
       tags: ["Public"],
-      summary: "Public membership plans",
+      summary: "Public membership plans (with benefits / entitlements)",
+      security: false,
+    }),
+  },
+  "/api/public/faqs": {
+    get: op({
+      tags: ["Public"],
+      summary: "Active FAQs grouped by category",
       security: false,
     }),
   },

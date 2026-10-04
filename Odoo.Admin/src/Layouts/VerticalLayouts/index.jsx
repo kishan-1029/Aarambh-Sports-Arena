@@ -13,13 +13,16 @@ import {
 import { usePermission } from "../../hooks/usePermission";
 
 const VerticalLayout = (props) => {
-    const { menuData, loading, updateCurrentPagePermissions } =
+    const { menuData, loading, updateCurrentPagePermissions, isAdmin } =
         useContext(MenuContext);
     const { adminData } = useContext(AuthContext);
     const { can } = usePermission();
     const [expandedItems, setExpandedItems] = useState({});
 
     const path = props.router.location.pathname;
+
+    const normPath = (url) =>
+        String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
 
     const pathActive = (url) => {
         if (!url || url === "#") return false;
@@ -36,38 +39,84 @@ const VerticalLayout = (props) => {
                 treeHasActive(node?.menus)
         );
 
+    /**
+     * MenuMaster ACL URLs for employees — null means ADMIN (no ACL gate).
+     * Employees MUST have an explicit allow-list; an empty set means "show nothing"
+     * (never fall back to string-permissions-only, which was leaking every menu).
+     */
+    const allowedMenuUrls = useMemo(() => {
+        if (isAdmin || adminData?.role === "ADMIN") return null;
+        const urls = new Set();
+        const walk = (nodes) => {
+            for (const n of nodes || []) {
+                if (n?.url && n.url !== "#") urls.add(normPath(n.url));
+                if (n?.isLink && n?.url && n.url !== "#") urls.add(normPath(n.url));
+                walk(n?.menus);
+                walk(n?.children);
+            }
+        };
+        walk(menuData);
+        return urls;
+    }, [isAdmin, adminData?.role, menuData]);
+
+    const menuAclAllows = (url) => {
+        if (allowedMenuUrls == null) return true;
+        if (!url || url === "#") return false;
+        const target = normPath(url);
+        if (allowedMenuUrls.has(target)) return true;
+        for (const u of allowedMenuUrls) {
+            if (u !== "/" && target.startsWith(`${u}/`)) return true;
+        }
+        return false;
+    };
+
     const arambhGroups = useMemo(() => {
+        // While MenuMaster ACL is still loading for an employee, show nothing —
+        // otherwise can() alone would paint the full coded nav.
+        if (allowedMenuUrls != null && allowedMenuUrls.size === 0) {
+            return [];
+        }
         return buildArambhNavGroups()
             .map((group) => ({
                 ...group,
-                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+                menus: (group.menus || []).filter(
+                    (m) =>
+                        (!m.perm || can(m.perm)) && menuAclAllows(m.url),
+                ),
             }))
             .filter((g) =>
                 g.isLink
-                    ? !g.perm || can(g.perm)
+                    ? (!g.perm || can(g.perm)) && menuAclAllows(g.url)
                     : g.menus && g.menus.length > 0,
             );
-    }, [can]);
+    }, [can, allowedMenuUrls]);
 
     const legacyGroups = useMemo(() => {
-        // Setup / Master / CMS stay for company ADMIN or staff with settings/role/employee manage
-        const canSeeAdminShell =
-            can("settings.manage") || can("role.manage") || can("employee.manage");
+        if (allowedMenuUrls != null && allowedMenuUrls.size === 0) {
+            return [];
+        }
+        // Setup / Master / CMS only for company ADMIN, or when ACL explicitly grants a URL
+        const canSeeAdminShell = isAdmin || adminData?.role === "ADMIN";
         return buildLegacyNavGroups()
             .map((group) => ({
                 ...group,
-                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+                menus: (group.menus || []).filter(
+                    (m) =>
+                        (!m.perm || can(m.perm)) && menuAclAllows(m.url),
+                ),
             }))
             .filter((g) => {
                 if (["Setup", "Master", "CMS"].includes(g.groupName)) {
-                    return canSeeAdminShell;
+                    if (!canSeeAdminShell && !g.menus?.length) return false;
+                    if (!canSeeAdminShell) return g.menus && g.menus.length > 0;
+                    return g.menus && g.menus.length > 0;
                 }
-                return true;
+                if (g.isLink) {
+                    return menuAclAllows(g.url);
+                }
+                return g.menus && g.menus.length > 0;
             });
-    }, [can]);
-
-    const normPath = (url) =>
-        String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
+    }, [can, allowedMenuUrls, isAdmin, adminData?.role]);
 
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {

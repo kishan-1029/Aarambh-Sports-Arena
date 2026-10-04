@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
 import logoHorizontal from "../assets/images/brand/logo-horizontal.png";
 import logoStacked from "../assets/images/brand/logo-stacked.png";
+import logoHorizontalDark from "../assets/images/brand/logo-horizontal-dark.jpg";
+import logoStackedDark from "../assets/images/brand/logo-stacked-dark.jpg";
 
 //Import Components
 import VerticalLayout from "./VerticalLayouts";
@@ -96,6 +98,7 @@ const Sidebar = ({ layoutType }) => {
                         border-right: 1px solid rgba(255, 255, 255, 0.1);
                     }
                     
+                    /* Original sidebar: white plate + color logo (green/black mark) */
                     .minimal-logo-box {
                         background: #ffffff !important;
                         border-bottom: 1px solid #e5e7eb;
@@ -122,6 +125,10 @@ const Sidebar = ({ layoutType }) => {
                         padding: 0 !important;
                         border-radius: 0 !important;
                     }
+
+                    /* Always use the original color logo on the white plate */
+                    .minimal-logo-box .logo-dark { display: inline-block !important; }
+                    .minimal-logo-box .logo-light { display: none !important; }
                     
                     /* Menu styling */
                     .menu-title {
@@ -646,12 +653,14 @@ const Sidebar = ({ layoutType }) => {
             </style>
             <div className="app-menu navbar-menu minimal-sidebar">
                 <div className="navbar-brand-box minimal-logo-box">
-                    <Link to="/dashboard" className="logo logo-dark logo-light text-center w-100 d-block">
+                    <Link to="/dashboard" className="logo text-center w-100 d-block">
                         <span className="logo-sm">
-                            <img src={logoStacked} alt="Arambh Sports Arena" />
+                            <img src={logoStacked} alt="Arambh Sports Arena" className="logo-dark" />
+                            <img src={logoStackedDark} alt="Arambh Sports Arena" className="logo-light" />
                         </span>
                         <span className="logo-lg">
-                            <img src={logoHorizontal} alt="Arambh Sports Arena" />
+                            <img src={logoHorizontal} alt="Arambh Sports Arena" className="logo-dark" />
+                            <img src={logoHorizontalDark} alt="Arambh Sports Arena" className="logo-light" />
                         </span>
                     </Link>
                     <button

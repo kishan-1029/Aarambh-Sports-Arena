@@ -13,6 +13,7 @@ const FALLBACK_METHODS = [
 ];
 
 function perks(plan) {
+  if (Array.isArray(plan.benefits) && plan.benefits.length) return plan.benefits;
   return [
     ...(plan.entitlements?.perks || []),
     plan.entitlements?.court?.maxBookingsPerDay ? `Up to ${plan.entitlements.court.maxBookingsPerDay} bookings a day` : null,

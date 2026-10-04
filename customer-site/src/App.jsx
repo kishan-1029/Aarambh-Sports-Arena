@@ -7,6 +7,7 @@ import Sports from './pages/Sports.jsx';
 import Trial from './pages/Trial.jsx';
 import Contact from './pages/Contact.jsx';
 import Blogs from './pages/Blogs.jsx';
+import Faqs from './pages/Faqs.jsx';
 import Booking from './pages/Booking.jsx';
 import Profile from './pages/Profile.jsx';
 import MyBookings from './pages/MyBookings.jsx';
@@ -26,6 +27,7 @@ import { ToastProvider } from './toast.jsx';
 import { ThemeProvider, useTheme } from './theme.jsx';
 import { api } from './api.js';
 import logoHorizontal from './assets/brand/logo-horizontal.png';
+import logoHorizontalDark from './assets/brand/logo-horizontal-dark.jpg';
 
 const DEFAULT_FEATURES = {
   publicSiteEnabled: true,
@@ -44,7 +46,7 @@ function CartLink({ className = '' }) {
   return (
     <NavLink to="/cart" className={`cart-link ${className}`} aria-label={`Cart, ${count} items`}>
       <span aria-hidden="true">🛒</span>
-      <span>Cart</span>
+      <span className="cart-label">Cart</span>
       {count > 0 && <span className="cart-badge">{count > 99 ? '99+' : count}</span>}
     </NavLink>
   );
@@ -55,6 +57,7 @@ function NavHeader({ features }) {
   const { user, logout } = useAuth();
   const { openAuth } = useAuthDialog();
   const { theme, toggle } = useTheme();
+  const brandLogo = theme === 'dark' ? logoHorizontalDark : logoHorizontal;
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -93,7 +96,7 @@ function NavHeader({ features }) {
     <header className="topnav">
       <div className="nav-inner">
         <Link to="/" className="brand brand-lockup" aria-label="Aarambh Sports Arena">
-          <img className="brand-logo" src={logoHorizontal} alt="Aarambh Sports Arena" />
+          <img className="brand-logo" src={brandLogo} alt="Aarambh Sports Arena" />
         </Link>
 
         <button
@@ -111,8 +114,10 @@ function NavHeader({ features }) {
           {f.showMembershipPlans !== false && <NavLink to="/membership">Membership</NavLink>}
           {f.showShop !== false && <NavLink to="/shop">Shop</NavLink>}
           {f.showContact !== false && <NavLink to="/contact">Contact</NavLink>}
+          <NavLink to="/faqs">FAQs</NavLink>
           {user && <NavLink to="/booking">Book Court</NavLink>}
           {user && <NavLink to="/profile/bookings">My Bookings</NavLink>}
+          {user && f.showShop !== false && <NavLink to="/profile/orders">My Orders</NavLink>}
 
           {/* Mobile only actions */}
           <div className="mobile-only">
@@ -223,11 +228,13 @@ function NavHeader({ features }) {
 
 function SiteFooter({ features }) {
   const f = features || DEFAULT_FEATURES;
+  const { theme } = useTheme();
+  const brandLogo = theme === 'dark' ? logoHorizontalDark : logoHorizontal;
   return (
     <footer className="footer">
       <div className="footer-inner">
         <div className="footer-brand">
-          <img className="footer-logo" src={logoHorizontal} alt="Aarambh Sports Arena" />
+          <img className="footer-logo" src={brandLogo} alt="Aarambh Sports Arena" />
           <p className="muted" style={{ margin: '8px 0 0', fontSize: 14 }}>
             Vadodara · Premium Badminton & Pickleball Courts · Live Slots
           </p>
@@ -238,6 +245,7 @@ function SiteFooter({ features }) {
           {f.showMembershipPlans !== false && <Link to="/membership">Membership Plans</Link>}
           {f.showTrial !== false && <Link to="/trial">Book a Trial</Link>}
           {f.showContact !== false && <Link to="/contact">Contact</Link>}
+          <Link to="/faqs">FAQs</Link>
           <Link to="/cafeteria">Cafeteria</Link>
           <Link to="/shop">Pro Shop</Link>
         </div>
@@ -299,6 +307,7 @@ export default function App() {
               <Route path="/membership" element={<Membership />} />
               <Route path="/trial" element={<Trial />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/faqs" element={<Faqs />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/booking" element={<Booking />} />
               <Route path="/profile" element={<Profile />} />

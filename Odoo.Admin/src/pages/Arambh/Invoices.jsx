@@ -18,6 +18,7 @@ import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
 import { Can } from "../../Components/Common/Can";
 import { listInvoices } from "../../api/arambhFinance.api";
+import { invoiceChannel } from "../../lib/financeChannel";
 
 const statusTone = (s) => {
   if (s === "paid") return "paid";
@@ -43,6 +44,14 @@ const columns = [
     name: "Customer",
     selector: (r) => r.customerId?.name || "—",
     minWidth: "140px",
+  },
+  {
+    name: "Channel",
+    cell: (r) => {
+      const ch = invoiceChannel(r.sourceType);
+      return <StatusChip status={ch.tone} label={ch.label} />;
+    },
+    width: "120px",
   },
   {
     name: "Kind",
@@ -79,6 +88,7 @@ const Invoices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState("");
+  const [channel, setChannel] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +97,7 @@ const Invoices = () => {
       const res = await listInvoices({
         pageSize: 50,
         status: status || undefined,
+        channel: channel || undefined,
       });
       setRows(Array.isArray(res?.data?.data) ? res.data.data : []);
     } catch (err) {
@@ -98,7 +109,7 @@ const Invoices = () => {
     } finally {
       setLoading(false);
     }
-  }, [status]);
+  }, [status, channel]);
 
   useEffect(() => {
     load();
@@ -127,19 +138,34 @@ const Invoices = () => {
               <Card>
                 <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                   <h5 className="mb-0">Invoices</h5>
-                  <Input
-                    type="select"
-                    style={{ maxWidth: 200 }}
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="">All statuses</option>
-                    <option value="posted">posted</option>
-                    <option value="partially_paid">partially_paid</option>
-                    <option value="paid">paid</option>
-                    <option value="draft">draft</option>
-                    <option value="void">void</option>
-                  </Input>
+                  <div className="d-flex flex-wrap gap-2">
+                    <Input
+                      type="select"
+                      style={{ maxWidth: 180 }}
+                      value={channel}
+                      onChange={(e) => setChannel(e.target.value)}
+                    >
+                      <option value="">All channels</option>
+                      <option value="ecom">E-com</option>
+                      <option value="pos">POS</option>
+                      <option value="membership">Membership</option>
+                      <option value="booking">Booking</option>
+                      <option value="other">Other / Manual</option>
+                    </Input>
+                    <Input
+                      type="select"
+                      style={{ maxWidth: 200 }}
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
+                      <option value="">All statuses</option>
+                      <option value="posted">posted</option>
+                      <option value="partially_paid">partially_paid</option>
+                      <option value="paid">paid</option>
+                      <option value="draft">draft</option>
+                      <option value="void">void</option>
+                    </Input>
+                  </div>
                 </CardHeader>
                 <CardBody>
                   {error && (

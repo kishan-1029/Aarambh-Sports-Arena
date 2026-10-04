@@ -1,4 +1,4 @@
-import swaggerJsdoc from "swagger-jsdoc";
+﻿import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { arambhPaths } from "./swagger.arambh.paths.js";
 
@@ -14,7 +14,7 @@ const options = {
         "**Public (no login):** Health, Public, Public Shop.",
         "**Admin:** first run `POST /api/v1/auth/company/login` with `{ email, password }`. The session cookie is stored and reused.",
         "**Portal:** Authorize with the Bearer token from `/api/public/auth/login`.",
-        "**MCP:** Authorize with an `X-API-Key` from Club & Reports → MCP access.",
+        "**MCP:** Authorize with an `X-API-Key` from Club & Reports ΓåÆ MCP access.",
         "",
         "Money is integer paise. List endpoints accept `page`, `pageSize`, `sort`, `q`.",
       ].join("\n"),
@@ -46,7 +46,7 @@ const options = {
           type: "apiKey",
           in: "header",
           name: "X-API-Key",
-          description: "MCP key from Club & Reports → MCP access",
+          description: "MCP key from Club & Reports ΓåÆ MCP access",
         },
       },
       requestBodies: {
@@ -200,7 +200,7 @@ const options = {
           properties: {
             currencyName: { type: "string", example: "Indian Rupee" },
             currencyCode: { type: "string", example: "INR" },
-            currencySymbol: { type: "string", example: "₹" },
+            currencySymbol: { type: "string", example: "Γé╣" },
             isActive: { type: "boolean", default: true },
           },
         },
@@ -453,7 +453,7 @@ const options = {
     },
     security: [{ cookieAuth: [] }, { bearerAuth: [] }],
     tags: [
-      { name: "Health", description: "Public liveness / readiness — try these first" },
+      { name: "Health", description: "Public liveness / readiness ΓÇö try these first" },
       { name: "Public", description: "Website APIs. No staff login." },
       { name: "Public Shop", description: "Pro Shop catalogue" },
       { name: "Portal Auth", description: "Member login / register" },
@@ -468,7 +468,7 @@ const options = {
       { name: "Finance", description: "Invoices and payments (paise)" },
       { name: "Settings", description: "Club, locations, taxes" },
       { name: "Shop Admin", description: "Catalogue, inventory, shop orders" },
-      { name: "POS", description: "Café POS" },
+      { name: "POS", description: "Caf├⌐ POS" },
       { name: "MCP", description: "Management MCP tools" },
       { name: "Companies", description: "Company / tenant admin" },
       { name: "Countries", description: "Country master" },
@@ -486,7 +486,10 @@ const options = {
       { name: "Email Templates", description: "Email template management" },
     ],
   },
-  apis: ["./routes/v1/*.js"],
+  apis: [
+    "./routes/v1/*.js",
+    "./config/swagger-arambh.docs.js",
+  ],
 };
 
 function buildSwaggerSpec() {
@@ -529,7 +532,7 @@ export const setupSwagger = (app) => {
     res.send(swaggerSpec);
   });
 
-  console.log("📚 Swagger UI available at /api-docs");
+  console.log("≡ƒôÜ Swagger UI available at /api-docs");
 };
 
 export default swaggerSpec;

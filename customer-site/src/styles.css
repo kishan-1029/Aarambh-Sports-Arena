@@ -255,10 +255,23 @@ h1, h2, h3, h4 { text-wrap: balance; }
 }
 html[data-theme="dark"] .brand-lockup,
 html[data-theme="dark"] .footer-logo {
-  background: #fff;
-  padding: 4px 10px;
+  background: transparent;
+  padding: 0;
 }
 .brand-logo { height: 44px; width: auto; object-fit: contain; }
+/* Light theme: keep the mark compact so nav links + cart don't collide */
+html[data-theme="light"] .brand-logo,
+html:not([data-theme="dark"]) .brand-logo {
+  height: 34px;
+  max-width: 168px;
+}
+html[data-theme="dark"] .brand-logo { height: 40px; max-width: 200px; }
+.footer-logo { height: 40px; width: auto; object-fit: contain; }
+html[data-theme="light"] .footer-logo,
+html:not([data-theme="dark"]) .footer-logo {
+  height: 32px;
+  max-width: 150px;
+}
 
 .nav-links {
   display: flex;
@@ -824,7 +837,54 @@ html[data-theme="dark"] .theme-switch span { transform: translateX(22px); }
   transition: background-color var(--ease), color var(--ease);
 }
 .modal-close:hover { background: var(--soft); color: var(--green-2); }
-.auth-logo { height: 64px; margin: 0 auto 12px; }
+.auth-logo {
+  height: 64px;
+  margin: 0 auto 12px;
+  display: block;
+  object-fit: contain;
+  background: transparent;
+}
+html[data-theme="dark"] .auth-logo {
+  background: transparent;
+}
+
+/* ---------- FAQs ---------- */
+.faq-list { display: grid; gap: 28px; margin-top: 8px; }
+.faq-category h2 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+.faq-item {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.faq-q {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  padding: 16px 18px;
+  font-weight: 650;
+  font-size: 15.5px;
+  color: var(--ink);
+  background: transparent;
+}
+.faq-q span { font-size: 22px; line-height: 1; color: var(--muted); }
+.faq-a {
+  padding: 0 18px 16px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.faq-a p { margin: 0 0 8px; }
 .auth-switch { text-align: center; margin-top: 14px; color: var(--muted); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 .review-lines { display: grid; gap: 8px; }
@@ -1003,10 +1063,16 @@ html[data-theme="dark"] .theme-switch span { transform: translateX(22px); }
   border-radius: 999px;
   font-weight: 700;
   font-size: var(--fs-small);
+  flex: 0 0 auto;
+  margin-left: 6px;
+  white-space: nowrap;
   transition: background-color var(--ease), color var(--ease);
 }
 .cart-link:hover, .cart-link.active { background: var(--soft); color: var(--green-2); }
-.mobile-only .cart-link { justify-content: center; border: 1px solid var(--line); height: 46px; }
+.nav-account .cart-link .cart-label { display: none; } /* icon-only on desktop */
+.mobile-only .cart-link { justify-content: center; border: 1px solid var(--line); height: 46px; margin-left: 0; }
+.mobile-only .cart-link .cart-label { display: inline; }
+.nav-links a[href="/profile/orders"] { margin-right: 4px; }
 .cart-badge {
   min-width: 20px;
   height: 20px;

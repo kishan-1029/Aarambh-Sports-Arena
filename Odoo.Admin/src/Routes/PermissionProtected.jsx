@@ -5,77 +5,28 @@ import { AuthContext } from "../context/AuthContext";
 import { MenuContext } from "../context/MenuContext";
 
 /**
- * PermissionProtected Component
- * Enforces strict RBAC: Routes are only accessible if:
- * 1. URL maps to a registered menu item in the complete menu structure, AND
- * 2. User has read permission for that menu, OR
- * 3. Route is whitelisted (accessible to all authenticated users)
- *
- * Permission is resolved synchronously during render so route changes
- * do not flash a full-screen spinner (which looked like a page refresh).
+ * PermissionProtected — RBAC for routes.
+ * ADMIN: full access.
+ * EMPLOYEE: only MenuMaster URLs granted via EmployeeRoles (read),
+ * plus a tiny always-open set (dashboard/profile).
  */
 
-const WHITELISTED_ROUTES = [
-    "/dashboard",
-    "/profile",
-    "/",
-    // Legacy Setup / Master / CMS (restored when MenuMaster DB is incomplete)
-    "/company-details",
-    "/department",
-    "/employee",
-    "/employee-roles",
-    "/faq-category",
-    "/faq",
-    "/role-master",
-    "/menu-group",
-    "/menu-master",
-    "/country",
-    "/state",
-    "/city",
-    "/currency-master",
-    "/login-attempt-logs",
-    "/email-setup",
-    "/email-for",
-    "/email-to",
-    "/email-template",
-    "/blog-category",
-    "/blog-tag",
-    "/blog-master",
-    "/guides-gallery",
-    "/manage-guides",
-    // Arambh modules
-    "/front-desk",
-    "/courts",
-    "/courts/bookings",
-    "/members",
-    "/membership-plans",
-    "/memberships",
-    "/pos",
-    "/pos/dashboard",
-    "/pos/orders",
-    "/pos/cafes",
-    "/pos/items",
-    "/pos/menu",
-    "/shop/inventory",
-    "/crm/pipeline",
-    "/settings/mcp",
-    // E-commerce (Pro Shop)
-    "/ecommerce",
-    "/ecommerce/products",
-    "/ecommerce/categories",
-    "/ecommerce/orders",
-    "/ecommerce/inventory",
-    "/customers",
-    "/finance/invoices",
-    "/settings/payments",
-    "/settings/club",
-    "/settings/taxes",
-    "/staff",
-    "/staff/directory",
-    "/settings",
-];
+const EMPLOYEE_OPEN_ROUTES = ["/dashboard", "/profile", "/"];
 
 const normalizeUrl = (url) => url.split("?")[0].replace(/\/+$/, "") || "/";
+
+const pathMatches = (normalizedPath, route) => {
+    const normalizedRoute = normalizeUrl(route);
+    if (normalizedPath === normalizedRoute) return true;
+    // Detail children of list menus
+    if (
+        normalizedRoute !== "/" &&
+        normalizedPath.startsWith(`${normalizedRoute}/`)
+    ) {
+        return true;
+    }
+    return false;
+};
 
 const PermissionProtected = ({ children }) => {
     const { role } = useContext(AuthContext);
@@ -93,33 +44,6 @@ const PermissionProtected = ({ children }) => {
     const access = useMemo(() => {
         try {
             const normalizedPath = normalizeUrl(location.pathname);
-            const isWhitelisted = WHITELISTED_ROUTES.some((route) => {
-                const normalizedRoute = normalizeUrl(route);
-                return (
-                    normalizedPath === normalizedRoute ||
-                    normalizedPath === "/" ||
-                    // Invoice detail: /finance/invoices/:id
-                    (normalizedRoute === "/finance/invoices" &&
-                        normalizedPath.startsWith("/finance/invoices/")) ||
-                    // Member 360: /members/:id
-                    (normalizedRoute === "/members" &&
-                        normalizedPath.startsWith("/members/")) ||
-                    // Product editor: /ecommerce/products/new|:id
-                    (normalizedRoute === "/ecommerce/products" &&
-                        normalizedPath.startsWith("/ecommerce/products/")) ||
-                    // Order detail: /ecommerce/orders/:id
-                    (normalizedRoute === "/ecommerce/orders" &&
-                        normalizedPath.startsWith("/ecommerce/orders/"))
-                );
-            });
-
-            if (isWhitelisted) {
-                return { status: "allowed" };
-            }
-
-            if (!menuContext) {
-                return { status: "error", message: "MenuContext not available" };
-            }
 
             if (!role) {
                 return { status: "denied" };
@@ -129,31 +53,47 @@ const PermissionProtected = ({ children }) => {
                 return { status: "allowed" };
             }
 
+            const isOpen = EMPLOYEE_OPEN_ROUTES.some((route) =>
+                pathMatches(normalizedPath, route),
+            );
+            if (isOpen) {
+                return { status: "allowed" };
+            }
+
+            if (!menuContext) {
+                return { status: "error", message: "MenuContext not available" };
+            }
+
             const hasLoadedMenus = Boolean(menuData && menuData.length > 0);
             if (menuLoading && !hasLoadedMenus) {
                 return { status: "loading" };
             }
 
             if (typeof findMenuIdByUrlInComplete !== "function") {
-                console.error(
-                    "SECURITY: findMenuIdByUrlInComplete is not available - DENYING access"
-                );
                 return { status: "denied" };
             }
 
             if (typeof getPermissionsForMenu !== "function") {
-                console.error(
-                    "SECURITY: getPermissionsForMenu is not available - DENYING access"
-                );
                 return { status: "denied" };
             }
 
-            const menuId = findMenuIdByUrlInComplete(location.pathname);
+            // Prefer exact menu id; also accept parent list URL for detail pages
+            let menuId = findMenuIdByUrlInComplete(location.pathname);
+            if (!menuId && hasLoadedMenus) {
+                const walk = (nodes) => {
+                    for (const n of nodes || []) {
+                        if (n?.url && pathMatches(normalizedPath, n.url)) {
+                            return n.id || n.groupId || null;
+                        }
+                        const child = walk(n?.menus) || walk(n?.children);
+                        if (child) return child;
+                    }
+                    return null;
+                };
+                menuId = walk(menuData);
+            }
 
             if (!menuId) {
-                console.warn(
-                    `SECURITY: URL '${location.pathname}' is not registered in menu system - ACCESS DENIED`
-                );
                 return { status: "denied" };
             }
 
@@ -176,40 +116,19 @@ const PermissionProtected = ({ children }) => {
         findMenuIdByUrlInComplete,
     ]);
 
-    if (access.status === "error") {
-        return (
-            <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ minHeight: "50vh" }}
-            >
-                <div className="alert alert-danger">
-                    <strong>Error:</strong> {access.message}
-                    <p className="mt-2 mb-0">Check console for details</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Only block the content area while menus are loading for the first time
     if (access.status === "loading") {
-        return (
-            <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ minHeight: "50vh" }}
-            >
-                <output className="spinner-border text-primary">
-                    <span className="visually-hidden">Loading...</span>
-                </output>
-            </div>
-        );
+        return null;
     }
 
     if (access.status === "denied") {
-        console.warn(`Access DENIED to route: ${location.pathname}`);
         return <Navigate to="/dashboard" replace />;
     }
 
-    return <>{children}</>;
+    if (access.status === "error") {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return children;
 };
 
 PermissionProtected.propTypes = {
@@ -217,3 +136,4 @@ PermissionProtected.propTypes = {
 };
 
 export { PermissionProtected };
+export default PermissionProtected;

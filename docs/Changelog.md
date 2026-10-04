@@ -33,3 +33,5 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-04 · Admin UI · Grid row actions are icon-only; the action name is the tooltip. Page buttons stay labelled.
 - 2026-10-04 · Front Desk · Quick book walk-in phone must be a 10-digit Indian mobile (starts with 6–9). Same check on booking create.
 - 2026-10-04 · Merge · Merged `customer/kishan` (Pro Shop) into `phase-06-booking` alongside multi-café POS + demo staff RBAC.
+- 2026-10-04 · RBAC + site polish · Dark-theme logo (no white plate); sidebar MenuMaster ACL only (manager/ecom no longer see all menus); ecom menus seeded; finance channel bifurcation (E-com/POS/Membership) on invoices/payments/customers; public FAQs + contact thank-you email template; membership Gold/Silver benefits editable in admin and applied on site (shop/court); order status polling on customer My Orders.
+- 2026-10-04 · Fix · Admin white screen (`PermissionProtected` named export); Swagger synced for public/shop/portal/finance APIs (`/api-docs`); light-theme smaller brand logo + cart not colliding with My Orders; seeded `ops.admin@arambh.demo` + `club.admin@arambh.demo` company admins.
