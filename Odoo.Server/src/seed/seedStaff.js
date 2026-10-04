@@ -46,10 +46,14 @@ const STAFF = [
     email: 'ecom.admin@arambh.demo',
     menus: [
       '/dashboard',
+      '/ecommerce',
+      '/ecommerce/products',
+      '/ecommerce/categories',
+      '/ecommerce/orders',
+      '/ecommerce/inventory',
       '/customers',
       '/finance/invoices',
       '/settings/payments',
-      '/shop/inventory',
     ],
   },
   {

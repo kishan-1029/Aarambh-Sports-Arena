@@ -46,6 +46,22 @@ function nowLabel() {
   });
 }
 
+/** Keep an Indian mobile as up to 10 digits. +91 and a leading 0 are stripped. */
+function normalizeMobile(val) {
+  let digits = String(val || "").replace(/\D+/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  else if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return digits.slice(0, 10);
+}
+
+function mobileError(val) {
+  const digits = normalizeMobile(val);
+  if (!digits) return "Phone number is required.";
+  if (digits.length !== 10) return "Enter a valid 10-digit mobile number.";
+  if (!/^[6-9]/.test(digits)) return "Mobile number must start with 6, 7, 8 or 9.";
+  return null;
+}
+
 /** IST wall-clock → UTC ISO for booking create */
 function istSlotToUtcIso(localDate, hhmm) {
   const [y, m, d] = String(localDate || "").split("-").map(Number);
@@ -136,6 +152,7 @@ const FrontDesk = () => {
   const [slot, setSlot] = useState(null); // { court, hhmm }
   const [walkName, setWalkName] = useState("");
   const [walkPhone, setWalkPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(null);
   const [payMode, setPayMode] = useState("cash");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
@@ -269,6 +286,7 @@ const FrontDesk = () => {
     setSlot(court && hhmm ? { court, hhmm } : { court: courtCols[0] || null, hhmm: hours[0] || "18:00" });
     setWalkName("");
     setWalkPhone("");
+    setPhoneError(null);
     setPayMode("cash");
     setFormError(null);
     setDrawer(true);
@@ -304,10 +322,19 @@ const FrontDesk = () => {
       return;
     }
     const isMember = Boolean(member);
-    if (!isMember && (!walkName.trim() || !walkPhone.trim())) {
-      setFormError("Walk-in needs name and phone.");
-      return;
+    if (!isMember) {
+      const phoneErr = mobileError(walkPhone);
+      setPhoneError(phoneErr);
+      if (!walkName.trim()) {
+        setFormError("Walk-in needs a name.");
+        return;
+      }
+      if (phoneErr) {
+        setFormError(null);
+        return;
+      }
     }
+    const phone = normalizeMobile(walkPhone);
     const startUtc = istSlotToUtcIso(date, slot.hhmm);
     if (!startUtc) {
       setFormError("Pick a valid date and start time.");
@@ -328,9 +355,9 @@ const FrontDesk = () => {
         body.memberId = String(member._id);
         body.bookedByMemberId = String(member._id);
       } else {
-        body.customer = { name: walkName.trim(), phone: walkPhone.trim() };
+        body.customer = { name: walkName.trim(), phone };
       }
-      body.idempotencyKey = `fd-${slot.court._id}-${date}-${slot.hhmm}-${walkPhone.trim() || member?._id || "guest"}`;
+      body.idempotencyKey = `fd-${slot.court._id}-${date}-${slot.hhmm}-${phone || member?._id || "guest"}`;
       const res = await createBooking(body);
       const booking = res?.data?.data;
       setToast(
@@ -690,16 +717,25 @@ const FrontDesk = () => {
                     <Input
                       value={walkName}
                       onChange={(e) => setWalkName(e.target.value)}
-                      required={!member}
                     />
                   </FormGroup>
                   <FormGroup>
                     <Label>Phone</Label>
                     <Input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      placeholder="10-digit mobile"
                       value={walkPhone}
-                      onChange={(e) => setWalkPhone(e.target.value)}
-                      required={!member}
+                      invalid={Boolean(phoneError)}
+                      onChange={(e) => {
+                        setWalkPhone(normalizeMobile(e.target.value));
+                        setPhoneError(null);
+                      }}
                     />
+                    {phoneError && (
+                      <div className="invalid-feedback d-block">{phoneError}</div>
+                    )}
                   </FormGroup>
                 </>
               )}

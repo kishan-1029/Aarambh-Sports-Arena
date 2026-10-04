@@ -24,6 +24,7 @@ import {
   searchCities,
 } from "../../api/locations.api";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
@@ -35,11 +36,17 @@ import { MenuContext } from "../../context/MenuContext";
 
 const initialState = {
   countryId: "",
-  stateId:"",
-  stateName: "",
-  stateCode:"",
+  stateId: "",
+  cityName: "",
+  cityCode: "",
   isActive: false,
 };
+
+function countryKey(country) {
+  if (!country) return "";
+  if (typeof country === "object") return country._id || "";
+  return country;
+}
 
 const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
   {
@@ -72,39 +79,26 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
   {
     name: "Action",
     cell: (row) => (
-      <div className="d-flex gap-2">
-        <div className="edit">
-          {currentPagePermissions.edit && (
-          <button
-            className="btn btn-sm btn-success edit-item-btn "
-            data-bs-toggle="modal"
-            data-bs-target="#showModal"
+      <div className="grid-actions">
+        {currentPagePermissions.edit && (
+          <GridActionButton
+            label="Edit"
             onClick={() => handleTog_edit(row._id)}
-          >
-            Edit
-          </button>
-          )}
-        </div>
-
-        <div className="remove">
-          {currentPagePermissions.delete && (
-          <button
-            className="btn btn-sm btn-danger remove-item-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#deleteRecordModal"
+          />
+        )}
+        {currentPagePermissions.delete && (
+          <GridActionButton
+            label="Remove"
             onClick={() => tog_delete(row._id)}
-          >
-            Remove
-          </button>
-          )}
-          {!currentPagePermissions.edit && !currentPagePermissions.delete && (
-            <span className="text-muted">No actions available</span>
-          )}
-        </div>
+          />
+        )}
+        {!currentPagePermissions.edit && !currentPagePermissions.delete && (
+          <span className="text-muted">No actions available</span>
+        )}
       </div>
     ),
     sortable: false,
-    minWidth: "180px",
+    minWidth: "96px",
   },
 ];
 
@@ -133,19 +127,25 @@ const City = () => {
 
   const fetchCountries = ()=>{
     getAllCountries().then((res)=>{
-        setCountryList(res.data.data);
+        setCountryList(Array.isArray(res.data?.data) ? res.data.data : []);
         }).catch((err)=>{
             console.log(err);
+            setCountryList([]);
         });
   }
 
   const fetchStates = ()=>{
     getAllStates().then((res)=>{
-        setStateList(res.data.data);
+        setStateList(Array.isArray(res.data?.data) ? res.data.data : []);
         }).catch((err)=>{
             console.log(err);
+            setStateList([]);
         });
   }
+
+  const statesForCountry = stateList.filter(
+    (s) => String(countryKey(s.countryId)) === String(values.countryId || "")
+  );
 
   useEffect(() => {
     fetchCountries();
@@ -337,26 +337,25 @@ const City = () => {
       skip = 0;
     }
 
-    await searchCities({
-          skip: skip,
-          per_page: perPage,
-          sorton: column,
-          sortdir: sortDirection,
-          match: query,
-          isActive: filter,
-        })
-      .then((response) => {
-        if (response.data.data.length > 0) {
-          let res = response.data.data[0];
-          setCountries(res.data);
-          setTotalRows(response.data.data[0].count);
-          setLoading(false);
-        } else if (response.data.data.length === 0) {
-          setCountries([]);
-        }
+    try {
+      const response = await searchCities({
+        skip: skip,
+        per_page: perPage,
+        sorton: column,
+        sortdir: sortDirection,
+        match: query,
+        isActive: filter,
       });
-
-    setLoading(false);
+      const page = Array.isArray(response.data?.data) ? response.data.data[0] : null;
+      setCountries(Array.isArray(page?.data) ? page.data : []);
+      setTotalRows(page?.count || 0);
+    } catch (err) {
+      console.log(err);
+      setCountries([]);
+      setTotalRows(0);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePageChange = (page) => {
@@ -480,7 +479,7 @@ const City = () => {
                 onChange={handleChange}
               >
                 <option value={""}>Select State <span className="text-danger">*</span></option>
-                {stateList.filter(s=>values.countryId===s.countryId._id).map((c) => (
+                {statesForCountry.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.stateName}
                   </option>
@@ -589,7 +588,7 @@ const City = () => {
                 onChange={handleChange}
               >
                 <option value={""}>Select State <span className="text-danger">*</span></option>
-                {stateList.filter(s=>values.countryId===s.countryId._id).map((c) => (
+                {statesForCountry.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.stateName}
                   </option>

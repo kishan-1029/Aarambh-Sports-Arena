@@ -281,6 +281,32 @@
   box-shadow: none !important;
 }
 
+/* Grid row actions: icon only. The name is the tooltip, not the button face. */
+.grid-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+
+.grid-action-wrap {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.rdt_TableCell .btn.grid-action-btn,
+.table td .btn-sm.grid-action-btn,
+a.grid-action-btn {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px;
+  padding: 0 !important;
+  font-size: 16px !important;
+  font-weight: 400;
+  line-height: 1 !important;
+  border-radius: 8px !important;
+}
+
 .rdt_TableCell .d-flex,
 .table td .d-flex {
   flex-wrap: nowrap;

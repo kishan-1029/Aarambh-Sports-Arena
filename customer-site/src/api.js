@@ -4,7 +4,7 @@ const API =
     ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
     : import.meta.env.PROD
       ? ''
-      : 'http://localhost:7003';
+      : 'http://localhost:7002';
 
 export function mediaUrl(path) {
   if (!path) return '';
@@ -108,6 +108,50 @@ export const api = {
     request(`/api/portal/my-bookings/${encodeURIComponent(id)}/cancel`, { method: 'POST', auth: true, body: payload }),
   buyMembership: (payload) =>
     request('/api/portal/buy-membership', { method: 'POST', auth: true, body: payload }),
+
+  // Pro Shop (public catalogue — auth is optional, it unlocks member pricing)
+  shopCategories: () => request('/api/public/shop/categories'),
+  shopBrands: () => request('/api/public/shop/brands'),
+  shopProducts: (params = {}) => {
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') qs.set(key, String(value));
+    });
+    const query = qs.toString();
+    return request(`/api/public/shop/products${query ? `?${query}` : ''}`, {
+      auth: hasAuthToken(),
+    });
+  },
+  shopProduct: (slug) =>
+    request(`/api/public/shop/products/${encodeURIComponent(slug)}`, { auth: hasAuthToken() }),
+
+  // Pro Shop (signed in)
+  cart: () => request('/api/portal/cart', { auth: true }),
+  cartAdd: (payload) => request('/api/portal/cart/items', { method: 'POST', auth: true, body: payload }),
+  cartUpdate: (itemId, quantity) =>
+    request(`/api/portal/cart/items/${encodeURIComponent(itemId)}`, {
+      method: 'PATCH',
+      auth: true,
+      body: { quantity },
+    }),
+  cartRemove: (itemId) =>
+    request(`/api/portal/cart/items/${encodeURIComponent(itemId)}`, { method: 'DELETE', auth: true }),
+  cartMerge: (items) =>
+    request('/api/portal/cart/merge', { method: 'POST', auth: true, body: { items } }),
+  checkoutQuote: (fulfillmentType) =>
+    request(`/api/portal/checkout/quote?fulfillmentType=${encodeURIComponent(fulfillmentType)}`, {
+      auth: true,
+    }),
+  checkout: (payload) => request('/api/portal/checkout', { method: 'POST', auth: true, body: payload }),
+  myOrders: () => request('/api/portal/my-orders', { auth: true }),
+  myOrder: (orderNumber) =>
+    request(`/api/portal/my-orders/${encodeURIComponent(orderNumber)}`, { auth: true }),
+  cancelOrder: (orderNumber, payload) =>
+    request(`/api/portal/my-orders/${encodeURIComponent(orderNumber)}/cancel`, {
+      method: 'POST',
+      auth: true,
+      body: payload || {},
+    }),
 };
 
 export function formatPaise(paise) {

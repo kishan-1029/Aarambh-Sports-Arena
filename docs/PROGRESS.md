@@ -1,6 +1,6 @@
 # Progress — Arambh Sports Arena
 
-Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Phase 14 site live
+Current phase: 10 (online orders) — E-commerce Pro Shop live end to end; Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Phase 14 site live
 
 ## Phases
 
@@ -12,9 +12,9 @@ Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Ph
 - [x] Phase 5 — Members and membership
 - [x] Phase 6 — Courts and booking engine
 - [x] Phase 7 — Front desk (MVP)
-- [ ] Phase 8 — Catalogue, inventory, purchasing
+- [ ] Phase 8 — Catalogue, inventory, purchasing *(catalogue + inventory done via Phase 10; purchase orders outstanding)*
 - [ ] Phase 9 — POS, bar, café, KDS *(POS nav group + demo staff roles/logins; KDS/sessions/tabs later)*
-- [ ] Phase 10 — Online orders
+- [x] Phase 10 — Online orders *(Pro Shop: catalogue, cart, checkout, orders, inventory)*
 - [ ] Phase 11 — CRM, enquiries, trials, quotes
 - [ ] Phase 12 — Staff and HR
 - [ ] Phase 13 — Finance screens, dashboard, reports
@@ -35,9 +35,20 @@ Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Ph
 - **Demo URL (local):** http://localhost:3001 — API `VITE_API_URL=http://localhost:7003` (7002 held by stale process)
 
 ### Phase 8 — Catalogue, inventory, purchasing
-- [ ] Products / variants / categories
-- [ ] InventoryService.move + stock races
-- [ ] Purchase orders + admin UI
+- [x] Products / variants / categories — `src/modules/ecommerce` (embedded variants + images, soft archive)
+- [x] InventoryService.move + stock races — one shelf, guarded `$elemMatch` + `arrayFilters` decrement, `InventoryMovement` ledger
+- [ ] Purchase orders + admin UI — deferred, restocking is "Stock in" for now (ADR-0008)
+
+### Phase 10 — Online orders (Pro Shop)
+- [x] Public catalogue `/api/public/shop/*` with member-aware pricing (optional Bearer token)
+- [x] Server-priced cart `/api/portal/cart`; guest cart in `localStorage` merged on sign-in
+- [x] Transactional checkout: order number `ASA-ORD-{YYYY}-{SEQ:6}`, snapshots per line, stock posted in the same transaction
+- [x] Order state machine per fulfilment type; cancel restores stock once (`stockRestored` guard)
+- [x] Payments: only `pay_at_club` / `cash_on_delivery` while `paymentsProvider === 'mock'` — no fake gateway, nothing auto-marked paid
+- [x] Super Admin E-commerce section (dashboard, products, categories, orders, inventory) inside the existing shell
+- [x] Customer site: Shop, product detail, cart, checkout, order tracking, My Orders
+- [x] `npm run seed:shop` — 5 categories, 15 products, upsert by slug, opening-stock movements
+- [ ] Shop settings screen in Super Admin (delivery charge / free-delivery threshold are server fields today)
 
 ## Decisions & deviations
 
@@ -49,6 +60,7 @@ Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Ph
 - ADR-0004 `{ isOk }` envelope — accepted.
 - ADR-0005 hybrid server layout — accepted.
 - ADR-0006 Bootstrap admin UI kit — accepted.
+- ADR-0008 Pro Shop deducts stock at order creation (not reserve/fulfil); embedded variants/images; purchase orders deferred — accepted.
 - Phase 2: menu CRUD stays on `session.user.permissions`; Arambh strings on `stringPermissions` to avoid breaking MenuContext.
 - Phase 3: Arambh nav merged after API menus (static `arambhNav.js`); command palette is custom modal (no `cmdk`); building blocks on Bootstrap/Reactstrap.
 - Phase 4: finance under `/api/admin/*`; `customer.*` permissions added; webhook event idempotency is process-local Set (durable store later); receivables/payables UI deferred to Phase 13.
@@ -72,4 +84,5 @@ Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Ph
 - Odoo.Server: Phase 6/7 booking + pricing + concurrency suite (docs/08 §14: 50 parallel → 1 booking).
 - Odoo.Admin: Front Desk `/front-desk`, Bookings `/courts/bookings`, Courts `/courts` live (Soon badges removed).
 - Seed: Tennis/Padel/Badminton/Cricket + courts + sample booking via `npm run seed:demo`.
-- Website: `customer-site/` Vite on :3001; `/api/public/*` on API :7003 returns `{ isOk: true }`.
+- Website: `customer-site/` Vite on :3001; `/api/public/*` returns `{ isOk: true }`. Dev API base comes from `VITE_API_URL` (see `.env.example`, :7002).
+- Pro Shop manual pass: browse → pick XXL variant (+₹100) → guest cart → sign in merges cart → checkout (pickup, pay at club) → `ASA-ORD-2026-000001` → variant stock 6→5 → cancel → stock back to 6. Unauthenticated `/api/portal/*` and `/api/admin/*` shop routes all return 401.

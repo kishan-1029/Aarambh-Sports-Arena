@@ -28,6 +28,7 @@ import { recordActivity } from '../membership/activity.consumer.js';
 import { courtPrice, isPeak } from './pricing.service.js';
 import { operatingWindow, sessionUnits } from './availability.service.js';
 import { translateLockError, findAlternatives } from './conflictGuard.js';
+import { emailForBooking, notifyBookingRecord } from '../mail/transactionalMail.js';
 
 const DESK_METHODS = new Set(['cash', 'card', 'upi', 'mock', 'desk', 'free']);
 
@@ -424,6 +425,15 @@ export async function create(input, ctx = {}) {
     }).catch(() => {});
   }
 
+  await emailForBooking({
+    booking,
+    court,
+    sport,
+    member,
+    ctx,
+    customerEmail: input.customer?.email,
+  });
+
   return booking;
 }
 
@@ -442,9 +452,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
   }
 
   if (expired) {
-    // Try re-lock
     try {
-      return await withTransaction(async (session) => {
+      const confirmed = await withTransaction(async (session) => {
         await SlotLock.deleteMany({ refId: booking._id, kind: 'hold' }, { session });
         try {
           await SlotLock.insertMany(
@@ -466,6 +475,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
         await booking.save({ session });
         return booking.toObject();
       });
+      await notifyBookingRecord(confirmed, ctx);
+      return confirmed;
     } catch (err) {
       if (err?.code === 'SLOT_UNAVAILABLE') {
         throw Conflict('HOLD_EXPIRED', 'Hold expired and slot was taken; refund required', {
@@ -477,7 +488,7 @@ export async function confirmPayment(bookingId, ctx = {}) {
     }
   }
 
-  return withTransaction(async (session) => {
+  const confirmed = await withTransaction(async (session) => {
     await SlotLock.updateMany(
       { refId: booking._id, kind: 'hold' },
       { $set: { kind: 'booking' }, $unset: { expiresAt: 1 } },
@@ -496,6 +507,8 @@ export async function confirmPayment(bookingId, ctx = {}) {
     });
     return booking.toObject();
   });
+  await notifyBookingRecord(confirmed, ctx);
+  return confirmed;
 }
 
 export async function cancel(bookingId, input = {}, ctx = {}) {

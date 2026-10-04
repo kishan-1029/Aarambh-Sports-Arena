@@ -59,6 +59,12 @@ const WHITELISTED_ROUTES = [
     "/shop/inventory",
     "/crm/pipeline",
     "/settings/mcp",
+    // E-commerce (Pro Shop)
+    "/ecommerce",
+    "/ecommerce/products",
+    "/ecommerce/categories",
+    "/ecommerce/orders",
+    "/ecommerce/inventory",
     "/customers",
     "/finance/invoices",
     "/settings/payments",
@@ -97,7 +103,13 @@ const PermissionProtected = ({ children }) => {
                         normalizedPath.startsWith("/finance/invoices/")) ||
                     // Member 360: /members/:id
                     (normalizedRoute === "/members" &&
-                        normalizedPath.startsWith("/members/"))
+                        normalizedPath.startsWith("/members/")) ||
+                    // Product editor: /ecommerce/products/new|:id
+                    (normalizedRoute === "/ecommerce/products" &&
+                        normalizedPath.startsWith("/ecommerce/products/")) ||
+                    // Order detail: /ecommerce/orders/:id
+                    (normalizedRoute === "/ecommerce/orders" &&
+                        normalizedPath.startsWith("/ecommerce/orders/"))
                 );
             });
 

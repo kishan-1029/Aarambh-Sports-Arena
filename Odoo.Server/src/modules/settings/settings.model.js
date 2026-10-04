@@ -22,6 +22,9 @@ const settingsSchema = new mongoose.Schema(
     walkInMaxPerPhonePerDay: { type: Number, default: 4 },
     walkInRequiresPhone: { type: Boolean, default: true },
     lowStockDefault: { type: Number, default: 5 },
+    /** Pro Shop — delivery pricing is server-side only, never sent by the browser */
+    shopDeliveryChargePaise: { type: Number, default: 8000 },
+    shopFreeDeliveryAbovePaise: { type: Number, default: 500000 },
     invoicePrefix: { type: String, default: 'INV' },
     receiptFooter: { type: String, default: 'Thank you for visiting Arambh Sports Arena' },
     paymentsProvider: { type: String, enum: ['mock', 'razorpay'], default: 'mock' },
@@ -34,6 +37,7 @@ const settingsSchema = new mongoose.Schema(
     showBlogs: { type: Boolean, default: true },
     showTrial: { type: Boolean, default: true },
     showContact: { type: Boolean, default: true },
+    showShop: { type: Boolean, default: true },
     isDemo: { type: Boolean, default: false },
   },
   { timestamps: true },

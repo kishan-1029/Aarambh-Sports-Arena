@@ -89,6 +89,23 @@ export async function seedMasterLocations() {
   );
 
   let cityCount = 0;
+  const upsertCity = async (state, countryId, city) => {
+    await City.findOneAndUpdate(
+      { stateId: state._id, cityName: city.cityName },
+      {
+        $set: {
+          cityName: city.cityName,
+          cityCode: city.cityCode,
+          stateId: state._id,
+          countryId,
+          isActive: true,
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    cityCount += 1;
+  };
+
   for (const spec of INDIA_STATES) {
     const state = await State.findOneAndUpdate(
       { countryId: country._id, stateCode: spec.stateCode },
@@ -104,26 +121,34 @@ export async function seedMasterLocations() {
     );
 
     for (const city of spec.cities) {
-      await City.findOneAndUpdate(
-        { stateId: state._id, cityName: city.cityName },
-        {
-          $set: {
-            cityName: city.cityName,
-            cityCode: city.cityCode,
-            stateId: state._id,
-            countryId: country._id,
-            isActive: true,
-          },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-      cityCount += 1;
+      await upsertCity(state, country._id, city);
     }
   }
 
+  const seededCodes = new Set(INDIA_STATES.map((s) => s.stateCode));
+  const otherStates = await State.find({
+    isActive: true,
+    stateCode: { $nin: [...seededCodes] },
+    stateName: { $nin: [null, ''] },
+  });
+
+  for (const state of otherStates) {
+    const code = String(state.stateCode || 'ST').replace(/\s/g, '').slice(0, 3).toUpperCase();
+    const name = state.stateName;
+    const extras = [
+      { cityName: `${name} Central`, cityCode: `${code}1` },
+      { cityName: `${name} North`, cityCode: `${code}2` },
+      { cityName: `${name} South`, cityCode: `${code}3` },
+    ];
+    for (const city of extras) {
+      await upsertCity(state, state.countryId || country._id, city);
+    }
+  }
+
+  const stateCount = INDIA_STATES.length + otherStates.length;
   logger.info(
-    { country: country.countryName, states: INDIA_STATES.length, cities: cityCount },
+    { country: country.countryName, states: stateCount, cities: cityCount },
     'seeded master states and cities',
   );
-  return { country, states: INDIA_STATES.length, cities: cityCount };
+  return { country, states: stateCount, cities: cityCount };
 }

@@ -38,6 +38,18 @@ function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '').slice(-10);
 }
 
+const PREMIUM_TIERS = new Set(['gold', 'silver', 'junior']);
+
+function isPremiumMember(member) {
+  if (!member) return false;
+  if (!PREMIUM_TIERS.has(member.tierKey)) return false;
+  if (member.status !== 'active') return false;
+  if (member.membershipEndDate && new Date(member.membershipEndDate).getTime() < Date.now()) {
+    return false;
+  }
+  return true;
+}
+
 function formatUser(account, member) {
   return {
     id: String(account._id),
@@ -50,6 +62,7 @@ function formatUser(account, member) {
     tierKey: member?.tierKey || 'none',
     status: member?.status || 'active',
     membershipEndDate: member?.membershipEndDate || null,
+    premium: isPremiumMember(member),
   };
 }
 
@@ -321,17 +334,28 @@ export async function buyMembership({ accountId, planId, durationMonths = 1, pay
     source: 'website',
   };
 
-  const membership = await membershipService.purchase(
+  // Website checkout confirms immediately. Unknown methods (net banking)
+  // still capture, otherwise the plan stays unpaid and the member looks unchanged.
+  const capturedMethod = ['cash', 'card', 'upi', 'mock'].includes(paymentMethod)
+    ? paymentMethod
+    : 'upi';
+
+  const purchased = await membershipService.purchase(
     {
       memberId: account.memberId,
       planId,
       months: Number(durationMonths) || 1,
+      paymentMethod: capturedMethod,
       payment: {
-        method: paymentMethod,
+        method: capturedMethod,
       },
     },
     ctx
   );
 
-  return membership;
+  const member = await Member.findById(account.memberId).lean();
+  return {
+    ...purchased,
+    profile: formatUser(account, member),
+  };
 }

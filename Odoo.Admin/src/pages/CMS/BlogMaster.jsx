@@ -23,6 +23,7 @@ import {
 import DataTable from "react-data-table-component";
 import JoditEditor from "jodit-react";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import FormsFooter from "../../Components/Common/FormAddFooter";
 import FormUpdateFooter from "../../Components/Common/FormUpdateFooter";
@@ -559,57 +560,26 @@ const BlogMaster = () => {
       {
         name: "Actions",
         cell: (row) => (
-          <div className="d-flex align-items-center gap-1">
-            <Button
-              color="info"
-              size="sm"
-              className="btn-icon waves-effect waves-light"
-              onClick={() => handleOpenPreview(row)}
-              title="Preview Article"
-            >
-              <i className="ri-eye-fill"></i>
-            </Button>
+          <div className="grid-actions">
+            <GridActionButton label="Preview" onClick={() => handleOpenPreview(row)} />
             {row.status === "Draft" && permissions.edit && (
-              <Button
-                color="primary"
-                size="sm"
-                className="px-2 d-flex align-items-center gap-1"
-                onClick={() => handlePublish(row._id)}
-                title="Publish Article"
-                style={{ height: "28px" }}
-              >
-                <i className="ri-rocket-line"></i> Publish
-              </Button>
+              <GridActionButton label="Publish" onClick={() => handlePublish(row._id)} />
             )}
             {permissions.edit && (
-              <Button
-                color="success"
-                size="sm"
-                className="px-2 d-flex align-items-center gap-1"
-                onClick={() => handleOpenEditForm(row._id)}
-                title="Edit Article"
-                style={{ height: "28px" }}
-              >
-                <i className="ri-pencil-fill"></i> Edit
-              </Button>
+              <GridActionButton label="Edit" onClick={() => handleOpenEditForm(row._id)} />
             )}
             {permissions.delete && (
-              <Button
-                color="danger"
-                size="sm"
-                className="btn-icon waves-effect waves-light"
+              <GridActionButton
+                label="Delete"
                 onClick={() => {
                   setRemoveId(row._id);
                   setModalDelete(true);
                 }}
-                title="Delete Article"
-              >
-                <i className="ri-delete-bin-fill"></i>
-              </Button>
+              />
             )}
           </div>
         ),
-        minWidth: "220px",
+        minWidth: "150px",
       },
     ],
     [permissions, handlePublish, pageNo, perPage]

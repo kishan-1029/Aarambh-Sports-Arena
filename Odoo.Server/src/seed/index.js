@@ -45,11 +45,14 @@ import { seedMasterLocations } from './seedMasterLocations.js';
 import { seedBlogs } from './seedBlogs.js';
 import { seedCms } from './seedCms.js';
 import { seedPosCatalog } from './seedPosCatalog.js';
+import { seedShop } from './seedShop.js';
 import { PosCategory } from '../modules/pos/posCategory.model.js';
 import { PosProduct } from '../modules/pos/posProduct.model.js';
 import { PosOrder } from '../modules/pos/posOrder.model.js';
 import { PosCafe } from '../modules/pos/posCafe.model.js';
 import { PosCafeMenu } from '../modules/pos/posCafeMenu.model.js';
+import { ProductCategory } from '../modules/ecommerce/category.model.js';
+import { Product } from '../modules/ecommerce/product.model.js';
 import {
   seedExtraMembers,
   seedExtraCustomers,
@@ -104,6 +107,8 @@ async function resetDemo() {
     PosOrder,
     PosCafe,
     PosCafeMenu,
+    ProductCategory,
+    Product,
   ];
 
   for (const Model of collections) {
@@ -693,6 +698,7 @@ async function main() {
   await seedSampleBooking(courts, allMembers);
   await seedExtraBookings(courts, allMembers);
   await seedExtraLeads();
+  await seedShop();
   await seedMenus();
   await seedCms();
   await seedBlogs();

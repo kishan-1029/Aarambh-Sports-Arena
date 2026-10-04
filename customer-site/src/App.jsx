@@ -10,11 +10,18 @@ import Blogs from './pages/Blogs.jsx';
 import Booking from './pages/Booking.jsx';
 import Profile from './pages/Profile.jsx';
 import MyBookings from './pages/MyBookings.jsx';
+import MyOrders from './pages/MyOrders.jsx';
+import Shop from './pages/Shop.jsx';
+import ProductDetail from './pages/ProductDetail.jsx';
+import CartPage from './pages/Cart.jsx';
+import Checkout from './pages/Checkout.jsx';
+import OrderDetail from './pages/OrderDetail.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import { AuthProvider, useAuth } from './auth.jsx';
 import { AuthDialogProvider, useAuthDialog } from './authDialog.jsx';
+import { CartProvider, useCart } from './cart.jsx';
 import { ToastProvider } from './toast.jsx';
 import { ThemeProvider, useTheme } from './theme.jsx';
 import { api } from './api.js';
@@ -28,7 +35,20 @@ const DEFAULT_FEATURES = {
   showBlogs: true,
   showTrial: true,
   showContact: true,
+  showShop: true,
 };
+
+function CartLink({ className = '' }) {
+  const { cart } = useCart();
+  const count = cart.itemCount || 0;
+  return (
+    <NavLink to="/cart" className={`cart-link ${className}`} aria-label={`Cart, ${count} items`}>
+      <span aria-hidden="true">🛒</span>
+      <span>Cart</span>
+      {count > 0 && <span className="cart-badge">{count > 99 ? '99+' : count}</span>}
+    </NavLink>
+  );
+}
 
 function NavHeader({ features }) {
   const f = features || DEFAULT_FEATURES;
@@ -89,12 +109,14 @@ function NavHeader({ features }) {
           {f.showSports !== false && <NavLink to="/sports">Sports</NavLink>}
           {f.showAvailability !== false && <NavLink to="/availability">Availability</NavLink>}
           {f.showMembershipPlans !== false && <NavLink to="/membership">Membership</NavLink>}
+          {f.showShop !== false && <NavLink to="/shop">Shop</NavLink>}
           {f.showContact !== false && <NavLink to="/contact">Contact</NavLink>}
           {user && <NavLink to="/booking">Book Court</NavLink>}
           {user && <NavLink to="/profile/bookings">My Bookings</NavLink>}
 
           {/* Mobile only actions */}
           <div className="mobile-only">
+            {f.showShop !== false && <CartLink />}
             <button type="button" className="btn btn-secondary btn-block" onClick={toggle}>
               {theme === 'dark' ? 'Light mode' : 'Dark mode'}
             </button>
@@ -132,6 +154,7 @@ function NavHeader({ features }) {
         </nav>
 
         <div className="nav-account desktop-only">
+          {f.showShop !== false && <CartLink />}
           <button
             type="button"
             className="theme-switch"
@@ -164,6 +187,7 @@ function NavHeader({ features }) {
                   </div>
                   <Link to="/profile">Personal Profile</Link>
                   <Link to="/profile/bookings">My Bookings</Link>
+                  {f.showShop !== false && <Link to="/profile/orders">My Orders</Link>}
                   <Link to="/membership">Membership</Link>
                   <button
                     type="button"
@@ -266,6 +290,7 @@ export default function App() {
       <AuthProvider>
       <AuthDialogProvider>
         <ToastProvider>
+          <CartProvider>
           <MainLayout features={features}>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -278,6 +303,12 @@ export default function App() {
               <Route path="/booking" element={<Booking />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/bookings" element={<MyBookings />} />
+              <Route path="/profile/orders" element={<MyOrders />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/:slug" element={<ProductDetail />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders/:orderNumber" element={<OrderDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route
@@ -289,18 +320,10 @@ export default function App() {
                   />
                 }
               />
-              <Route
-                path="/shop"
-                element={
-                  <ComingSoon
-                    title="Pro Sports Shop"
-                    subtitle="Professional racket restringing, grip upgrades, performance footwear, and club apparel."
-                  />
-                }
-              />
               <Route path="*" element={<Home />} />
             </Routes>
           </MainLayout>
+          </CartProvider>
         </ToastProvider>
       </AuthDialogProvider>
       </AuthProvider>

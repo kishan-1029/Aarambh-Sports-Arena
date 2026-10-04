@@ -19,6 +19,7 @@ import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import { Can } from "../../Components/Common/Can";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { createMcpKey, listMcpKeys, revokeMcpKey } from "../../api/arambhMcp.api";
 
 const McpAccess = () => {
@@ -188,9 +189,7 @@ const McpAccess = () => {
                             </td>
                             <td className="text-end">
                               {!r.revokedAt && (
-                                <Button size="sm" color="danger" outline onClick={() => onRevoke(r.id)}>
-                                  Revoke
-                                </Button>
+                                <GridActionButton label="Revoke" onClick={() => onRevoke(r.id)} />
                               )}
                             </td>
                           </tr>

@@ -24,6 +24,7 @@ import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { Can } from "../../Components/Common/Can";
 import {
   archiveMember,
@@ -188,24 +189,19 @@ const Members = () => {
     {
       name: "Actions",
       cell: (r) => (
-        <div className="d-flex gap-1">
-          <Button size="sm" color="soft-primary" tag={Link} to={`/members/${r._id}`}>
-            Open
-          </Button>
+        <div className="grid-actions">
+          <GridActionButton label="Open" to={`/members/${r._id}`} />
           <Can anyOf={["member.edit"]}>
-            <Button
-              size="sm"
-              color="soft-danger"
+            <GridActionButton
+              label="Archive"
               disabled={busyId === r._id || r.status === "suspended"}
               onClick={() => onArchive(r)}
-            >
-              {busyId === r._id ? "…" : "Archive"}
-            </Button>
+            />
           </Can>
         </div>
       ),
       ignoreRowClick: true,
-      width: "170px",
+      width: "96px",
     },
   ];
 
