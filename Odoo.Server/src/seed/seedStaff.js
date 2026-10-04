@@ -121,8 +121,6 @@ const ARAMBH_MENU_URLS = [
   '/finance/invoices',
   '/settings/payments',
   '/shop/inventory',
-  '/settings/club',
-  '/settings/mcp',
   '/settings/taxes',
   '/staff/directory',
 ];

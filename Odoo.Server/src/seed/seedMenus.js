@@ -106,7 +106,7 @@ const GROUPS = [
     sequence: 14,
     icon: 'ri-building-line',
     menus: [
-      { menuName: 'Club & locations', menuUrl: '/settings/club', icon: 'ri-building-line', sequence: 1 },
+      { menuName: 'Club & locations', menuUrl: '/settings/club', icon: 'ri-building-line', sequence: 1, isActive: false },
       { menuName: 'Taxes', menuUrl: '/settings/taxes', icon: 'ri-percent-line', sequence: 2 },
       { menuName: 'Staff directory', menuUrl: '/staff/directory', icon: 'ri-user-settings-line', sequence: 3 },
     ],
@@ -149,7 +149,7 @@ export async function seedMenus() {
           menuGroup: group._id,
           menuUrl: m.menuUrl,
           sequence: m.sequence,
-          isActive: true,
+          isActive: m.isActive !== false,
           isParent: false,
           parentMenu: null,
           icon: m.icon || '',
@@ -172,7 +172,7 @@ export async function seedMenus() {
 
   // Drop removed screens from Menu Master
   await MenuMaster.updateMany(
-    { menuUrl: { $in: ['/kds', '/reports'] } },
+    { menuUrl: { $in: ['/kds', '/reports', '/settings/club', '/settings/mcp'] } },
     { $set: { isActive: false } },
   );
 
