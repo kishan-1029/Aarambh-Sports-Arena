@@ -22,6 +22,12 @@ const EmployeeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    /** Legacy alias — some DBs still have unique index on `email` */
+    email: {
+      type: String,
+      trim: true,
+      default: undefined,
+    },
     mobileNumber: {
       type: String,
       required: false,

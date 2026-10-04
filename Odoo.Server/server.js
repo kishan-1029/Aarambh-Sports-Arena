@@ -372,6 +372,7 @@ import blogMasterRoutes from "./routes/v1/blogMaster.routes.js";
 import faqCategoryRoutes from "./routes/v1/faqCategory.routes.js";
 import faqRoutes from "./routes/v1/faq.routes.js";
 import guideRoutes from "./routes/v1/guide.routes.js";
+import posRoutes from "./src/modules/pos/pos.routes.js";
 
 app.use("/api/v1", companiesRoutes);
 app.use("/api/v1", currenciesRoutes);
@@ -403,6 +404,7 @@ app.use("/api/admin", facilitiesRoutes);
 app.use("/api/admin", bookingRoutes);
 app.use("/api/admin", dashboardRoutes);
 app.use("/api/admin", mcpKeysRoutes);
+app.use("/api/admin", posRoutes);
 app.use("/api/mcp", mcpRoutes);
 app.use("/api/public/auth", publicAuthRouter);
 app.use("/api/public", publicRoutes);

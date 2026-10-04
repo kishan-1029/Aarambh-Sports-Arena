@@ -51,9 +51,14 @@ const WHITELISTED_ROUTES = [
     "/membership-plans",
     "/memberships",
     "/pos",
-    "/kds",
+    "/pos/dashboard",
+    "/pos/orders",
+    "/pos/cafes",
+    "/pos/items",
+    "/pos/menu",
     "/shop/inventory",
     "/crm/pipeline",
+    "/settings/mcp",
     "/customers",
     "/finance/invoices",
     "/settings/payments",
@@ -61,7 +66,6 @@ const WHITELISTED_ROUTES = [
     "/settings/taxes",
     "/staff",
     "/staff/directory",
-    "/reports",
     "/settings",
 ];
 

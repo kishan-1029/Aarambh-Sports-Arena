@@ -34,7 +34,12 @@ import Customers from "../pages/Arambh/Customers";
 import Invoices from "../pages/Arambh/Invoices";
 import InvoiceDetail from "../pages/Arambh/InvoiceDetail";
 import PaymentsSettings from "../pages/Arambh/PaymentsSettings";
-import PosPlaceholder from "../pages/Arambh/PosPlaceholder";
+import PosTerminal from "../pages/Arambh/PosTerminal";
+import PosMenu from "../pages/Arambh/PosMenu";
+import PosCafes from "../pages/Arambh/PosCafes";
+import PosItems from "../pages/Arambh/PosItems";
+import PosDashboard from "../pages/Arambh/PosDashboard";
+import PosOrders from "../pages/Arambh/PosOrders";
 import Members from "../pages/Arambh/Members";
 import MemberDetail from "../pages/Arambh/MemberDetail";
 import MembershipPlans from "../pages/Arambh/MembershipPlans";
@@ -79,7 +84,11 @@ const authProtectedRoutes = [
     { path: "/members/:id", component: <MemberDetail /> },
     { path: "/membership-plans", component: <MembershipPlans /> },
     { path: "/memberships", component: <Memberships /> },
-    { path: "/kds", component: <ComingSoon /> },
+    { path: "/pos/dashboard", component: <PosDashboard /> },
+    { path: "/pos/orders", component: <PosOrders /> },
+    { path: "/pos/cafes", component: <PosCafes /> },
+    { path: "/pos/items", component: <PosItems /> },
+    { path: "/pos/menu", component: <PosMenu /> },
     { path: "/shop/inventory", component: <ComingSoon /> },
     { path: "/crm/pipeline", component: <ComingSoon /> },
     { path: "/customers", component: <Customers /> },
@@ -91,7 +100,6 @@ const authProtectedRoutes = [
     { path: "/settings/taxes", component: <Taxes /> },
     { path: "/staff", component: <ComingSoon /> },
     { path: "/staff/directory", component: <StaffDirectory /> },
-    { path: "/reports", component: <ComingSoon /> },
     { path: "/settings", component: <ComingSoon /> },
 
     {
@@ -102,9 +110,9 @@ const authProtectedRoutes = [
     { path: "*", component: <Navigate to="/dashboard" /> },
 ];
 
-/** Fullscreen routes (no sidebar) — POS stub */
+/** Fullscreen routes (no sidebar) — café / bar POS */
 const fullscreenRoutes = [
-    { path: "/pos", component: <PosPlaceholder /> },
+    { path: "/pos", component: <PosTerminal /> },
 ];
 
 const publicRoutes = [

@@ -78,35 +78,37 @@ const GROUPS = [
     ],
   },
   {
-    menuGroupName: 'POS & Shop',
+    menuGroupName: 'POS',
     sequence: 12,
     icon: 'ri-store-2-line',
     menus: [
-      { menuName: 'POS', menuUrl: '/pos', icon: 'ri-store-2-line', sequence: 1 },
-      { menuName: 'Kitchen Display (KDS)', menuUrl: '/kds', icon: 'ri-restaurant-line', sequence: 2 },
-      { menuName: 'Shop / Inventory', menuUrl: '/shop/inventory', icon: 'ri-shopping-bag-3-line', sequence: 3 },
-      { menuName: 'CRM', menuUrl: '/crm/pipeline', icon: 'ri-customer-service-2-line', sequence: 4 },
+      { menuName: 'POS Dashboard', menuUrl: '/pos/dashboard', icon: 'ri-dashboard-line', sequence: 1 },
+      { menuName: 'POS Terminal', menuUrl: '/pos', icon: 'ri-store-2-line', sequence: 2 },
+      { menuName: "Today's orders", menuUrl: '/pos/orders', icon: 'ri-receipt-line', sequence: 3 },
+      { menuName: 'Café Master', menuUrl: '/pos/cafes', icon: 'ri-store-3-line', sequence: 4 },
+      { menuName: 'Menu Items', menuUrl: '/pos/items', icon: 'ri-cup-line', sequence: 5 },
+      { menuName: 'Café Menus', menuUrl: '/pos/menu', icon: 'ri-restaurant-2-line', sequence: 6 },
     ],
   },
   {
-    menuGroupName: 'Finance',
+    menuGroupName: 'Finance & Shop',
     sequence: 13,
     icon: 'ri-bank-line',
     menus: [
       { menuName: 'Customers', menuUrl: '/customers', icon: 'ri-contacts-book-line', sequence: 1 },
       { menuName: 'Invoices', menuUrl: '/finance/invoices', icon: 'ri-file-list-3-line', sequence: 2 },
       { menuName: 'Payments', menuUrl: '/settings/payments', icon: 'ri-bank-card-line', sequence: 3 },
+      { menuName: 'Shop inventory', menuUrl: '/shop/inventory', icon: 'ri-archive-line', sequence: 4 },
     ],
   },
   {
-    menuGroupName: 'Club & Reports',
+    menuGroupName: 'Club',
     sequence: 14,
     icon: 'ri-building-line',
     menus: [
       { menuName: 'Club & locations', menuUrl: '/settings/club', icon: 'ri-building-line', sequence: 1 },
       { menuName: 'Taxes', menuUrl: '/settings/taxes', icon: 'ri-percent-line', sequence: 2 },
       { menuName: 'Staff directory', menuUrl: '/staff/directory', icon: 'ri-user-settings-line', sequence: 3 },
-      { menuName: 'Reports', menuUrl: '/reports', icon: 'ri-bar-chart-box-line', sequence: 4 },
     ],
   },
   {
@@ -157,6 +159,22 @@ export async function seedMenus() {
       menuCount += 1;
     }
   }
+
+  // Retire obsolete commerce mega-menus / renamed groups
+  await MenuGroupMaster.updateMany(
+    {
+      menuGroupName: {
+        $in: ['POS & Shop', 'POS & Café', 'POS & Cafe', 'Club & Reports', 'Finance'],
+      },
+    },
+    { $set: { isActive: false } },
+  );
+
+  // Drop removed screens from Menu Master
+  await MenuMaster.updateMany(
+    { menuUrl: { $in: ['/kds', '/reports'] } },
+    { $set: { isActive: false } },
+  );
 
   logger.info({ groups: groupCount, menus: menuCount }, 'seeded menu groups + menus');
   return { groups: groupCount, menus: menuCount };

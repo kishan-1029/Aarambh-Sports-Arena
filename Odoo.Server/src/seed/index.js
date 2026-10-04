@@ -14,6 +14,7 @@ import { DEFAULT_TEMPLATES } from '../modules/notifications/notificationTemplate
 import { audit } from '../modules/audit/audit.service.js';
 import { ArambhRole } from '../modules/auth/role.model.js';
 import { seedArambhRoles } from '../modules/auth/seedRoles.js';
+import { seedStaff } from './seedStaff.js';
 import { Location } from '../modules/settings/location.model.js';
 import { Settings } from '../modules/settings/settings.model.js';
 import { Tax } from '../modules/settings/tax.model.js';
@@ -42,6 +43,13 @@ import { Lead } from '../modules/public/lead.model.js';
 import { seedMenus } from './seedMenus.js';
 import { seedMasterLocations } from './seedMasterLocations.js';
 import { seedBlogs } from './seedBlogs.js';
+import { seedCms } from './seedCms.js';
+import { seedPosCatalog } from './seedPosCatalog.js';
+import { PosCategory } from '../modules/pos/posCategory.model.js';
+import { PosProduct } from '../modules/pos/posProduct.model.js';
+import { PosOrder } from '../modules/pos/posOrder.model.js';
+import { PosCafe } from '../modules/pos/posCafe.model.js';
+import { PosCafeMenu } from '../modules/pos/posCafeMenu.model.js';
 import {
   seedExtraMembers,
   seedExtraCustomers,
@@ -91,6 +99,11 @@ async function resetDemo() {
     SocialSession,
     SocialParticipant,
     Lead,
+    PosCategory,
+    PosProduct,
+    PosOrder,
+    PosCafe,
+    PosCafeMenu,
   ];
 
   for (const Model of collections) {
@@ -681,9 +694,12 @@ async function main() {
   await seedExtraBookings(courts, allMembers);
   await seedExtraLeads();
   await seedMenus();
+  await seedCms();
   await seedBlogs();
+  await seedPosCatalog();
   await seedTemplates();
   await seedArambhRoles();
+  const staff = await seedStaff();
 
   await audit.record({
     actor: { type: 'system', name: 'seed' },
@@ -692,11 +708,22 @@ async function main() {
     entity: { type: 'clubSettings', id: 'default', label: 'Arambh Sports Arena' },
     after: {
       clubName: 'Aarambh Sports Arena',
-      roles: ['owner', 'manager', 'front_desk', 'bar_staff', 'finance'],
+      roles: [
+        'owner',
+        'manager',
+        'front_desk',
+        'pos_admin',
+        'ecom_admin',
+        'bar_staff',
+        'finance',
+      ],
+      staffAccounts: staff?.accounts?.map((a) => a.email) || [],
       phase4: ['location', 'taxes', 'customers', 'sampleInvoice'],
       phase5: ['plans', 'members', 'memberships'],
       phase6: ['sports', 'courts', 'sampleBooking'],
       phase7: ['frontDesk'],
+      cms: ['blogCategories', 'blogTags', 'faqs', 'guides'],
+      phase9mvp: ['posCategories', 'posProducts'],
       menus: true,
       volume: true,
     },

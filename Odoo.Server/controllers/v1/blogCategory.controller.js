@@ -18,6 +18,18 @@ const createSlug = (text = "") => {
     .replace(/\-\-+/g, "-");
 };
 
+/** Legacy CMS docs used `category` / `Title` instead of categoryName. */
+const normalizeCategory = (doc) => {
+  const o = doc?.toObject ? doc.toObject() : { ...doc };
+  const categoryName = o.categoryName || o.category || o.Title || "";
+  return {
+    ...o,
+    categoryName,
+    slug: o.slug || createSlug(categoryName),
+    isActive: o.isActive ?? o.IsActive ?? true,
+  };
+};
+
 export const createBlogCategory = async (req, res) => {
   try {
     const { categoryName, description, sequence, isActive } = req.body;
@@ -204,7 +216,7 @@ export const listAllBlogCategories = async (req, res) => {
     return res.status(200).json({
       isOk: true,
       status: 200,
-      data: categories,
+      data: categories.map(normalizeCategory),
     });
   } catch (error) {
     console.error("Error listing blog categories:", error);
@@ -224,17 +236,28 @@ export const listBlogCategoriesByParams = async (req, res) => {
     const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 10;
 
     let matchCondition = {};
-    if (isActive !== undefined && isActive !== "") {
-      matchCondition.isActive = isActive === true || isActive === "true";
+    const wantActive = isActive !== undefined && isActive !== "";
+    const activeVal = isActive === true || isActive === "true";
+    if (wantActive) {
+      matchCondition.$and = [
+        {
+          $or: activeVal
+            ? [{ isActive: true }, { IsActive: true }]
+            : [{ isActive: false }, { IsActive: false }],
+        },
+      ];
     }
 
     const safeMatch = typeof match === "string" ? match.trim() : "";
     if (safeMatch) {
       const escaped = escapeRegex(safeMatch);
-      matchCondition.$or = [
+      const textOr = [
         { categoryName: { $regex: escaped, $options: "i" } },
+        { category: { $regex: escaped, $options: "i" } },
         { description: { $regex: escaped, $options: "i" } },
       ];
+      if (matchCondition.$and) matchCondition.$and.push({ $or: textOr });
+      else matchCondition.$or = textOr;
     }
 
     const allowedFields = ["categoryName", "sequence", "isActive", "createdAt"];
@@ -253,7 +276,7 @@ export const listBlogCategoriesByParams = async (req, res) => {
       data: [
         {
           count: totalCount,
-          data: data,
+          data: data.map(normalizeCategory),
         },
       ],
     });

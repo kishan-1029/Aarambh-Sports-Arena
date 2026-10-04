@@ -15,6 +15,18 @@ const createSlug = (text = "") => {
     .replace(/\-\-+/g, "-");
 };
 
+/** Legacy CMS docs used `Title` / `IsActive`. */
+const normalizeTag = (doc) => {
+  const o = doc?.toObject ? doc.toObject() : { ...doc };
+  const tagName = o.tagName || o.Title || o.title || "";
+  return {
+    ...o,
+    tagName,
+    slug: o.slug || createSlug(tagName),
+    isActive: o.isActive ?? o.IsActive ?? true,
+  };
+};
+
 export const createBlogTag = async (req, res) => {
   try {
     const { tagName, isActive } = req.body;
@@ -164,7 +176,7 @@ export const listAllBlogTags = async (req, res) => {
     return res.status(200).json({
       isOk: true,
       status: 200,
-      data: tags,
+      data: tags.map(normalizeTag),
     });
   } catch (error) {
     console.error("Error listing blog tags:", error);
@@ -184,14 +196,24 @@ export const listBlogTagsByParams = async (req, res) => {
     const safePerPage = Number.isInteger(Number(per_page)) ? Number(per_page) : 10;
 
     let matchCondition = {};
-    if (isActive !== undefined && isActive !== "") {
-      matchCondition.isActive = isActive === true || isActive === "true";
+    const wantActive = isActive !== undefined && isActive !== "";
+    const activeVal = isActive === true || isActive === "true";
+    if (wantActive) {
+      matchCondition.$or = activeVal
+        ? [{ isActive: true }, { IsActive: true }]
+        : [{ isActive: false }, { IsActive: false }];
     }
 
     const safeMatch = typeof match === "string" ? match.trim() : "";
     if (safeMatch) {
       const escaped = escapeRegex(safeMatch);
-      matchCondition.tagName = { $regex: escaped, $options: "i" };
+      const textOr = [
+        { tagName: { $regex: escaped, $options: "i" } },
+        { Title: { $regex: escaped, $options: "i" } },
+      ];
+      matchCondition = wantActive
+        ? { $and: [{ $or: matchCondition.$or }, { $or: textOr }] }
+        : { $or: textOr };
     }
 
     const allowedFields = ["tagName", "isActive", "createdAt"];
@@ -210,7 +232,7 @@ export const listBlogTagsByParams = async (req, res) => {
       data: [
         {
           count: totalCount,
-          data: data,
+          data: data.map(normalizeTag),
         },
       ],
     });

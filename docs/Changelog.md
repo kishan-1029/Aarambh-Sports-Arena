@@ -21,3 +21,8 @@ One line per merged phase: `YYYY-MM-DD · Phase N · what shipped · PR link`.
 - 2026-10-03 · Admin dynamic · Pie charts on dashboard; Membership Plans + Courts CRUD/toggles/search; Bookings search+actions; Front Desk date picker; Club settings one-click public site flags; blog seed + public /blogs; customer-site skeletons.
 - 2026-10-03 · Phase 17 MCP · `mcp/` host (HTTP+stdio) from project360 patterns; `/api/mcp/*` + API keys (ADR-0007); admin Settings → MCP access; CONNECT.md for Claude/ChatGPT/Cursor.
 - 2026-10-03 · Deploy · Single-domain nginx+PM2 (`deploy/`): `/` site, `/admin` panel, `/api` backend, `/mcp` MCP; same-origin frontends.
+- 2026-10-04 · CMS + POS MVP · Seed/migrate BlogCategory/Tag + FAQ/Guides; legacy field normalize on list APIs; admin café POS terminal + menu (`/pos`, `/pos/menu`) with paise catalog/orders (BFS patterns, no separate POS app); `seed:demo` runs `seedCms` + `seedPosCatalog`.
+- 2026-10-04 · Multi-café POS · Removed Shop/CRM from POS nav; Café setup + per-café menus (BFS StoreMenu pattern, paise); POS picks café then sells only that menu; seed Main Café + Poolside Bar.
+- 2026-10-04 · POS Setup + terminal · Dropped POS&Shop menu group; Cafés / Menu items / Café menus under Setup; item images (upload + seed SVGs); richer POS (order type, guest/table, notes, today’s orders, image tiles).
+- 2026-10-04 · POS nav group · POS is a full sidebar group: Dashboard, Terminal, Today’s orders, Café Master, Menu Items, Café Menus, KDS (soon).
+- 2026-10-04 · Demo staff RBAC · Removed KDS/Reports pages; seeded POS Admin / Ecom Admin / Front Desk / Bar Staff / Finance / Club Manager employees (+ admin@demo.com); password `Demo@12345`.

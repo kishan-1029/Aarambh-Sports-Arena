@@ -149,6 +149,7 @@ export const ROLE_PERMISSIONS = Object.freeze({
   ]),
 
   front_desk: Object.freeze([
+    ...expand('dashboard', ['view']),
     ...expand('member', ['view', 'create', 'edit']),
     ...expand('customer', ['view', 'create', 'edit']),
     ...expand('membership', ['view', 'create']),
@@ -160,21 +161,44 @@ export const ROLE_PERMISSIONS = Object.freeze({
     ...expand('product', ['view']),
     ...expand('inventory', ['view']),
     ...expand('order', ['view', 'edit']),
-    ...expand('pos', ['create']),
-    ...expand('pos_session', ['own']),
     ...expand('lead', ['view', 'create', 'edit']),
     ...expand('payment', ['create']),
   ]),
 
+  /** POS manager — terminal + café/menu masters (not club setup) */
+  pos_admin: Object.freeze([
+    ...expand('dashboard', ['view']),
+    ...expand('member', ['view']),
+    ...expand('product', ['view', 'edit']),
+    ...expand('inventory', ['view']),
+    ...expand('pos', ['create', 'refund']),
+    ...expand('pos_session', ['view', 'own', 'approve']),
+    ...expand('payment', ['create']),
+    ...expand('order', ['view', 'edit']),
+    ...expand('customer', ['view']),
+  ]),
+
+  /** Online shop / catalogue admin (ecom) */
+  ecom_admin: Object.freeze([
+    ...expand('dashboard', ['view']),
+    ...expand('product', ['view', 'edit']),
+    ...expand('inventory', ['view', 'create', 'export', 'approve']),
+    ...expand('purchase_order', ['view', 'create', 'edit', 'approve']),
+    ...expand('order', ['view', 'edit', 'cancel', 'refund']),
+    ...expand('customer', ['view', 'create', 'edit']),
+    ...expand('invoice', ['view', 'create']),
+    ...expand('payment', ['create', 'manage']),
+    ...expand('lead', ['view', 'create', 'edit']),
+  ]),
+
   bar_staff: Object.freeze([
+    ...expand('dashboard', ['view']),
     ...expand('member', ['view']),
     ...expand('product', ['view']),
     ...expand('inventory', ['view']),
     ...expand('pos', ['create']),
     ...expand('pos_session', ['own']),
-    ...expand('kds', ['view', 'edit']),
     ...expand('payment', ['create']),
-    ...expand('report', ['view']),
   ]),
 
   finance: Object.freeze([
@@ -222,10 +246,18 @@ export function resolveArambhRoleKey(roleName) {
     club_manager: 'manager',
     front_desk: 'front_desk',
     frontdesk: 'front_desk',
+    front_desk_employee: 'front_desk',
     receptionist: 'front_desk',
+    pos_admin: 'pos_admin',
+    pos_manager: 'pos_admin',
+    cafe_admin: 'pos_admin',
+    ecom_admin: 'ecom_admin',
+    ecommerce_admin: 'ecom_admin',
+    shop_admin: 'ecom_admin',
     bar_staff: 'bar_staff',
     bar: 'bar_staff',
     cafeteria: 'bar_staff',
+    pos_cashier: 'bar_staff',
     finance: 'finance',
     accountant: 'finance',
     accounts: 'finance',

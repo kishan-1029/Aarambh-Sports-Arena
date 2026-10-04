@@ -13,7 +13,7 @@ Current phase: 8 (catalogue) — Phase 17 MCP MVP live (`mcp/` + `/api/mcp`); Ph
 - [x] Phase 6 — Courts and booking engine
 - [x] Phase 7 — Front desk (MVP)
 - [ ] Phase 8 — Catalogue, inventory, purchasing
-- [ ] Phase 9 — POS, bar, café, KDS
+- [ ] Phase 9 — POS, bar, café, KDS *(POS nav group + demo staff roles/logins; KDS/sessions/tabs later)*
 - [ ] Phase 10 — Online orders
 - [ ] Phase 11 — CRM, enquiries, trials, quotes
 - [ ] Phase 12 — Staff and HR

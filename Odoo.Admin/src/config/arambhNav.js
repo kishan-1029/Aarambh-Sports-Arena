@@ -42,18 +42,20 @@ export const ARAMBH_ROUTES = [
   { label: "Members", path: "/members", perm: "member.view", icon: "ri-group-line" },
   { label: "Membership Plans", path: "/membership-plans", perm: "membership_plan.view", icon: "ri-vip-crown-line" },
   { label: "Memberships", path: "/memberships", perm: "membership.view", icon: "ri-profile-line" },
-  { label: "POS", path: "/pos", perm: "pos.create", icon: "ri-store-2-line", comingSoon: true, fullscreen: true },
-  { label: "Kitchen Display (KDS)", path: "/kds", perm: "kds.view", icon: "ri-restaurant-line", comingSoon: true },
-  { label: "Shop / Inventory", path: "/shop/inventory", perm: "inventory.view", icon: "ri-shopping-bag-3-line", comingSoon: true },
-  { label: "CRM", path: "/crm/pipeline", perm: "lead.view", icon: "ri-customer-service-2-line", comingSoon: true },
+  { label: "POS Dashboard", path: "/pos/dashboard", perm: "pos.create", icon: "ri-dashboard-line" },
+  { label: "POS Terminal", path: "/pos", perm: "pos.create", icon: "ri-store-2-line", fullscreen: true },
+  { label: "Today's orders", path: "/pos/orders", perm: "pos.create", icon: "ri-receipt-line" },
+  { label: "Café Master", path: "/pos/cafes", perm: "product.edit", icon: "ri-store-3-line" },
+  { label: "Menu Items", path: "/pos/items", perm: "product.edit", icon: "ri-cup-line" },
+  { label: "Café Menus", path: "/pos/menu", perm: "product.edit", icon: "ri-restaurant-2-line" },
   { label: "Customers", path: "/customers", perm: "customer.view", icon: "ri-contacts-book-line" },
   { label: "Invoices", path: "/finance/invoices", perm: "invoice.view", icon: "ri-money-rupee-circle-line" },
   { label: "Payments", path: "/settings/payments", perm: "payment.manage", icon: "ri-bank-card-line" },
+  { label: "Shop inventory", path: "/shop/inventory", perm: "inventory.view", icon: "ri-archive-line", comingSoon: true },
   { label: "Club & locations", path: "/settings/club", perm: "settings.manage", icon: "ri-building-line" },
   { label: "MCP access", path: "/settings/mcp", perm: "mcp.manage", icon: "ri-robot-2-line" },
   { label: "Taxes", path: "/settings/taxes", perm: "settings.manage", icon: "ri-percent-line" },
   { label: "Staff directory", path: "/staff/directory", perm: "employee.view", icon: "ri-user-settings-line" },
-  { label: "Reports", path: "/reports", perm: "report.view", icon: "ri-bar-chart-box-line", comingSoon: true },
 ];
 
 function group(groupId, groupName, icon, menus, extra = {}) {
@@ -123,23 +125,25 @@ export function buildArambhNavGroups() {
       { name: "Membership Plans", url: "/membership-plans", icon: "ri-vip-crown-line", perm: "membership_plan.view" },
       { name: "Memberships", url: "/memberships", icon: "ri-profile-line", perm: "membership.view" },
     ]),
-    group("arambh-commerce", "POS & Shop", "ri-store-2-line", [
-      { name: "POS", url: "/pos", icon: "ri-store-2-line", perm: "pos.create", comingSoon: true },
-      { name: "Kitchen Display (KDS)", url: "/kds", icon: "ri-restaurant-line", perm: "kds.view", comingSoon: true },
-      { name: "Shop / Inventory", url: "/shop/inventory", icon: "ri-shopping-bag-3-line", perm: "inventory.view", comingSoon: true },
-      { name: "CRM", url: "/crm/pipeline", icon: "ri-customer-service-2-line", perm: "lead.view", comingSoon: true },
+    group("arambh-pos", "POS", "ri-store-2-line", [
+      { name: "POS Dashboard", url: "/pos/dashboard", icon: "ri-dashboard-line", perm: "pos.create" },
+      { name: "POS Terminal", url: "/pos", icon: "ri-store-2-line", perm: "pos.create" },
+      { name: "Today's orders", url: "/pos/orders", icon: "ri-receipt-line", perm: "pos.create" },
+      { name: "Café Master", url: "/pos/cafes", icon: "ri-store-3-line", perm: "product.edit" },
+      { name: "Menu Items", url: "/pos/items", icon: "ri-cup-line", perm: "product.edit" },
+      { name: "Café Menus", url: "/pos/menu", icon: "ri-restaurant-2-line", perm: "product.edit" },
     ]),
-    group("arambh-finance", "Finance", "ri-bank-line", [
+    group("arambh-finance", "Finance & Shop", "ri-bank-line", [
       { name: "Customers", url: "/customers", icon: "ri-contacts-book-line", perm: "customer.view" },
       { name: "Invoices", url: "/finance/invoices", icon: "ri-file-list-3-line", perm: "invoice.view" },
       { name: "Payments", url: "/settings/payments", icon: "ri-bank-card-line", perm: "payment.manage" },
+      { name: "Shop inventory", url: "/shop/inventory", icon: "ri-archive-line", perm: "inventory.view", comingSoon: true },
     ]),
-    group("arambh-club", "Club & Reports", "ri-building-line", [
+    group("arambh-club", "Club", "ri-building-line", [
       { name: "Club & locations", url: "/settings/club", icon: "ri-building-line", perm: "settings.manage" },
       { name: "MCP access", url: "/settings/mcp", icon: "ri-robot-2-line", perm: "mcp.manage" },
       { name: "Taxes", url: "/settings/taxes", icon: "ri-percent-line", perm: "settings.manage" },
       { name: "Staff directory", url: "/staff/directory", icon: "ri-user-settings-line", perm: "employee.view" },
-      { name: "Reports", url: "/reports", icon: "ri-bar-chart-box-line", perm: "report.view", comingSoon: true },
     ]),
   ];
 }
@@ -187,6 +191,8 @@ export function mergeAdminNavGroups(apiGroups = [], arambhGroups = [], legacyGro
     // Skip API groups we already covered via legacy (Setup/Master/CMS/Dashboard)
     // or via the coded Arambh nav (icons, permissions, child items).
     if (["setup", "master", "cms", "dashboard"].includes(key)) continue;
+    // Drop obsolete POS & Shop / POS & Café menu groups from MenuMaster seed
+    if (key === "pos & shop" || key === "pos & café" || key === "pos & cafe") continue;
     if (arambhNames.has(key)) continue;
     push(g);
   }

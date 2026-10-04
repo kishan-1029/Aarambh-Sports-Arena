@@ -42,10 +42,29 @@ const VerticalLayout = (props) => {
                 ...group,
                 menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
             }))
-            .filter((g) => g.isLink || (g.menus && g.menus.length > 0));
+            .filter((g) =>
+                g.isLink
+                    ? !g.perm || can(g.perm)
+                    : g.menus && g.menus.length > 0,
+            );
     }, [can]);
 
-    const legacyGroups = useMemo(() => buildLegacyNavGroups(), []);
+    const legacyGroups = useMemo(() => {
+        // Setup / Master / CMS stay for company ADMIN or staff with settings/role/employee manage
+        const canSeeAdminShell =
+            can("settings.manage") || can("role.manage") || can("employee.manage");
+        return buildLegacyNavGroups()
+            .map((group) => ({
+                ...group,
+                menus: (group.menus || []).filter((m) => !m.perm || can(m.perm)),
+            }))
+            .filter((g) => {
+                if (["Setup", "Master", "CMS"].includes(g.groupName)) {
+                    return canSeeAdminShell;
+                }
+                return true;
+            });
+    }, [can]);
 
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {
