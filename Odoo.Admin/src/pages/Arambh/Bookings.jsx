@@ -17,6 +17,7 @@ import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
 import Money from "../../Components/Common/Money";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import {
   cancelBooking,
   checkInBooking,
@@ -235,28 +236,20 @@ const Bookings = () => {
                             <Money paise={r.price?.totalPaise ?? 0} />
                           </td>
                           <td>
-                            <div className="d-flex flex-wrap gap-1">
+                            <div className="grid-actions">
                             {["held", "confirmed"].includes(r.status) && (
-                              <Button
-                                size="sm"
-                                color="success"
-                                className="me-1"
+                              <GridActionButton
+                                label="Check-in"
                                 disabled={busyId === r._id}
                                 onClick={() => runAction(r._id, "checkin")}
-                              >
-                                Check-in
-                              </Button>
+                              />
                             )}
                             {!["cancelled", "completed"].includes(r.status) && (
-                              <Button
-                                size="sm"
-                                color="danger"
-                                outline
+                              <GridActionButton
+                                label="Cancel"
                                 disabled={busyId === r._id}
                                 onClick={() => runAction(r._id, "cancel")}
-                              >
-                                Cancel
-                              </Button>
+                              />
                             )}
                             </div>
                           </td>

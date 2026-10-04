@@ -12,6 +12,7 @@ import {
   Row,
 } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DataTable from "react-data-table-component";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import FormsHeader from "../../Components/Common/FormsHeader";
@@ -886,26 +887,12 @@ MailerNameCell.propTypes = {
 };
 
 const EmailTemplateActions = ({ row, currentPagePermissions, handleTog_edit, tog_delete }) => (
-  <div className="d-flex gap-2">
+  <div className="grid-actions">
     {currentPagePermissions.edit && (
-      <button
-        className="btn btn-sm btn-success edit-item-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#showModal"
-        onClick={() => handleTog_edit(row._id)}
-      >
-        Edit
-      </button>
+      <GridActionButton label="Edit" onClick={() => handleTog_edit(row._id)} />
     )}
     {currentPagePermissions.delete && (
-      <button
-        className="btn btn-sm btn-danger remove-item-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#deleteRecordModal"
-        onClick={() => tog_delete(row._id)}
-      >
-        Remove
-      </button>
+      <GridActionButton label="Remove" onClick={() => tog_delete(row._id)} />
     )}
     {!currentPagePermissions.edit && !currentPagePermissions.delete && (
       <span className="text-muted">No actions available</span>

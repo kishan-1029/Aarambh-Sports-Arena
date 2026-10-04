@@ -15,6 +15,7 @@ import {
 } from "reactstrap";
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
@@ -257,26 +258,16 @@ const BlogTag = () => {
       {
         name: "Action",
         cell: (row) => (
-          <div className="d-flex gap-2">
+          <div className="grid-actions">
             {permissions.edit && (
-              <button
-                className="btn btn-sm btn-success edit-item-btn"
-                onClick={() => handleTog_edit(row)}
-              >
-                Edit
-              </button>
+              <GridActionButton label="Edit" onClick={() => handleTog_edit(row)} />
             )}
             {permissions.delete && (
-              <button
-                className="btn btn-sm btn-danger remove-item-btn"
-                onClick={() => tog_delete(row._id)}
-              >
-                Remove
-              </button>
+              <GridActionButton label="Remove" onClick={() => tog_delete(row._id)} />
             )}
           </div>
         ),
-        minWidth: "140px",
+        minWidth: "96px",
       },
     ],
     [permissions, pageNo, perPage]

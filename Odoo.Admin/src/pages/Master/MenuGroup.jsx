@@ -15,6 +15,7 @@ import {
 } from "reactstrap";
 import DataTable from "react-data-table-component";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import ReferenceErrorModal from "../../Components/Common/ReferenceErrorModal";
 import FormsHeader from "../../Components/Common/FormsModalHeader";
@@ -64,30 +65,18 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
   {
     name: "Action",
     cell: (row) => (
-      <div className="d-flex gap-2">
+      <div className="grid-actions">
         {currentPagePermissions.edit && (
-          <div className="edit">
-            <button
-              className="btn btn-sm btn-success edit-item-btn "
-              data-bs-toggle="modal"
-              data-bs-target="#showModal"
-              onClick={() => handleTog_edit(row._id)}
-            >
-              Edit
-            </button>
-          </div>
+          <GridActionButton
+            label="Edit"
+            onClick={() => handleTog_edit(row._id)}
+          />
         )}
         {currentPagePermissions.delete && (
-          <div className="remove">
-            <button
-              className="btn btn-sm btn-danger remove-item-btn"
-              data-bs-toggle="modal"
-              data-bs-target="#deleteRecordModal"
-              onClick={() => tog_delete(row._id)}
-            >
-              Remove
-            </button>
-          </div>
+          <GridActionButton
+            label="Remove"
+            onClick={() => tog_delete(row._id)}
+          />
         )}
         {!currentPagePermissions.edit && !currentPagePermissions.delete && (
           <span className="text-muted">No actions available</span>
@@ -95,7 +84,7 @@ const getColumns = ({ currentPagePermissions, handleTog_edit, tog_delete }) => [
       </div>
     ),
     sortable: false,
-    minWidth: "180px",
+    minWidth: "96px",
   },
 ];
 

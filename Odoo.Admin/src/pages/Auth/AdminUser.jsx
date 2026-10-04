@@ -14,6 +14,7 @@ import {
     Row,
 } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import axios from "axios";
 import DataTable from "react-data-table-component";
 
@@ -67,32 +68,19 @@ const getColumns = ({ handleTog_edit, tog_delete }) => [
     {
         name: "Action",
         cell: (row) => (
-            <div className="d-flex gap-2">
-                <div className="edit">
-                    <button
-                        className="btn btn-sm btn-success edit-item-btn "
-                        data-bs-toggle="modal"
-                        data-bs-target="#showModal"
-                        onClick={() => handleTog_edit(row._id)}
-                    >
-                        Edit
-                    </button>
-                </div>
-
-                <div className="remove">
-                    <button
-                        className="btn btn-sm btn-danger remove-item-btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteRecordModal"
-                        onClick={() => tog_delete(row._id)}
-                    >
-                        Remove
-                    </button>
-                </div>
+            <div className="grid-actions">
+                <GridActionButton
+                    label="Edit"
+                    onClick={() => handleTog_edit(row._id)}
+                />
+                <GridActionButton
+                    label="Remove"
+                    onClick={() => tog_delete(row._id)}
+                />
             </div>
         ),
         sortable: false,
-        minWidth: "180px",
+        minWidth: "96px",
     },
 ];
 

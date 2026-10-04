@@ -22,6 +22,7 @@ import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import StatusChip from "../../Components/Common/StatusChip";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { Can } from "../../Components/Common/Can";
 import { createTax, listTaxes, updateTax } from "../../api/arambhFinance.api";
 
@@ -182,9 +183,9 @@ const Taxes = () => {
       name: "",
       width: "90px",
       cell: (r) => (
-        <Button color="success" size="sm" outline onClick={() => openEdit(r)}>
-          Edit
-        </Button>
+        <div className="grid-actions">
+          <GridActionButton label="Edit" onClick={() => openEdit(r)} />
+        </div>
       ),
     },
   ];

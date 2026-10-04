@@ -17,6 +17,7 @@ import {
 import DataTable from "react-data-table-component";
 import { getLoginAttempts, resetLoginAttempts, unlockAccount, blockUser, unblockUser } from "../../api/admin.api";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { toast, ToastContainer } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 // Format date helper
@@ -189,7 +190,7 @@ const LoginAttemptLogs = () => {
         { name: "Last Login", selector: (row) => row.lastLoggedIn, sortable: true, sortField: "lastLoggedIn", minWidth: "160px", cell: (row) => formatDate(row.lastLoggedIn) },
         { name: "IP Address", selector: (row) => row.ipAddress, minWidth: "130px", cell: IpAddressCell },
         { name: "Location", selector: (row) => row.city, minWidth: "200px", cell: LocationCell },
-        { name: "Actions", minWidth: "180px", cell: (row) => <LoginAttemptActions row={row} currentUserId={currentUserId} handleUnlock={handleUnlock} handleReset={handleReset} handleUnblock={handleUnblock} handleBlock={handleBlock} /> },
+        { name: "Actions", minWidth: "140px", cell: (row) => <LoginAttemptActions row={row} currentUserId={currentUserId} handleUnlock={handleUnlock} handleReset={handleReset} handleUnblock={handleUnblock} handleBlock={handleBlock} /> },
     ], [pageNo, perPage, currentUserId]);
 
     const renderModalTitle = () => {
@@ -598,36 +599,18 @@ const LoginAttemptActions = ({
     handleUnblock,
     handleBlock,
 }) => (
-    <div className="d-flex gap-2">
+    <div className="grid-actions">
         {row.isLocked && (
-            <Button size="sm" color="success" onClick={() => handleUnlock(row)}>
-                Unlock
-            </Button>
+            <GridActionButton label="Unlock" onClick={() => handleUnlock(row)} />
         )}
         {row.attemptCount > 0 && (
-            <Button size="sm" color="warning" onClick={() => handleReset(row)}>
-                Reset
-            </Button>
+            <GridActionButton label="Reset" onClick={() => handleReset(row)} />
         )}
         {row.isActive === false && (
-            <Button
-                size="sm"
-                color="success"
-                onClick={() => handleUnblock(row)}
-                title="Unblock User"
-            >
-                <i className="ri-shield-check-line me-1"></i> Unblock
-            </Button>
+            <GridActionButton label="Unblock" onClick={() => handleUnblock(row)} />
         )}
         {row.isActive !== false && row.userId !== currentUserId && (
-            <Button
-                size="sm"
-                color="danger"
-                onClick={() => handleBlock(row)}
-                title="Block User"
-            >
-                Block
-            </Button>
+            <GridActionButton label="Block" onClick={() => handleBlock(row)} />
         )}
         {!row.isLocked && row.attemptCount === 0 && (
             <span className="text-muted">-</span>

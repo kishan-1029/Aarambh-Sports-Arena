@@ -23,6 +23,7 @@ import EmptyState from "../../Components/Common/EmptyState";
 import ErrorState from "../../Components/Common/ErrorState";
 import Skeleton from "../../Components/Common/Skeleton";
 import Money from "../../Components/Common/Money";
+import GridActionButton from "../../Components/Common/GridActionButton";
 import { Can } from "../../Components/Common/Can";
 import {
   listCourts,
@@ -361,22 +362,11 @@ const Courts = () => {
                                 <td>
                                   <Can anyOf={["court.manage"]}>
                                     {c.status !== "archived" && (
-                                      <Button
-                                        size="sm"
-                                        color={
-                                          c.status === "active"
-                                            ? "soft-warning"
-                                            : "soft-success"
-                                        }
+                                      <GridActionButton
+                                        label={c.status === "active" ? "Maintenance" : "Activate"}
                                         disabled={busyId === c._id}
                                         onClick={() => onToggleCourtStatus(c)}
-                                      >
-                                        {busyId === c._id
-                                          ? "…"
-                                          : c.status === "active"
-                                            ? "Maintenance"
-                                            : "Activate"}
-                                      </Button>
+                                      />
                                     )}
                                   </Can>
                                 </td>
