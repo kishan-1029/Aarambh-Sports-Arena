@@ -104,19 +104,16 @@ async function ensureCustomerId({ member, customer, isDemo, session }) {
     if (found) return found._id;
   }
 
-  const [created] = await Customer.create(
-    [
-      {
-        type: 'person',
-        name,
-        email,
-        phone,
-        tags: member ? ['member'] : ['walk-in'],
-        isDemo: Boolean(isDemo),
-      },
-    ],
-    { session },
-  );
+  const payload = {
+    type: 'person',
+    name,
+    phone,
+    tags: member ? ['member'] : ['walk-in'],
+    isDemo: Boolean(isDemo),
+  };
+  if (email) payload.email = email;
+
+  const [created] = await Customer.create([payload], { session });
   if (member?._id) {
     await Member.updateOne({ _id: member._id }, { $set: { customerId: created._id } }, { session });
   }
@@ -151,7 +148,7 @@ async function createCourtInvoice({ customerId, booking, price, court, session, 
       {
         number,
         kind: 'customer_invoice',
-        customerId: customerId || null,
+        customerId,
         sourceType: 'booking',
         sourceId: booking._id,
         lines,
@@ -369,6 +366,9 @@ export async function create(input, ctx = {}) {
           isDemo: input.isDemo,
           session,
         });
+        if (!customerId) {
+          throw Validation([{ path: 'customer', message: 'A customer is required before this booking can be invoiced' }]);
+        }
         invoice = await createCourtInvoice({
           customerId,
           booking: doc,
@@ -378,6 +378,7 @@ export async function create(input, ctx = {}) {
           isDemo: input.isDemo,
         });
         payment = await captureDeskPayment(invoice, paymentMode, session, ctx, input.isDemo);
+        doc.customerId = customerId;
         doc.invoiceId = invoice._id;
         doc.paymentIds = [payment._id];
         doc.paymentStatus = 'paid';

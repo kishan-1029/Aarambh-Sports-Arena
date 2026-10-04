@@ -66,19 +66,20 @@ const VerticalLayout = (props) => {
             });
     }, [can]);
 
+    const normPath = (url) =>
+        String(url || "").split("?")[0].replace(/\/+$/, "") || "/";
+
     // Find parent menu/group IDs for a given URL path
     const findParentIds = (menuItems, targetPath, parentIds = []) => {
+        const target = normPath(targetPath);
         for (const item of menuItems) {
-            // Check if this item's URL matches
-            if (item.url === targetPath) {
+            if (item.url && normPath(item.url) === target) {
                 return parentIds;
             }
-            // If this item has children, search recursively
             if (item.children && item.children.length > 0) {
                 const found = findParentIds(item.children, targetPath, [...parentIds, item.id]);
                 if (found) return found;
             }
-            // If this is a menu group with menus
             if (item.menus && item.menus.length > 0) {
                 const found = findParentIds(item.menus, targetPath, [...parentIds, item.groupId]);
                 if (found) return found;
@@ -89,25 +90,16 @@ const VerticalLayout = (props) => {
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-
-        // Auto-close vertical sidebar on mobile when navigating
         document.body.classList.remove("vertical-sidebar-enable");
 
-        // Find and expand parent menus for the current path
-        if (menuData && menuData.length > 0) {
-            const parentIds = findParentIds(menuData, path);
-            if (parentIds && parentIds.length > 0) {
-                setExpandedItems((prev) => {
-                    const newState = { ...prev };
-                    parentIds.forEach((id) => {
-                        newState[id] = true;
-                    });
-                    return newState;
-                });
-            }
-        }
-
-    }, [path, props.layoutType, menuData]);
+        const trees = [
+            ...(Array.isArray(menuData) ? menuData : []),
+            ...legacyGroups,
+            ...arambhGroups,
+        ];
+        const parentIds = findParentIds(trees, path) || [];
+        setExpandedItems(Object.fromEntries(parentIds.map((id) => [id, true])));
+    }, [path, props.layoutType, menuData, arambhGroups, legacyGroups]);
 
     // Toggle expanded state for any menu item (accordion behavior - only one open at a time per level)
     // siblingIds contains the IDs of all sibling items at the same level
@@ -235,7 +227,10 @@ const VerticalLayout = (props) => {
                     className={`nav-link menu-link${active ? " active" : ""}`}
                     to={group.url}
                     aria-current={active ? "page" : undefined}
-                    onClick={() => handleMenuItemClick(group.groupId)}
+                    onClick={() => {
+                        setExpandedItems({});
+                        handleMenuItemClick(group.groupId);
+                    }}
                 >
                     {group.icon ? <i className={group.icon}></i> : null}
                     <span data-key="t-apps">{group.groupName}</span>
